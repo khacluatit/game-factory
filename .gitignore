@@ -1,0 +1,11 @@
+factory.env
+*.p8
+*.xcodeproj/
+build/
+DerivedData/
+fastlane/report.xml
+fastlane/README.md
+Games/*/screenshots/
+*.ipa
+*.dSYM.zip
+.DS_Store

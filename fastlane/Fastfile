@@ -1,0 +1,77 @@
+# Được gọi qua scripts/ship.sh (đã nạp factory.env + game.env vào ENV).
+default_platform(:ios)
+
+platform :ios do
+  before_all do
+    @game = ENV.fetch("GAME_NAME")
+    @dir  = ENV.fetch("GAME_DIR")
+    @bid  = ENV.fetch("BUNDLE_ID")
+    @auth = "-allowProvisioningUpdates " \
+            "-authenticationKeyPath #{ENV.fetch('ASC_KEY_PATH')} " \
+            "-authenticationKeyID #{ENV.fetch('ASC_KEY_ID')} " \
+            "-authenticationKeyIssuerID #{ENV.fetch('ASC_ISSUER_ID')}"
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_PATH"]
+    )
+  end
+
+  desc "Tạo app record trên App Store Connect (cần Apple ID, chạy 1 lần/game)"
+  lane :create_app do
+    produce(
+      username: ENV.fetch("APPLE_ID"),
+      app_identifier: @bid,
+      app_name: ENV.fetch("APP_DISPLAY_NAME"),
+      language: "English",
+      app_version: ENV["MARKETING_VERSION"],
+      sku: @bid.gsub(".", "_"),
+      team_id: ENV["TEAM_ID"]
+    )
+  end
+
+  desc "Build Release + upload TestFlight"
+  lane :beta do
+    latest = begin
+      latest_testflight_build_number(app_identifier: @bid, version: ENV["MARKETING_VERSION"])
+    rescue StandardError
+      0
+    end
+    build = latest.to_i + 1
+
+    build_app(
+      project: "#{@dir}/#{@game}.xcodeproj",
+      scheme: @game,
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "#{@dir}/build",
+      clean: true,
+      xcargs: "#{@auth} CURRENT_PROJECT_VERSION=#{build} DEVELOPMENT_TEAM=#{ENV['TEAM_ID']}",
+      export_xcargs: @auth,
+      export_options: { signingStyle: "automatic", teamID: ENV["TEAM_ID"] }
+    )
+
+    upload_to_testflight(
+      app_identifier: @bid,
+      skip_waiting_for_build_processing: true
+    )
+    UI.success("🚀 #{@game} build #{build} đã lên TestFlight")
+  end
+
+  desc "Đẩy metadata + screenshots (không submit review)"
+  lane :metadata do
+    shots = "#{@dir}/screenshots"
+    deliver(
+      app_identifier: @bid,
+      app_version: ENV["MARKETING_VERSION"],
+      metadata_path: "#{@dir}/metadata",
+      screenshots_path: shots,
+      skip_screenshots: !Dir.exist?(shots),
+      overwrite_screenshots: true,
+      skip_binary_upload: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+      force: true
+    )
+  end
+end

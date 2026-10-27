@@ -1,0 +1,10 @@
+Your light is trapped in orbit around a glowing core. Meteors rain in from every side — tap to flip direction and slip between them.
+
+• One-tap control: tap to reverse your orbit
+• Every meteor that hits the core is +1, every golden star +3
+• Speed and meteor waves ramp up the longer you survive
+• Continue once per run
+• Short sessions, plays offline
+• Optional one-time purchase removes ads
+
+How long can you stay in orbit?

@@ -1,0 +1,6 @@
+__DISPLAY__ is a fast one-tap arcade game. Easy to learn, hard to master.
+
+• One-tap controls
+• Endless runs, beat your best score
+• Plays offline
+• Optional purchase to remove ads
