@@ -25,7 +25,7 @@ Dây chuyền ra game iOS bắt trend nhanh. **Claude viết code, bạn bấm d
 2. `git clone` repo này về Mac → `./setup_mac.sh`
 3. Điền `factory.env`:
    - `TEAM_ID`: developer.apple.com → Membership.
-   - **API key**: App Store Connect → Users and Access → Integrations → App Store Connect API → tạo key quyền **App Manager** → tải file `.p8` vào `~/.appstoreconnect/`.
+   - **API key**: App Store Connect → Users and Access → Integrations → App Store Connect API → tạo key quyền **Admin** (App Manager không ký được bản phát hành trên cloud) → tải file `.p8` vào `~/.appstoreconnect/`.
    - `GITHUB_PAGES_URL`: repo → Settings → Pages → Branch `main`, folder `/docs`.
 4. App Store Connect → Business: ký **Paid Apps Agreement**, khai thuế, ngân hàng. Đăng ký **Small Business Program** (phí 15%).
 5. Tạo tài khoản **AdMob**, thêm payment info.
