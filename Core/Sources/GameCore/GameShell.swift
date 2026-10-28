@@ -23,8 +23,11 @@ public struct ShellStyle {
     public var accent: Color
     public var background: Color
     public var tagline: String
-    public init(title: String, accent: Color, background: Color, tagline: String) {
+    /// Màu chữ trên menu/HUD (game nền sáng thì đổi sang màu tối).
+    public var textColor: Color
+    public init(title: String, accent: Color, background: Color, tagline: String, textColor: Color = .white) {
         self.title = title; self.accent = accent; self.background = background; self.tagline = tagline
+        self.textColor = textColor
     }
 }
 
@@ -105,12 +108,12 @@ public struct GameShell<S: ShellScene>: View {
             Spacer()
             Text(style.title)
                 .font(.system(size: 52, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(style.textColor)
                 .shadow(color: style.accent.opacity(0.8), radius: 16)
                 .multilineTextAlignment(.center)
             Text(style.tagline)
                 .font(.system(.headline, design: .rounded))
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(style.textColor.opacity(0.7))
             if save.bestScore > 0 {
                 Text("BEST \(save.bestScore)")
                     .font(.system(.title3, design: .rounded).weight(.heavy))
@@ -136,7 +139,7 @@ public struct GameShell<S: ShellScene>: View {
         VStack {
             Text("\(score)")
                 .font(.system(size: 64, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(style.textColor)
                 .shadow(radius: 8)
                 .padding(.top, 50)
                 .contentTransition(.numericText())
@@ -169,7 +172,7 @@ public struct GameShell<S: ShellScene>: View {
                 }
             }
             bigButton("PLAY AGAIN", action: play)
-            smallButton("Menu") { withAnimation { phase = .menu } }
+            smallButton("Menu", color: .white) { withAnimation { phase = .menu } }
                 .padding(.bottom, 40)
         }
         .padding(.horizontal, 24)
@@ -211,13 +214,14 @@ public struct GameShell<S: ShellScene>: View {
         }
     }
 
-    private func smallButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+    private func smallButton(_ title: String, color: Color? = nil, action: @escaping () -> Void) -> some View {
+        let c = color ?? style.textColor
+        return Button(action: action) {
             Text(title)
                 .font(.system(.subheadline, design: .rounded).weight(.bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(c)
                 .padding(.horizontal, 18).padding(.vertical, 10)
-                .background(.white.opacity(0.15), in: Capsule())
+                .background(c.opacity(0.15), in: Capsule())
         }
     }
 }

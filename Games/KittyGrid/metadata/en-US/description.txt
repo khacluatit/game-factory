@@ -1,0 +1,12 @@
+A cozy logic puzzle full of cats.
+
+Place one cat in every row, every column and every color zone — but cats are shy, so no two cats may touch, not even diagonally. Every puzzle has exactly one solution. Think, deduce, and tap!
+
+• Hundreds of hand-checked puzzles with a single solution
+• Grids grow from 5x5 to 8x8 as you improve
+• 3 hearts per puzzle — careful with guesses
+• Hints when you get stuck
+• Plays offline, no timers, no pressure
+• Optional one-time purchase removes ads
+
+Perfect for a quick brain break.
