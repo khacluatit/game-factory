@@ -65,17 +65,24 @@ platform :ios do
   desc "Đẩy metadata + screenshots (không submit review)"
   lane :metadata do
     shots = "#{@dir}/screenshots"
-    deliver(
+    common = {
       app_identifier: @bid,
       app_version: ENV["MARKETING_VERSION"],
       metadata_path: "#{@dir}/metadata",
-      screenshots_path: shots,
-      skip_screenshots: !Dir.exist?(shots),
-      overwrite_screenshots: true,
       skip_binary_upload: true,
       submit_for_review: false,
       run_precheck_before_submit: false,
       force: true
-    )
+    }
+    # 1) Screenshots trước (tách riêng để lỗi metadata không chặn ảnh)
+    if Dir.exist?(shots)
+      deliver(common.merge(screenshots_path: shots, overwrite_screenshots: true, skip_metadata: true))
+    end
+    # 2) Text metadata — app mới đôi khi bị lỗi "No data" của spaceship; không làm hỏng cả lane
+    begin
+      deliver(common.merge(skip_screenshots: true))
+    rescue StandardError => e
+      UI.important("⚠️ Metadata text lỗi (#{e.message}) — điền tay trên App Store Connect")
+    end
   end
 end
