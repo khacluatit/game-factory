@@ -89,6 +89,19 @@ jobs:
             # 50 dòng ngay trước lỗi đóng gói + log phân phối của Xcode
             awk '/Error packaging up|fastlane finished with errors/{exit} {print}' ship.log | tail -50 | grep -v "^\s*$" \
               | while IFS= read -r l; do echo "::warning::${l:0:900}"; done
+            # Chạy lại bước export trực tiếp để thấy lỗi thật của Xcode
+            ARC=$(ls -dt ~/Library/Developer/Xcode/Archives/*/*.xcarchive 2>/dev/null | head -1)
+            if [ -n "$ARC" ]; then
+              cat > /tmp/eo.plist <<PL
+          <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict><key>method</key><string>app-store-connect</string><key>signingStyle</key><string>automatic</string><key>teamID</key><string>H6772QYC2A</string></dict></plist>
+          PL
+              sed -i '' 's/^ *//' /tmp/eo.plist
+              xcodebuild -exportArchive -archivePath "$ARC" -exportPath /tmp/exp -exportOptionsPlist /tmp/eo.plist \
+                -allowProvisioningUpdates -authenticationKeyPath ~/.appstoreconnect/AuthKey.p8 \
+                -authenticationKeyID "${{ secrets.ASC_KEY_ID }}" -authenticationKeyIssuerID "${{ secrets.ASC_ISSUER_ID }}" > /tmp/exp.log 2>&1 || true
+              grep -v "^\s*$" /tmp/exp.log | tail -30 | while IFS= read -r l; do echo "::error::EXPORT ${l:0:900}"; done
+            fi
             for f in $(find "${TMPDIR:-/tmp}" /var/folders -name "IDEDistribution*.log" 2>/dev/null | head -5); do
               grep -iE "error|fail|denied|not permitted|certificate|profile|cloud" "$f" | sort -u | head -25 \
                 | while IFS= read -r l; do echo "::error::DIST ${l:0:900}"; done
