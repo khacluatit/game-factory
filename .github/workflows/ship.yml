@@ -1,0 +1,82 @@
+# Build iOS trên máy macOS của GitHub (có Xcode 26) — không cần Mac đời mới.
+# Chạy: tab Actions → "Ship game" → Run workflow → nhập tên game + lane.
+name: Ship game
+
+on:
+  workflow_dispatch:
+    inputs:
+      game:
+        description: "Tên game trong Games/ (vd OrbitDodge)"
+        required: true
+        default: OrbitDodge
+      lane:
+        description: "check = chỉ biên dịch thử | screenshots | beta = TestFlight | all = TestFlight + metadata + ảnh"
+        required: true
+        default: check
+        type: choice
+        options: [check, screenshots, beta, all]
+
+jobs:
+  ship:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Chọn Xcode 26 mới nhất
+        run: |
+          X=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$X" ] && sudo xcode-select -s "$X"
+          xcodebuild -version
+
+      - name: Cài công cụ
+        run: |
+          brew install xcodegen
+          command -v fastlane || brew install fastlane
+
+      - name: Tạo factory.env + API key từ Secrets
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          mkdir -p ~/.appstoreconnect
+          if [ -n "$ASC_KEY_P8" ]; then echo "$ASC_KEY_P8" > ~/.appstoreconnect/AuthKey.p8; fi
+          cat > factory.env <<ENV
+          TEAM_ID="${{ secrets.TEAM_ID }}"
+          BUNDLE_PREFIX="${{ vars.BUNDLE_PREFIX || 'com.example' }}"
+          GITHUB_PAGES_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
+          SUPPORT_EMAIL="${{ vars.SUPPORT_EMAIL }}"
+          ASC_KEY_ID="${{ secrets.ASC_KEY_ID }}"
+          ASC_ISSUER_ID="${{ secrets.ASC_ISSUER_ID }}"
+          ASC_KEY_PATH="$HOME/.appstoreconnect/AuthKey.p8"
+          ENV
+          chmod +x scripts/*.sh
+
+      - name: Biên dịch thử (simulator, không ký)
+        if: inputs.lane == 'check'
+        run: |
+          scripts/gen.sh "${{ inputs.game }}"
+          cd "Games/${{ inputs.game }}"
+          set -o pipefail
+          xcodebuild -project "${{ inputs.game }}.xcodeproj" -scheme "${{ inputs.game }}" \
+            -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD" || true
+          grep -q "BUILD SUCCEEDED" build.log
+
+      - name: Chụp screenshot
+        if: inputs.lane == 'screenshots' || inputs.lane == 'all'
+        run: scripts/screenshots.sh "${{ inputs.game }}"
+
+      - name: TestFlight (+ metadata)
+        if: inputs.lane == 'beta' || inputs.lane == 'all'
+        run: scripts/ship.sh "${{ inputs.game }}" "${{ inputs.lane }}"
+
+      - name: Lưu log + screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.game }}-${{ inputs.lane }}
+          path: |
+            Games/${{ inputs.game }}/build.log
+            Games/${{ inputs.game }}/screenshots/
+            Games/${{ inputs.game }}/build/*.ipa
+          if-no-files-found: ignore

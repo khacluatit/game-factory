@@ -19,6 +19,10 @@ d=json.load(sys.stdin)['devices']
 for rt,devs in d.items():
     for x in devs:
         if x['name']=='$DEVICE': print(x['udid']); sys.exit()
+# fallback: bất kỳ iPhone Pro Max nào (màn 6.9\")
+for rt,devs in sorted(d.items(), reverse=True):
+    for x in devs:
+        if 'iOS' in rt and 'Pro Max' in x['name']: print(x['udid']); sys.exit()
 ")
 [[ -n "$UDID" ]] || { echo "❌ Không thấy simulator '$DEVICE'"; exit 1; }
 
