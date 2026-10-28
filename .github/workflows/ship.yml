@@ -3,6 +3,9 @@
 name: Ship game
 
 on:
+  push:
+    branches: [main]
+    paths: ["Core/**", "Games/**", "Template/**", "scripts/**", ".github/workflows/**"]
   workflow_dispatch:
     inputs:
       game:
@@ -20,6 +23,9 @@ jobs:
   ship:
     runs-on: macos-15
     timeout-minutes: 60
+    env:
+      GAME: ${{ inputs.game || 'OrbitDodge' }}
+      LANE: ${{ inputs.lane || 'check' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -41,10 +47,10 @@ jobs:
           mkdir -p ~/.appstoreconnect
           if [ -n "$ASC_KEY_P8" ]; then echo "$ASC_KEY_P8" > ~/.appstoreconnect/AuthKey.p8; fi
           cat > factory.env <<ENV
-          TEAM_ID="${{ secrets.TEAM_ID }}"
-          BUNDLE_PREFIX="${{ vars.BUNDLE_PREFIX || 'com.example' }}"
+          TEAM_ID="${{ secrets.TEAM_ID || 'H6772QYC2A' }}"
+          BUNDLE_PREFIX="${{ vars.BUNDLE_PREFIX || 'com.beemob' }}"
           GITHUB_PAGES_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
-          SUPPORT_EMAIL="${{ vars.SUPPORT_EMAIL }}"
+          SUPPORT_EMAIL="${{ vars.SUPPORT_EMAIL || 'bm.apple.publish@gmail.com' }}"
           ASC_KEY_ID="${{ secrets.ASC_KEY_ID }}"
           ASC_ISSUER_ID="${{ secrets.ASC_ISSUER_ID }}"
           ASC_KEY_PATH="$HOME/.appstoreconnect/AuthKey.p8"
@@ -52,31 +58,36 @@ jobs:
           chmod +x scripts/*.sh
 
       - name: Biên dịch thử (simulator, không ký)
-        if: inputs.lane == 'check'
+        if: env.LANE == 'check'
         run: |
-          scripts/gen.sh "${{ inputs.game }}"
-          cd "Games/${{ inputs.game }}"
-          set -o pipefail
-          xcodebuild -project "${{ inputs.game }}.xcodeproj" -scheme "${{ inputs.game }}" \
+          scripts/gen.sh "${{ env.GAME }}"
+          cd "Games/${{ env.GAME }}"
+          xcodebuild -project "${{ env.GAME }}.xcodeproj" -scheme "${{ env.GAME }}" \
             -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD" || true
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build > build.log 2>&1 || true
+          # Đẩy lỗi thành annotation để đọc được từ Checks API
+          grep -E "^/.*: error: " build.log | sed -E "s#^$GITHUB_WORKSPACE/##" | sort -u | head -40 | while IFS= read -r l; do
+            f="${l%%:*}"; rest="${l#*:}"; ln="${rest%%:*}"; msg="${l#*error: }"
+            echo "::error file=$f,line=$ln::$msg"
+          done
+          grep -E "error:|BUILD (SUCCEEDED|FAILED)" build.log | tail -60
           grep -q "BUILD SUCCEEDED" build.log
 
       - name: Chụp screenshot
-        if: inputs.lane == 'screenshots' || inputs.lane == 'all'
-        run: scripts/screenshots.sh "${{ inputs.game }}"
+        if: env.LANE == 'screenshots' || env.LANE == 'all'
+        run: scripts/screenshots.sh "${{ env.GAME }}"
 
       - name: TestFlight (+ metadata)
-        if: inputs.lane == 'beta' || inputs.lane == 'all'
-        run: scripts/ship.sh "${{ inputs.game }}" "${{ inputs.lane }}"
+        if: env.LANE == 'beta' || env.LANE == 'all'
+        run: scripts/ship.sh "${{ env.GAME }}" "${{ env.LANE }}"
 
       - name: Lưu log + screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.game }}-${{ inputs.lane }}
+          name: ${{ env.GAME }}-${{ env.LANE }}
           path: |
-            Games/${{ inputs.game }}/build.log
-            Games/${{ inputs.game }}/screenshots/
-            Games/${{ inputs.game }}/build/*.ipa
+            Games/${{ env.GAME }}/build.log
+            Games/${{ env.GAME }}/screenshots/
+            Games/${{ env.GAME }}/build/*.ipa
           if-no-files-found: ignore
