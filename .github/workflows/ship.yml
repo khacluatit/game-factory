@@ -86,6 +86,13 @@ jobs:
             grep -E "error:|\[!\]|❌|Error|failed|No profiles|signing|Signing|Provisioning|certificate" ship.log \
               | grep -v "^\* \[" | sort -u | head -40 | while IFS= read -r l; do echo "::error::${l:0:900}"; done
             find "Games/${{ env.GAME }}/build/logs" -name "*.log" -exec sh -c 'grep -hE "error:|requires a provisioning|No Account|No signing" "$1" | sort -u | head -20 | while IFS= read -r l; do echo "::error::${l:0:900}"; done' _ {} \; 2>/dev/null || true
+            # 50 dòng ngay trước lỗi đóng gói + log phân phối của Xcode
+            awk '/Error packaging up|fastlane finished with errors/{exit} {print}' ship.log | tail -50 | grep -v "^\s*$" \
+              | while IFS= read -r l; do echo "::warning::${l:0:900}"; done
+            for f in $(find "${TMPDIR:-/tmp}" /var/folders -name "IDEDistribution*.log" 2>/dev/null | head -5); do
+              grep -iE "error|fail|denied|not permitted|certificate|profile|cloud" "$f" | sort -u | head -25 \
+                | while IFS= read -r l; do echo "::error::DIST ${l:0:900}"; done
+            done
             exit 1
           fi
 
