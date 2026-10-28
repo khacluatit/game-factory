@@ -25,6 +25,7 @@ targets:
         PRODUCT_NAME: ${GAME_NAME}
         MARKETING_VERSION: ${MARKETING_VERSION}
         CURRENT_PROJECT_VERSION: "1"
+        VERSIONING_SYSTEM: apple-generic
         DEVELOPMENT_TEAM: ${TEAM_ID}
         CODE_SIGN_STYLE: Automatic
         TARGETED_DEVICE_FAMILY: "1"

@@ -40,6 +40,7 @@ platform :ios do
       0
     end
     build = latest.to_i + 1
+    increment_build_number(build_number: build, xcodeproj: "#{@dir}/#{@game}.xcodeproj")
 
     build_app(
       project: "#{@dir}/#{@game}.xcodeproj",
@@ -49,8 +50,8 @@ platform :ios do
       output_directory: "#{@dir}/build",
       buildlog_path: "#{@dir}/build/logs",
       clean: true,
-      xcargs: "#{@auth} CURRENT_PROJECT_VERSION=#{build} DEVELOPMENT_TEAM=#{ENV['TEAM_ID']}",
-      export_xcargs: @auth,
+      # gym dùng xcargs cho cả archive lẫn export → chỉ để cờ xác thực, không để build setting
+      xcargs: @auth,
       export_options: { signingStyle: "automatic", teamID: ENV["TEAM_ID"] }
     )
 
