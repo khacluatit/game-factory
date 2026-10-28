@@ -79,7 +79,15 @@ jobs:
 
       - name: TestFlight (+ metadata)
         if: env.LANE == 'beta' || env.LANE == 'all'
-        run: scripts/ship.sh "${{ env.GAME }}" "${{ env.LANE }}"
+        run: |
+          set -o pipefail
+          if ! scripts/ship.sh "${{ env.GAME }}" "${{ env.LANE }}" 2>&1 | tee ship.log; then
+            # Đẩy các dòng lỗi thành annotation (đọc được qua Checks API)
+            grep -E "error:|\[!\]|❌|Error|failed|No profiles|signing|Signing|Provisioning|certificate" ship.log \
+              | grep -v "^\* \[" | sort -u | head -40 | while IFS= read -r l; do echo "::error::${l:0:900}"; done
+            find "Games/${{ env.GAME }}/build/logs" -name "*.log" -exec sh -c 'grep -hE "error:|requires a provisioning|No Account|No signing" "$1" | sort -u | head -20 | while IFS= read -r l; do echo "::error::${l:0:900}"; done' _ {} \; 2>/dev/null || true
+            exit 1
+          fi
 
       - name: Lưu log + screenshot
         if: always()
@@ -90,4 +98,6 @@ jobs:
             Games/${{ env.GAME }}/build.log
             Games/${{ env.GAME }}/screenshots/
             Games/${{ env.GAME }}/build/*.ipa
+            Games/${{ env.GAME }}/build/logs/
+            ship.log
           if-no-files-found: ignore

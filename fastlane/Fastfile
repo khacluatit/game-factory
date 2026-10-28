@@ -1,4 +1,6 @@
 # Được gọi qua scripts/ship.sh (đã nạp factory.env + game.env vào ENV).
+opt_out_usage
+skip_docs
 default_platform(:ios)
 
 platform :ios do
@@ -45,6 +47,7 @@ platform :ios do
       configuration: "Release",
       export_method: "app-store",
       output_directory: "#{@dir}/build",
+      buildlog_path: "#{@dir}/build/logs",
       clean: true,
       xcargs: "#{@auth} CURRENT_PROJECT_VERSION=#{build} DEVELOPMENT_TEAM=#{ENV['TEAM_ID']}",
       export_xcargs: @auth,
