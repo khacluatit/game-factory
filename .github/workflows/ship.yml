@@ -17,7 +17,7 @@ on:
         required: true
         default: check
         type: choice
-        options: [check, screenshots, beta, all]
+        options: [check, screenshots, beta, metadata, all]
 
 jobs:
   ship:
@@ -74,11 +74,11 @@ jobs:
           grep -q "BUILD SUCCEEDED" build.log
 
       - name: Chụp screenshot
-        if: env.LANE == 'screenshots' || env.LANE == 'all'
+        if: env.LANE == 'screenshots' || env.LANE == 'metadata' || env.LANE == 'all'
         run: scripts/screenshots.sh "${{ env.GAME }}"
 
       - name: TestFlight (+ metadata)
-        if: env.LANE == 'beta' || env.LANE == 'all'
+        if: env.LANE == 'beta' || env.LANE == 'metadata' || env.LANE == 'all'
         run: |
           set -o pipefail
           if ! scripts/ship.sh "${{ env.GAME }}" "${{ env.LANE }}" 2>&1 | tee ship.log; then
