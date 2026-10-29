@@ -25,9 +25,12 @@ public struct ShellStyle {
     public var tagline: String
     /// Màu chữ trên menu/HUD (game nền sáng thì đổi sang màu tối).
     public var textColor: Color
-    public init(title: String, accent: Color, background: Color, tagline: String, textColor: Color = .white) {
+    /// Che màn chơi phía sau khi đang ở menu (game puzzle có lưới dễ bị chồng chữ).
+    public var menuBackdrop: Bool
+    public init(title: String, accent: Color, background: Color, tagline: String,
+                textColor: Color = .white, menuBackdrop: Bool = false) {
         self.title = title; self.accent = accent; self.background = background; self.tagline = tagline
-        self.textColor = textColor
+        self.textColor = textColor; self.menuBackdrop = menuBackdrop
     }
 }
 
@@ -55,7 +58,7 @@ public struct GameShell<S: ShellScene>: View {
     public var body: some View {
         ZStack {
             style.background.ignoresSafeArea()
-            SpriteView(scene: scene, options: [.ignoresSiblingOrder])
+            SpriteView(scene: scene, options: [.ignoresSiblingOrder, .allowsTransparency])
                 .ignoresSafeArea()
 
             switch phase {
@@ -132,6 +135,7 @@ public struct GameShell<S: ShellScene>: View {
             .padding(.bottom, 40)
         }
         .padding(.horizontal, 24)
+        .background((style.menuBackdrop ? style.background : Color.clear).ignoresSafeArea())
         .transition(.opacity)
     }
 

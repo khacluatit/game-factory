@@ -8,7 +8,8 @@ enum Theme {
         accent: Color(red: 1.0, green: 0.62, blue: 0.70),
         background: Color(red: 0.99, green: 0.96, blue: 0.92),
         tagline: "One cat per row, column & color",
-        textColor: Color(red: 0.30, green: 0.22, blue: 0.25)
+        textColor: Color(red: 0.30, green: 0.22, blue: 0.25),
+        menuBackdrop: true
     )
 }
 
@@ -51,7 +52,8 @@ final class MainScene: SKScene, ShellScene {
     private let ink = UIColor(red: 0.30, green: 0.22, blue: 0.25, alpha: 1)
 
     override func didMove(to view: SKView) {
-        backgroundColor = .clear
+        // Nền kem cố định (không phụ thuộc trong suốt của SKView / dark mode)
+        backgroundColor = UIColor(red: 0.99, green: 0.96, blue: 0.92, alpha: 1)
         Sound.host = self
         addChild(board)
 
