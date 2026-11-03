@@ -285,7 +285,6 @@
       const base = mesh(new THREE.CylinderGeometry(0.34, 0.26, 0.08, 16), petal2, 0, 0.02, 0, false, g);
       for (let k = 0; k < 8; k++) { const ang = k / 8 * Math.PI * 2; const pt = mesh(new THREE.SphereGeometry(0.13, 10, 8), petalMat, Math.cos(ang) * 0.17, 0.14, Math.sin(ang) * 0.17, false, g); pt.scale.set(0.6, 1.5, 0.45); pt.rotation.y = -ang; pt.rotation.z = 0.45; }
       const f = new THREE.Sprite(new THREE.SpriteMaterial({ map: flameTex, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); f.position.y = 0.3; f.scale.set(0.3, 0.4, 1); g.add(f);
-      const gl = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.5 })); gl.position.y = 0.2; gl.scale.set(1.6, 1.6, 1); g.add(gl);
       base.userData.o = o; pondLanterns.push({ g, o, a, r, seed: Math.random() * 6 });
     });
   }
@@ -293,7 +292,7 @@
   const moon = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), new THREE.MeshBasicMaterial({ color: '#F3E6C4', fog: false })); moon.position.set(5.5, 6.5, 36); moon.lookAt(0, 4.6, 10.6); scene.add(moon);
   const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F3E6C4', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.5 })); moonGlow.position.copy(moon.position); moonGlow.scale.set(12, 12, 1); scene.add(moonGlow);
   const moonRef = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F3E6C4', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.35 })); moonRef.position.set(1.6, 0.08, 21.5); moonRef.scale.set(1.2, 0.35, 1); scene.add(moonRef);
-  const flies = []; for (let i = 0; i < 24; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F6E27A', blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); s.scale.set(0.25, 0.25, 1); scene.add(s); flies.push({ s, a: Math.random() * 6.28, r: 2 + Math.random() * 6, h: 0.4 + Math.random() * 1.6, sp: 0.1 + Math.random() * 0.25 }); }
+  const flies = []; for (let i = 0; i < 24; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F6E27A', blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); s.scale.set(0.25, 0.25, 1); scene.add(s); flies.push({ s, a: Math.random() * 6.28, r: 1.5 + Math.random() * 3.5, h: 0.4 + Math.random() * 1.6, sp: 0.1 + Math.random() * 0.25 }); }
 
   // ---------------- cushions & avatars ----------------
   const cushions = [], cushMat = std('#8A2B1F', { roughness: 0.9 });
@@ -313,7 +312,7 @@
   const freeCushions = () => cushions.filter(c => !c.userData.taken);
   const rnd = a => a[Math.floor(Math.random() * a.length)];
   function npcTarget() {
-    const p = phase(); let n = { dawn: 4, day: 5, dusk: 6, night: 1 }[p];
+    const p = phase(); let n = { dawn: 4, day: 5, dusk: 6, night: 3 }[p];
     if (inRitual()) n = 12; if (moonDay()) n = Math.round(n * 1.5);
     if (SHOT === 'pond' || SHOT === 'journal') n = 6; else if (SHOT) n = 9;
     return Math.min(n, 16);
@@ -349,7 +348,7 @@
     dawn: { win: '#F4C08E', sun: '#FFC9A0', si: 1.2, amb: 0.28, fog: '#2A1A16', sky: '#C98E7A', fd: 0.04, shaft: 0.2, lamp: 0.9, out: 0.8, water: '#5A6A7A' },
     day: { win: '#F6E3B8', sun: '#FFF0D0', si: 1.6, amb: 0.36, fog: '#2A1A14', sky: '#9DB4C4', fd: 0.035, shaft: 0.18, lamp: 0.6, out: 1.4, water: '#4E6E80' },
     dusk: { win: '#F2A860', sun: '#FFB070', si: 1.4, amb: 0.2, fog: '#1A0D0A', sky: '#D9875A', fd: 0.045, shaft: 0.24, lamp: 1.0, out: 0.9, water: '#3C4A5C' },
-    night: { win: '#2B3656', sun: '#6A7FB0', si: 0.15, amb: 0.12, fog: '#0E0A0C', sky: '#141A2C', fd: 0.05, shaft: 0.0, lamp: 1.5, out: 0.25, water: '#1C2A3A' }
+    night: { win: '#2B3656', sun: '#6A7FB0', si: 0.15, amb: 0.17, fog: '#0E0A0C', sky: '#141A2C', fd: 0.05, shaft: 0.0, lamp: 1.5, out: 0.25, water: '#1C2A3A' }
   };
   let curPhase = null;
   function applyPhase(force) {
@@ -513,9 +512,11 @@
     S.today.litAt = Date.now(); practiced(); tipMat.color.set('#FF7A3A'); Audio.bell(0.7); haptic('soft'); toast(T.incenseLit); save();
   }
   $('bPond').addEventListener('click', () => { Audio.unlock(); goPond(); });
-  $('bEnter').addEventListener('click', () => { mode = 'hall'; applyFog(); pondUI.hidden = true; hallUI.hidden = false; renderTop(); });
+  $('bEnter').addEventListener('click', goHall);
   $('bLantern').addEventListener('click', () => openOffer('lantern'));
-  function goPond() { if (mode === 'sit') stand(); mode = 'pond'; applyFog(); hallUI.hidden = true; sitUI.hidden = true; pondUI.hidden = false; renderStatic(); }
+  function fadeTo(fn) { const f = $('fade'); f.style.opacity = '1'; setTimeout(() => { fn(); snapCam = true; setTimeout(() => { f.style.opacity = '0'; }, 120); }, 320); }
+  function goPond() { fadeTo(() => { if (mode === 'sit') stand(); mode = 'pond'; applyFog(); hallUI.hidden = true; sitUI.hidden = true; pondUI.hidden = false; renderStatic(); }); }
+  function goHall() { fadeTo(() => { mode = 'hall'; applyFog(); pondUI.hidden = true; hallUI.hidden = false; renderTop(); }); }
 
   // ---------------- sheets ----------------
   const wrap = $('sheetWrap'), sheet = $('sheet');
@@ -686,7 +687,7 @@
     if (u.bowT <= 0) { u.pivot.rotation.x = 0; u.small = false; }
   }
   const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
-  let slowT = 0, ritualBeat = 0, ambT = 0;
+  let slowT = 0, ritualBeat = 0, ambT = 0, snapCam = false;
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
     for (const f of flames) { const k = (f.mult || 1) * (0.85 + 0.15 * Math.sin(t * 9 + f.seed) * Math.sin(t * 4.3 + f.seed * 2)); f.l.intensity = f.base * k; if (f.sp) f.sp.scale.set(0.32 + 0.04 * Math.sin(t * 11 + f.seed), 0.48 + 0.06 * Math.sin(t * 7 + f.seed), 1); }
@@ -735,7 +736,7 @@
     if (mode === 'sit' && playerCushion) { camPos.set(playerCushion.userData.x * 0.5 + 0.7, 2.4, playerCushion.userData.z + 3.8); camTarget.set(playerCushion.userData.x * 0.3, 1.6, -8); }
     else if (mode === 'pond') { camPos.set(0, 4.6, 10.6); camTarget.set(0, 0.4, 18.5); }
     else { camPos.set(0, 2.9, 8.6); camTarget.set(0, 1.7, -6); }
-    const k = SHOT ? 1 : 1 - Math.pow(0.03, dt);
+    const k = (SHOT || snapCam) ? 1 : 1 - Math.pow(0.03, dt); snapCam = false;
     camAt.lerp(camPos, k); camLook.lerp(camTarget, k);
     camera.position.copy(camAt).add(tmp2.set(Math.sin(t * 0.15) * 0.12, Math.sin(t * 0.2) * 0.04, 0));
     const look = camLook.clone().sub(camera.position), sph = new THREE.Spherical().setFromVector3(look);
@@ -756,7 +757,7 @@
   for (let i = 0; i < npcTarget(); i++) spawnSeated();
   renderTop(); renderStatic(); updateBanner(); applyRobe();
   if (SHOT === 'sit') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); player.userData.bowT = 1.1; }
-  else if (SHOT === 'pond') goPond();
+  else if (SHOT === 'pond') { mode = 'pond'; applyFog(); hallUI.hidden = true; pondUI.hidden = false; renderStatic(); }
   else if (SHOT === 'journal') openJournal();
   else if (!S.onboarded) onboarding(0);
   if (!SHOT) schedule();
