@@ -19,6 +19,9 @@ on:
         type: choice
         options: [check, screenshots, beta, metadata, all]
 
+permissions:
+  contents: write
+
 jobs:
   ship:
     runs-on: macos-15
@@ -121,6 +124,16 @@ jobs:
             done
             exit 1
           fi
+
+      - name: Đẩy screenshot lên nhánh shots/<game> (để Claude xem được)
+        if: env.LANE == 'screenshots' || env.LANE == 'metadata' || env.LANE == 'all'
+        run: |
+          D="Games/${{ env.GAME }}/screenshots"
+          [ -d "$D" ] || exit 0
+          TMP=$(mktemp -d); cp -R "$D" "$TMP/"
+          cd "$TMP" && git init -q && git checkout -q -b "shots/${{ env.GAME }}"
+          git -c user.name=ci -c user.email=ci@local add -A && git -c user.name=ci -c user.email=ci@local commit -q -m "screenshots ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "shots/${{ env.GAME }}"
 
       - name: Lưu log + screenshot
         if: always()
