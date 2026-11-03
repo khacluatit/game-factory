@@ -28,6 +28,19 @@ jobs:
       LANE: ${{ inputs.lane || 'check' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Chọn game + lane khi push (game vừa sửa; lane lấy từ "[ship:lane]" trong commit message)
+        if: github.event_name == 'push'
+        env:
+          MSG: ${{ github.event.head_commit.message }}
+        run: |
+          G=$(git diff --name-only HEAD~1 HEAD | sed -n 's#^Games/\([^/]*\)/.*#\1#p' | head -1)
+          [ -n "$G" ] && echo "GAME=$G" >> "$GITHUB_ENV"
+          L=$(printf '%s' "$MSG" | sed -n 's/.*\[ship:\([a-z]*\)\].*/\1/p' | head -1)
+          case "$L" in check|screenshots|beta|metadata|all) echo "LANE=$L" >> "$GITHUB_ENV" ;; esac
+          echo "game=${G:-$GAME} lane=${L:-$LANE}"
 
       - name: Chọn Xcode 26 mới nhất
         run: |

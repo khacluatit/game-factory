@@ -36,6 +36,25 @@ APP=$(find build/Build/Products -name "$GAME_NAME.app" -maxdepth 3 | head -1)
 xcrun simctl install "$UDID" "$APP"
 xcrun simctl terminate "$UDID" "$BUNDLE_ID" 2>/dev/null || true
 
+# App tự định nghĩa danh sách ảnh (SHOT_LIST trong game.env): mở app với -shot <tên> rồi chụp
+if [[ -n "${SHOT_LIST:-}" ]]; then
+  # SHOT_LANGS="en-US:en vi:vi" → thư mục metadata : mã ngôn ngữ cho app
+  for pair in ${SHOT_LANGS:-en-US:en}; do
+    dir="${pair%%:*}"; lang="${pair##*:}"
+    LOUT="$GAME_DIR/screenshots/$dir"; mkdir -p "$LOUT"; rm -f "$LOUT"/*.png
+    i=1
+    for s in $SHOT_LIST; do
+      xcrun simctl launch "$UDID" "$BUNDLE_ID" -shot "$s" -AppleLanguages "($lang)" -AppleLocale "$lang" >/dev/null
+      sleep "${SHOT_WAIT:-10}"
+      xcrun simctl io "$UDID" screenshot "$LOUT/0${i}_${s}.png"
+      xcrun simctl terminate "$UDID" "$BUNDLE_ID" || true
+      i=$((i+1))
+    done
+  done
+  echo "✅ Screenshots: $GAME_DIR/screenshots"
+  exit 0
+fi
+
 # Ảnh 1: menu
 xcrun simctl launch "$UDID" "$BUNDLE_ID" -screenshotModeMenu >/dev/null
 sleep 3; xcrun simctl io "$UDID" screenshot "$OUT/01_menu.png"
