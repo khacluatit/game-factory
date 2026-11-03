@@ -40,6 +40,8 @@ jobs:
           MSG: ${{ github.event.head_commit.message }}
         run: |
           G=$(git diff --name-only HEAD~1 HEAD | sed -n 's#^Games/\([^/]*\)/.*#\1#p' | head -1)
+          GT=$(printf '%s' "$MSG" | sed -n 's/.*\[game:\([A-Za-z0-9]*\)\].*/\1/p' | head -1)
+          [ -n "$GT" ] && G="$GT"
           [ -n "$G" ] && echo "GAME=$G" >> "$GITHUB_ENV"
           L=$(printf '%s' "$MSG" | sed -n 's/.*\[ship:\([a-z]*\)\].*/\1/p' | head -1)
           case "$L" in check|screenshots|beta|metadata|all) echo "LANE=$L" >> "$GITHUB_ENV" ;; esac
