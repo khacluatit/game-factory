@@ -197,6 +197,7 @@
   const bellG = new THREE.Group(); bellG.position.set(-3.0, 0, -6.6); scene.add(bellG);
   mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8), darkWood, 0, 0.5, 0, true, bellG);
   mesh(new THREE.CylinderGeometry(0.28, 0.36, 0.38, 24, 1, true), std('#6E5430', { metalness: 0.7, roughness: 0.4, side: THREE.DoubleSide }), 0, 1.2, 0, true, bellG);
+  let bellSwing = 0; const bellBody = bellG.children[1];
   const mok = mesh(new THREE.SphereGeometry(0.28, 20, 14), std('#7A3A1E', { roughness: 0.5 }), 3.0, 0.62, -6.6); mok.scale.set(1.2, 0.8, 1);
   mesh(new THREE.CylinderGeometry(0.35, 0.4, 0.45, 16), darkWood, 3.0, 0.22, -6.6);
 
@@ -385,6 +386,8 @@
       if (hit) { let o = hit.object; while (o.parent && o.parent !== pondLanternG) o = o.parent; const pl = pondLanterns.find(p => p.g === o); if (pl) showTag(pl.g, pl.o.name + ' · ' + T.wishes[pl.o.wish] + ' · ' + T.hoursLeft(Math.max(1, Math.round((pl.o.until - Date.now()) / 3600e3)))); }
       return;
     }
+    const inst = ray.intersectObjects([bellG, mok], true)[0];
+    if (inst && mode !== 'pond') { Audio.unlock(); let o = inst.object; while (o.parent && o !== bellG && o !== mok) o = o.parent; if (o === bellG) { Audio.bigBell(); bellSwing = 1; haptic('soft'); } else { Audio.moktak(true); haptic('light'); } return; }
     const avHit = ray.intersectObjects(npcs, true)[0];
     if (avHit) { let o = avHit.object; while (o.parent && !npcs.includes(o)) o = o.parent; showTag(o, T.pilgrim + ' · ' + o.userData.name); return; }
     if (mode !== 'hall') return;
@@ -452,7 +455,7 @@
   }
   function practiced() { rollDay(); markVisit(); }
   function complete108() {
-    S.lotus++; renderLotus(); renderStatic(); Audio.bell(2.2); haptic('success');
+    S.lotus++; renderLotus(); renderStatic(); Audio.bell(2.2); setTimeout(() => Audio.bellRoll(), 2500); haptic('success');
     toast(T.lotusBloom);
     if (!S.today.prompted) { S.today.prompted = true; setTimeout(() => toast(T.offerToast, [[T.items.lantern + ' · ' + price.lantern, () => buy('lantern', 0), 'gold'], [T.later, null]]), 2800); }
     save();
@@ -642,26 +645,82 @@
 
   // ---------------- audio ----------------
   const Audio = (() => {
-    let ac = null, amb = null, unlocked = false;
+    let ac = null, amb = null, unlocked = false, master = null, wet = null, roll = null;
     const on = () => S.settings.effects && ac;
-    function ctx() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } } return ac; }
-    function env(node, peak, dur, dest) { const g = ac.createGain(); g.gain.setValueAtTime(0.0001, ac.currentTime); g.gain.exponentialRampToValueAtTime(peak, ac.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur); node.connect(g); g.connect(dest || ac.destination); return g; }
-    function noiseBuf(sec) { const b = ac.createBuffer(1, ac.sampleRate * sec, ac.sampleRate), d = b.getChannelData(0); let last = 0; for (let i = 0; i < d.length; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; } return b; }
+    function ctx() {
+      if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+      if (ac && !master) {
+        // vang của chính điện: impulse nhiễu tắt dần ~3.2 s
+        master = ac.createGain(); master.gain.value = 0.9; master.connect(ac.destination);
+        const len = Math.floor(ac.sampleRate * 3.2), ir = ac.createBuffer(2, len, ac.sampleRate);
+        for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2) * (i < ac.sampleRate * 0.012 ? i / (ac.sampleRate * 0.012) : 1); }
+        const conv = ac.createConvolver(); conv.buffer = ir;
+        const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
+        wet = ac.createGain(); wet.gain.value = 0.32; wet.connect(conv); conv.connect(lp); lp.connect(master);
+      }
+      return ac;
+    }
+    function out(node, wetAmt) { node.connect(master); if (wetAmt) { const g = ac.createGain(); g.gain.value = wetAmt; node.connect(g); g.connect(wet); } }
+    function env(node, peak, dur, t0, att) { const t = t0 || ac.currentTime, g = ac.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + (att || 0.004)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); node.connect(g); return g; }
+    let nb = null;
+    function noise() { if (!nb) { nb = ac.createBuffer(1, ac.sampleRate, ac.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } const s = ac.createBufferSource(); s.buffer = nb; return s; }
+    function partial(f, amp, dur, t, bus, detune) {
+      const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f; if (detune) o.detune.value = detune;
+      const g = env(o, amp, dur, t, 0.003); g.connect(bus); o.start(t); o.stop(t + dur + 0.05);
+    }
+    function strike(t, cutoff, amp, dur, bus) { const n = noise(), f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = cutoff; f.Q.value = 1.2; n.connect(f); env(f, amp, dur, t, 0.001).connect(bus); n.start(t); n.stop(t + dur + 0.02); }
+
+    // Mõ gỗ: tiếng "cốc" rỗng — xung ngắn qua 2 cộng hưởng gỗ + thân mõ trầm
+    function mok(t, accent) {
+      const bus = ac.createGain(); bus.gain.value = accent ? 1.25 : 1; out(bus, 0.5);
+      const v = 0.94 + Math.random() * 0.12;
+      for (const [f, q, a, d] of [[440 * v, 18, 0.9, 0.13], [1180 * v, 14, 0.35, 0.07], [2350 * v, 8, 0.12, 0.03]]) {
+        const n = noise(), bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = q; n.connect(bp);
+        env(bp, a, d, t, 0.001).connect(bus); n.start(t); n.stop(t + 0.01);
+      }
+      const o = ac.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(260 * v, t); o.frequency.exponentialRampToValueAtTime(200 * v, t + 0.1);
+      env(o, 0.28, 0.11, t, 0.001).connect(bus); o.start(t); o.stop(t + 0.14);
+    }
+    // Chuông gia trì (chuông bát): thỉnh khi lạy
+    function bowl(t, s) {
+      const bus = ac.createGain(); bus.gain.value = 0.5 * Math.min(s, 1.6); out(bus, 0.6);
+      const f0 = 620;
+      for (const [r, a, d, dt] of [[1, 0.5, 5.5, 0], [2.71, 0.22, 3.6, 4], [5.2, 0.08, 1.8, -6], [8.4, 0.03, 0.8, 0], [1, 0.25, 5.5, 3.5]]) partial(f0 * r, a, d * Math.max(0.6, s), t, bus, dt);
+      strike(t, 3400, 0.18, 0.04, bus);
+    }
+    // Đại hồng chung: trầm, nhiều bội âm không điều hoà, tiếng đánh gỗ vào đồng, ngân dài
+    function bigBell(t, amp) {
+      const bus = ac.createGain(); bus.gain.value = amp || 0.7; out(bus, 0.75);
+      const f0 = 98;
+      for (const [r, a, d, dt] of [[0.5, 0.55, 14, 0], [1, 0.5, 11, 0], [1, 0.3, 11, 2.5], [1.19, 0.26, 8, 0], [1.5, 0.2, 7, -3], [2, 0.16, 6, 0], [2.74, 0.1, 4.5, 2], [3.3, 0.06, 3, 0], [5.4, 0.04, 1.8, 0]]) partial(f0 * r, a, d, t, bus, dt);
+      strike(t, 260, 0.6, 0.12, bus); strike(t, 900, 0.18, 0.05, bus);
+    }
     const api = {
       unlock() { if (SHOT) return; ctx(); if (!ac) return; if (ac.state === 'suspended') ac.resume(); if (!unlocked) { unlocked = true; api.ambient(S.settings.ambient); } },
-      bell(s) { if (!on()) return; s = s || 1; for (const [f, a] of [[392, 0.18], [784, 0.07], [1176, 0.04], [523, 0.05]]) { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f; env(o, a * Math.min(s, 1.6), 3.5 * s); o.start(); o.stop(ac.currentTime + 4 * s); } },
-      moktak() { if (!on()) return; const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(820, ac.currentTime); o.frequency.exponentialRampToValueAtTime(420, ac.currentTime + 0.08); env(o, 0.35, 0.18); o.start(); o.stop(ac.currentTime + 0.2); },
-      bead() { if (!on()) return; const o = ac.createOscillator(); o.type = S.owned.beadsSkin ? 'triangle' : 'square'; o.frequency.value = S.owned.beadsSkin ? 1300 : 1900; env(o, S.owned.beadsSkin ? 0.12 : 0.05, 0.05); o.start(); o.stop(ac.currentTime + 0.06); },
+      bell(s) { if (!on()) return; bowl(ac.currentTime + 0.01, s || 1); },
+      bigBell() { if (!on()) return; bigBell(ac.currentTime + 0.01, 0.75); },
+      moktak(accent) { if (!on()) return; mok(ac.currentTime + 0.005, accent); },
+      // Hồi chuông: 3 tiếng khoan thai · dồn dần 7 tiếng · 3 tiếng ngân dứt
+      bellRoll() {
+        if (!on() || (roll && ac.currentTime < roll)) return;
+        const gaps = [6, 6, 5, 4, 3.2, 2.5, 1.9, 1.5, 1.3, 1.2, 4.5, 6, 6];
+        let t = ac.currentTime + 0.05; bigBell(t, 0.75);
+        gaps.forEach((g, i) => { t += g; bigBell(t, i >= 9 ? 0.7 : 0.45 + i * 0.03); });
+        roll = t + 8;
+      },
+      rolling() { return !!(ac && roll && ac.currentTime < roll); },
+      bead() { if (!on()) return; const t = ac.currentTime, bus = ac.createGain(); bus.gain.value = 1; out(bus, 0.25); const n = noise(), bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = S.owned.beadsSkin ? 1500 : 2600; bp.Q.value = 10; n.connect(bp); env(bp, S.owned.beadsSkin ? 0.5 : 0.3, 0.05, t, 0.001).connect(bus); n.start(t); n.stop(t + 0.01); },
       ambient(enable) {
         if (!ac) return;
         if (amb) { try { amb.src.stop(); } catch (e) { /* ignore */ } amb = null; }
         if (!enable) return;
-        const src = ac.createBufferSource(); src.buffer = noiseBuf(4); src.loop = true;
+        const b = ac.createBuffer(1, ac.sampleRate * 4, ac.sampleRate), d = b.getChannelData(0); let last = 0; for (let i = 0; i < d.length; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+        const src = ac.createBufferSource(); src.buffer = b; src.loop = true;
         const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500;
-        const g = ac.createGain(); g.gain.value = 0.05; src.connect(f); f.connect(g); g.connect(ac.destination); src.start(); amb = { src, g };
+        const g = ac.createGain(); g.gain.value = 0.05; src.connect(f); f.connect(g); g.connect(master); src.start(); amb = { src, g };
       },
-      chirp() { if (!ac || !S.settings.ambient) return; const o = ac.createOscillator(); o.type = 'sine'; const t = ac.currentTime, base = 2600 + Math.random() * 1200; o.frequency.setValueAtTime(base, t); o.frequency.exponentialRampToValueAtTime(base * 1.4, t + 0.08); env(o, 0.025, 0.12); o.start(); o.stop(t + 0.15); },
-      cricket() { if (!ac || !S.settings.ambient) return; for (let i = 0; i < 3; i++) { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = 4400; const g = ac.createGain(); const t = ac.currentTime + i * 0.07; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.012, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05); o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.06); } }
+      chirp() { if (!ac || !S.settings.ambient) return; const o = ac.createOscillator(); o.type = 'sine'; const t = ac.currentTime, base = 2600 + Math.random() * 1200; o.frequency.setValueAtTime(base, t); o.frequency.exponentialRampToValueAtTime(base * 1.4, t + 0.08); env(o, 0.025, 0.12, t, 0.01).connect(master); o.start(); o.stop(t + 0.15); },
+      cricket() { if (!ac || !S.settings.ambient) return; for (let i = 0; i < 3; i++) { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = 4400; const t = ac.currentTime + i * 0.07; env(o, 0.012, 0.05, t, 0.01).connect(master); o.start(t); o.stop(t + 0.06); } }
     };
     return api;
   })();
@@ -678,7 +737,7 @@
     if (u.bowT <= 0) { u.pivot.rotation.x = 0; u.small = false; }
   }
   const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
-  let slowT = 0, ritualBeat = 0, ambT = 0, snapCam = false;
+  let slowT = 0, ritualBeat = 0, ritualN = 0, ritualRolled = false, ambT = 0, snapCam = false;
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
     for (const f of flames) { const k = (f.mult || 1) * (0.85 + 0.15 * Math.sin(t * 9 + f.seed) * Math.sin(t * 4.3 + f.seed * 2)); f.l.intensity = f.base * k; if (f.sp) f.sp.scale.set(0.32 + 0.04 * Math.sin(t * 11 + f.seed), 0.48 + 0.06 * Math.sin(t * 7 + f.seed), 1); }
@@ -719,8 +778,9 @@
     tickAvatar(player, dt);
     player.visible = mode !== 'pond';
 
+    if (bellSwing > 0) { bellSwing = Math.max(0, bellSwing - dt * 0.35); bellBody.rotation.z = Math.sin(t * 5) * 0.06 * bellSwing; }
     // ritual ambience
-    if (inRitual() && S.settings.effects) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(); ritualBeat = 1.3; } }
+    if (inRitual() && S.settings.effects) { if (!ritualRolled) { ritualRolled = true; Audio.bellRoll(); } if (!Audio.rolling()) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(ritualN % 4 === 0); ritualN++; ritualBeat = 1.05; } } } else ritualRolled = false;
     ambT -= dt; if (ambT <= 0) { ambT = 2 + Math.random() * 5; if (phase() === 'night') Audio.cricket(); else if (phase() !== 'dusk' || Math.random() < 0.4) Audio.chirp(); }
 
     // camera

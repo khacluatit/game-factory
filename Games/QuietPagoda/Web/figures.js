@@ -100,63 +100,156 @@
     return B;
   }
 
+  // ---------- chi tiết dùng chung cho tượng đứng ----------
+  // áo có nếp gấp: bán kính dao động theo góc, mạnh dần về phía gấu áo
+  function foldLathe(pts, seg, folds, amp, upTo) {
+    const g = lathe(pts, seg), p = g.attributes.position, maxY = pts[pts.length - 1][1];
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), z = p.getZ(i), y = p.getY(i), r = Math.hypot(x, z); if (r < 1e-4) continue;
+      const k = Math.max(0, 1 - y / (upTo * maxY)), f = 1 + amp * k * Math.sin(Math.atan2(z, x) * folds);
+      p.setX(i, x * f); p.setZ(i, z * f);
+    }
+    g.computeVertexNormals(); return g;
+  }
+  function tube(parent, pts, r, mat, closed) { const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, !!closed), 80, r, 10, !!closed), mat); m.castShadow = true; parent.add(m); return m; }
+  function beadsAlong(parent, pts, n, r, mat, closed) { const c = new THREE.CatmullRomCurve3(pts, !!closed); const im = new THREE.InstancedMesh(new THREE.SphereGeometry(r, 10, 8), mat, n); const m4 = new THREE.Matrix4(); for (let i = 0; i < n; i++) { const q = c.getPointAt(i / (closed ? n : n - 1)); m4.makeTranslation(q.x, q.y, q.z); im.setMatrixAt(i, m4); } im.castShadow = true; parent.add(im); return im; }
+  // bàn tay có ngón (mặt lòng bàn tay hướng theo rotY)
+  function hand(parent, pos, mat, rotX, rotY, rotZ) {
+    const h = new THREE.Group(); h.position.copy(pos); h.rotation.set(rotX || 0, rotY || 0, rotZ || 0); parent.add(h);
+    const palm = add(h, new THREE.SphereGeometry(0.048, 16, 12), mat, 0, 0, 0); palm.scale.set(1, 1.25, 0.5);
+    for (let i = 0; i < 4; i++) { const f = add(h, new THREE.CapsuleGeometry(0.011, 0.05 - Math.abs(i - 1.5) * 0.008, 4, 8), mat, -0.03 + i * 0.02, 0.07, 0.004, false); f.rotation.x = 0.15; }
+    const t = add(h, new THREE.CapsuleGeometry(0.012, 0.035, 4, 8), mat, 0.05, 0.015, 0.012, false); t.rotation.z = -0.9;
+    return h;
+  }
+  // khuôn mặt tượng (nhìn +z): mắt khép nhìn xuống, mày cong, mũi, môi, bạch hào
+  function statueFace(head, R, lineMat, lipMat, dotMat) {
+    arc(head, R * 0.2, R * 0.022, lineMat, -R * 0.34, R * 0.02, R * 0.94, Math.PI);
+    arc(head, R * 0.2, R * 0.022, lineMat, R * 0.34, R * 0.02, R * 0.94, Math.PI);
+    arc(head, R * 0.28, R * 0.018, lineMat, -R * 0.34, R * 0.26, R * 0.9, 0);
+    arc(head, R * 0.28, R * 0.018, lineMat, R * 0.34, R * 0.26, R * 0.9, 0);
+    const n = add(head, new THREE.SphereGeometry(R * 0.11, 12, 10), head.children[0].material, 0, -R * 0.18, R * 0.97, false); n.scale.set(0.8, 1.5, 0.9);
+    const l1 = add(head, new THREE.SphereGeometry(R * 0.1, 12, 8), lipMat, 0, -R * 0.45, R * 0.9, false); l1.scale.set(1.7, 0.45, 0.6);
+    const l2 = add(head, new THREE.SphereGeometry(R * 0.09, 12, 8), lipMat, 0, -R * 0.53, R * 0.89, false); l2.scale.set(1.5, 0.5, 0.6);
+    add(head, new THREE.SphereGeometry(R * 0.06, 10, 8), dotMat, 0, R * 0.42, R * 0.9, false);
+  }
+  function haloRings(G, y, z, r, gold, glowTex, color) {
+    const haloMat = new THREE.MeshBasicMaterial({ map: glowTex, color: color || '#FFE6B8', transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(r * 4.2, r * 4.2), haloMat); halo.position.set(0, y, z - 0.06); G.add(halo);
+    add(G, new THREE.TorusGeometry(r, r * 0.07, 10, 64), gold, 0, y, z, false);
+    add(G, new THREE.TorusGeometry(r * 0.78, r * 0.03, 8, 64), gold, 0, y, z, false);
+    const ring = []; for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; ring.push(V3(Math.cos(a) * r * 0.89, y + Math.sin(a) * r * 0.89, z)); }
+    beadsAlong(G, ring, 24, r * 0.045, gold, true);
+    for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; const pt = add(G, petalGeo(r * 0.06, r * 0.16, r * 0.02), gold, Math.cos(a) * r * 1.12, y + Math.sin(a) * r * 1.12, z, false); pt.rotation.z = a - Math.PI / 2; }
+  }
+  function sleeve(G, elbow, mat) { const s = add(G, lathe([[0, 0], [0.1, 0], [0.12, 0.03], [0.11, 0.12], [0.08, 0.3], [0.055, 0.4], [0, 0.42]], 24), mat, elbow.x * 1.04, elbow.y - 0.36, elbow.z - 0.02, true); s.scale.z = 0.6; return s; }
+
   // ---------- Quan Thế Âm đứng, sứ trắng (mặt nhìn +z) ----------
   function makeQuanAm(porcelain, gold, glowTex) {
     const G = new THREE.Group();
-    const pink = new THREE.MeshStandardMaterial({ color: '#E9B7C2', roughness: 0.5 });
-    add(G, new THREE.CylinderGeometry(0.42, 0.48, 0.14, 24), gold, 0, 0.07, 0);
-    lotusRing(G, 14, 0.38, 0.12, 0.12, 0.18, 0.05, 0.6, pink, 0);
-    add(G, new THREE.CylinderGeometry(0.34, 0.36, 0.06, 24), pink, 0, 0.24, 0);
-    const robe = add(G, lathe([[0, 0], [0.36, 0], [0.34, 0.15], [0.29, 0.6], [0.25, 1.0], [0.24, 1.25], [0.29, 1.45], [0.26, 1.55], [0.12, 1.62], [0, 1.63]], 40), porcelain, 0, 0.27, 0); robe.scale.z = 0.8;
-    for (let k = 0; k < 5; k++) { const f = add(G, new THREE.CapsuleGeometry(0.018, 0.9, 4, 8), porcelain, -0.2 + k * 0.1, 0.75, 0.25 - Math.abs(k - 2) * 0.02, false); f.rotation.x = -0.06; }
-    // khăn trùm đầu
-    const veil = add(G, lathe([[0.0, 0.42], [0.16, 0.38], [0.23, 0.2], [0.25, 0.0], [0.3, -0.25], [0.34, -0.38], [0.3, -0.4]], 36), porcelain, 0, 1.98, -0.02); veil.scale.z = 0.95;
-    const head = new THREE.Group(); head.position.set(0, 2.0, 0.03); G.add(head);
-    const face = add(head, new THREE.SphereGeometry(0.17, 32, 24), porcelain, 0, 0, 0); face.scale.set(0.95, 1.12, 0.95);
-    const line = new THREE.MeshStandardMaterial({ color: '#7A6A60', roughness: 0.6 });
-    arc(head, 0.035, 0.006, line, -0.06, 0.01, 0.16, Math.PI); arc(head, 0.035, 0.006, line, 0.06, 0.01, 0.16, Math.PI);
-    arc(head, 0.022, 0.006, new THREE.MeshStandardMaterial({ color: '#C77A80' }), 0, -0.08, 0.158, Math.PI);
-    add(head, new THREE.SphereGeometry(0.012, 8, 6), new THREE.MeshStandardMaterial({ color: '#C9463A' }), 0, 0.08, 0.16, false);
-    add(head, new THREE.SphereGeometry(0.08, 16, 12), porcelain, 0, 0.2, -0.02); // búi tóc dưới khăn
-    // tay: tay phải cầm cành dương liễu, tay trái cầm bình cam lồ
-    limb(G, V3(0.26, 1.7, 0.02), V3(0.3, 1.38, 0.14), 0.06, porcelain); limb(G, V3(0.3, 1.38, 0.14), V3(0.16, 1.55, 0.3), 0.055, porcelain);
-    add(G, new THREE.SphereGeometry(0.05, 12, 8), porcelain, 0.15, 1.58, 0.32);
-    const twig = limb(G, V3(0.14, 1.58, 0.33), V3(0.12, 1.92, 0.42), 0.008, new THREE.MeshStandardMaterial({ color: '#5E6B3A' }));
-    const leaf = new THREE.MeshStandardMaterial({ color: '#7E9A56', roughness: 0.7 });
-    for (let k = 0; k < 6; k++) { const l = add(G, new THREE.SphereGeometry(0.03, 8, 6), leaf, 0.12 + Math.sin(k) * 0.05, 1.86 - k * 0.04, 0.43 + Math.cos(k) * 0.03, false); l.scale.set(0.5, 1.6, 0.3); l.rotation.z = 0.6 * (k % 2 ? 1 : -1); }
-    limb(G, V3(-0.26, 1.7, 0.02), V3(-0.3, 1.28, 0.1), 0.06, porcelain); limb(G, V3(-0.3, 1.28, 0.1), V3(-0.12, 1.18, 0.28), 0.055, porcelain);
-    add(G, new THREE.SphereGeometry(0.05, 12, 8), porcelain, -0.1, 1.2, 0.3);
-    add(G, lathe([[0, 0], [0.05, 0], [0.07, 0.06], [0.05, 0.13], [0.02, 0.17], [0.025, 0.22], [0, 0.22]], 20), new THREE.MeshPhysicalMaterial({ color: '#BFD9D2', roughness: 0.15, clearcoat: 1 }), -0.08, 1.16, 0.34);
-    const haloMat = new THREE.MeshBasicMaterial({ map: glowTex, color: '#FFF0D0', transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), haloMat); halo.position.set(0, 2.05, -0.3); G.add(halo);
-    add(G, new THREE.TorusGeometry(0.32, 0.02, 8, 48), gold, 0, 2.05, -0.25, false);
+    const pinkP = porcelain.clone(); pinkP.color = new THREE.Color('#F2C6CF');
+    const scarfM = porcelain.clone(); scarfM.color = new THREE.Color('#BCD3DC');
+    const hairM = new THREE.MeshPhysicalMaterial({ color: '#4A5260', roughness: 0.35, clearcoat: 0.8 });
+    const lineM = new THREE.MeshStandardMaterial({ color: '#6A5E58', roughness: 0.6 });
+    const lipM = new THREE.MeshStandardMaterial({ color: '#D08A90', roughness: 0.5 });
+    const redM = new THREE.MeshStandardMaterial({ color: '#C9463A', roughness: 0.4 });
+    // đài sen
+    add(G, new THREE.CylinderGeometry(0.5, 0.56, 0.14, 32), gold, 0, 0.07, 0);
+    lotusRing(G, 18, 0.46, 0.12, 0.13, 0.2, 0.05, 0.75, pinkP, 0);
+    lotusRing(G, 12, 0.34, 0.16, 0.13, 0.2, 0.05, 0.4, porcelain, 0.5);
+    add(G, new THREE.CylinderGeometry(0.36, 0.38, 0.06, 32), porcelain, 0, 0.3, 0);
+    // xiêm y nhiều nếp
+    const robe = add(G, foldLathe([[0, 0], [0.4, 0], [0.37, 0.12], [0.31, 0.5], [0.27, 0.9], [0.25, 1.15], [0.27, 1.32], [0.3, 1.45], [0.27, 1.55], [0.14, 1.62], [0, 1.63]], 64, 11, 0.07, 0.75), porcelain, 0, 0.32, 0); robe.scale.z = 0.82;
+    const hem = add(G, new THREE.TorusGeometry(0.39, 0.016, 8, 64), gold, 0, 0.34, 0, false); hem.rotation.x = Math.PI / 2; hem.scale.y = 0.82;
+    const belt = add(G, new THREE.TorusGeometry(0.262, 0.02, 8, 48), gold, 0, 1.47, 0, false); belt.rotation.x = Math.PI / 2; belt.scale.y = 0.82;
+    tube(G, [V3(-0.05, 1.45, 0.23), V3(-0.06, 1.2, 0.27), V3(-0.04, 0.9, 0.3), V3(-0.07, 0.62, 0.33)], 0.012, gold);
+    tube(G, [V3(0.05, 1.45, 0.23), V3(0.06, 1.2, 0.27), V3(0.04, 0.9, 0.3), V3(0.07, 0.62, 0.33)], 0.012, gold);
+    // chuỗi anh lạc
+    add(G, new THREE.CylinderGeometry(0.07, 0.085, 0.14, 20), porcelain, 0, 1.98, 0);
+    const neck = []; for (let i = 0; i <= 20; i++) { const a = Math.PI * (0.05 + 0.9 * i / 20); neck.push(V3(Math.cos(a) * 0.2, 1.86 - Math.sin(a) * 0.16, 0.08 + Math.sin(a) * 0.14)); }
+    tube(G, neck, 0.012, gold); beadsAlong(G, neck, 15, 0.016, gold);
+    add(G, new THREE.SphereGeometry(0.028, 12, 10), redM, 0, 1.7, 0.23, false);
+    tube(G, [V3(-0.12, 1.78, 0.2), V3(-0.04, 1.55, 0.25), V3(0, 1.35, 0.26)], 0.008, gold); tube(G, [V3(0.12, 1.78, 0.2), V3(0.04, 1.55, 0.25), V3(0, 1.35, 0.26)], 0.008, gold);
+    // dải lụa thiên y
+    tube(G, [V3(-0.27, 1.86, -0.02), V3(-0.29, 1.5, 0.18), V3(-0.12, 1.05, 0.31), V3(0.12, 1.05, 0.31), V3(0.29, 1.5, 0.18), V3(0.27, 1.86, -0.02)], 0.014, scarfM);
+    tube(G, [V3(-0.3, 1.78, 0.05), V3(-0.37, 1.3, 0.1), V3(-0.36, 0.9, 0.12), V3(-0.4, 0.5, 0.1)], 0.014, scarfM);
+    tube(G, [V3(0.3, 1.78, 0.05), V3(0.37, 1.3, 0.1), V3(0.36, 0.9, 0.12), V3(0.4, 0.5, 0.1)], 0.014, scarfM);
+    // tay phải giơ trước ngực cầm cành dương liễu
+    limb(G, V3(0.27, 1.84, 0.02), V3(0.33, 1.52, 0.1), 0.055, porcelain); limb(G, V3(0.33, 1.52, 0.1), V3(0.18, 1.62, 0.3), 0.045, porcelain);
+    sleeve(G, V3(0.32, 1.52, 0.12), porcelain);
+    hand(G, V3(0.16, 1.66, 0.32), porcelain, -0.4, 0.4, 0.3);
+    const branch = [V3(0.17, 1.7, 0.34), V3(0.22, 1.84, 0.4), V3(0.29, 1.97, 0.44), V3(0.37, 2.06, 0.46)];
+    tube(G, branch, 0.006, new THREE.MeshStandardMaterial({ color: '#5E6B3A' }));
+    const leaf = new THREE.MeshStandardMaterial({ color: '#7E9A56', roughness: 0.6 }), lc = new THREE.CatmullRomCurve3(branch);
+    for (let k = 0; k < 14; k++) { const q = lc.getPointAt(0.2 + k * 0.057); const l = add(G, new THREE.SphereGeometry(0.026, 8, 6), leaf, q.x + (k % 2 ? 0.035 : -0.035), q.y - 0.04, q.z, false); l.scale.set(0.35, 1.9, 0.25); l.rotation.z = k % 2 ? -0.5 : 0.5; }
+    // tay trái cầm tịnh bình
+    limb(G, V3(-0.27, 1.84, 0.02), V3(-0.32, 1.42, 0.08), 0.055, porcelain); limb(G, V3(-0.32, 1.42, 0.08), V3(-0.15, 1.26, 0.28), 0.045, porcelain);
+    sleeve(G, V3(-0.32, 1.42, 0.1), porcelain);
+    hand(G, V3(-0.13, 1.24, 0.3), porcelain, 0.2, 0, 1.4);
+    const jade = new THREE.MeshPhysicalMaterial({ color: '#A9CFC4', roughness: 0.12, clearcoat: 1 });
+    add(G, lathe([[0, 0], [0.04, 0], [0.065, 0.04], [0.07, 0.08], [0.055, 0.13], [0.022, 0.17], [0.018, 0.25], [0.032, 0.27], [0, 0.27]], 28), jade, -0.1, 1.17, 0.34);
+    // đầu
+    const head = new THREE.Group(); head.position.set(0, 2.16, 0.03); G.add(head);
+    const face = add(head, new THREE.SphereGeometry(0.17, 40, 32), porcelain, 0, 0, 0); face.scale.set(0.92, 1.14, 0.95);
+    statueFace(head, 0.17, lineM, lipM, redM);
+    for (const s of [-1, 1]) { const e = add(head, new THREE.CapsuleGeometry(0.022, 0.12, 4, 10), porcelain, s * 0.158, -0.05, 0, false); add(head, new THREE.SphereGeometry(0.016, 8, 6), gold, s * 0.16, -0.15, 0.01, false); }
+    const hair = add(head, new THREE.SphereGeometry(0.18, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.55), hairM, 0, 0.01, -0.012); hair.scale.set(0.95, 1.16, 0.98); hair.rotation.x = -0.55;
+    const part = add(head, new THREE.SphereGeometry(0.182, 40, 12, Math.PI * 0.18, Math.PI * 0.64, Math.PI * 0.1, Math.PI * 0.2), hairM, 0, 0.01, 0, false); part.scale.set(0.95, 1.16, 0.98); part.rotation.y = 0;
+    add(head, new THREE.SphereGeometry(0.09, 20, 14), hairM, 0, 0.24, -0.02); add(head, new THREE.SphereGeometry(0.06, 16, 12), hairM, 0, 0.33, -0.02);
+    for (const s of [-1, 1]) { const st = add(head, new THREE.CapsuleGeometry(0.035, 0.32, 6, 10), hairM, s * 0.14, -0.22, -0.08, false); st.rotation.z = s * 0.15; }
+    // mão báu
+    const band = add(head, new THREE.TorusGeometry(0.172, 0.013, 8, 48, Math.PI), gold, 0, 0.13, -0.01, false); band.rotation.set(Math.PI / 2 - 0.2, 0, 0); band.scale.set(0.97, 1, 1);
+    for (let i = -2; i <= 2; i++) { const a = i * 0.42; const pl = add(head, petalGeo(0.035 + (i === 0 ? 0.015 : 0), 0.07 + (i === 0 ? 0.03 : 0), 0.008), gold, Math.sin(a) * 0.17, 0.15 + (i === 0 ? 0.02 : 0), Math.cos(a) * 0.17 - 0.01, false); pl.rotation.y = a; pl.rotation.x = -0.25; }
+    add(head, new THREE.SphereGeometry(0.018, 10, 8), redM, 0, 0.19, 0.175, false);
+    haloRings(G, 2.18, -0.28, 0.3, gold, glowTex, '#FFF2D8');
     return G;
   }
 
   // ---------- Địa Tạng Bồ Tát đứng, cầm tích trượng (mặt nhìn +z) ----------
   function makeDiaTang(gold, goldDark, glowTex) {
     const G = new THREE.Group();
-    add(G, new THREE.CylinderGeometry(0.42, 0.48, 0.14, 24), goldDark, 0, 0.07, 0);
-    lotusRing(G, 14, 0.38, 0.12, 0.12, 0.18, 0.05, 0.6, gold, 0.5);
-    add(G, new THREE.CylinderGeometry(0.34, 0.36, 0.06, 24), gold, 0, 0.24, 0);
-    const robe = add(G, lathe([[0, 0], [0.36, 0], [0.33, 0.2], [0.29, 0.7], [0.26, 1.1], [0.3, 1.42], [0.27, 1.52], [0.12, 1.58], [0, 1.59]], 40), gold, 0, 0.27, 0); robe.scale.z = 0.8;
-    for (let k = 0; k < 3; k++) { const s = add(G, new THREE.TorusGeometry(0.3 - k * 0.04, 0.014, 8, 32, Math.PI * 0.9), goldDark, 0.03, 1.55 - k * 0.12, 0.05, false); s.rotation.set(0.1, 0, -0.8); s.scale.z = 0.8; }
-    const head = new THREE.Group(); head.position.set(0, 2.0, 0.02); G.add(head);
-    const skull = add(head, new THREE.SphereGeometry(0.17, 32, 24), gold, 0, 0, 0); skull.scale.set(0.98, 1.1, 1);
-    for (const s of [-1, 1]) add(head, new THREE.CapsuleGeometry(0.025, 0.12, 4, 8), gold, s * 0.17, -0.04, 0);
-    arc(head, 0.035, 0.006, goldDark, -0.06, 0.01, 0.165, Math.PI); arc(head, 0.035, 0.006, goldDark, 0.06, 0.01, 0.165, Math.PI);
-    arc(head, 0.022, 0.006, goldDark, 0, -0.08, 0.162, Math.PI);
-    add(G, new THREE.CylinderGeometry(0.06, 0.07, 0.12, 16), gold, 0, 1.86, 0.02);
-    // tích trượng
-    limb(G, V3(0.34, 0.3, 0.2), V3(0.34, 2.55, 0.2), 0.018, gold);
-    for (let k = 0; k < 3; k++) { const r = add(G, new THREE.TorusGeometry(0.09 - k * 0.015, 0.008, 6, 20), gold, 0.34, 2.45 + k * 0.05, 0.2, false); r.rotation.y = k * 0.6; }
-    add(G, new THREE.SphereGeometry(0.03, 10, 8), gold, 0.34, 2.6, 0.2, false);
-    limb(G, V3(0.26, 1.66, 0.02), V3(0.32, 1.28, 0.16), 0.06, gold); limb(G, V3(0.32, 1.28, 0.16), V3(0.34, 1.45, 0.2), 0.055, gold);
-    limb(G, V3(-0.26, 1.66, 0.02), V3(-0.28, 1.28, 0.12), 0.06, gold); limb(G, V3(-0.28, 1.28, 0.12), V3(-0.08, 1.3, 0.3), 0.055, gold);
-    add(G, new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshStandardMaterial({ color: '#F6E2A8', emissive: '#FFC870', emissiveIntensity: 0.9 }), -0.06, 1.38, 0.32, false);
-    const haloMat = new THREE.MeshBasicMaterial({ map: glowTex, color: '#FFD9A0', transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 1.3), haloMat); halo.position.set(0, 2.02, -0.3); G.add(halo);
-    add(G, new THREE.TorusGeometry(0.32, 0.02, 8, 48), gold, 0, 2.02, -0.25, false);
+    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, 256, 256); g.strokeStyle = '#8a6a3a'; g.lineWidth = 5;
+    for (let x = 0; x <= 256; x += 51) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 256); g.stroke(); }
+    for (let y = 0; y <= 256; y += 64) { g.beginPath(); g.moveTo(0, y); g.lineTo(256, y); g.stroke(); }
+    const kTex = new THREE.CanvasTexture(c); kTex.wrapS = kTex.wrapT = THREE.RepeatWrapping; kTex.repeat.set(3, 2);
+    const kasaya = gold.clone(); kasaya.map = kTex; kasaya.color = new THREE.Color('#C08A3A');
+    const inner = goldDark;
+    const jewelM = new THREE.MeshStandardMaterial({ color: '#FFF0C0', emissive: '#FFC060', emissiveIntensity: 1.2, roughness: 0.2 });
+    add(G, new THREE.CylinderGeometry(0.5, 0.56, 0.14, 32), goldDark, 0, 0.07, 0);
+    lotusRing(G, 18, 0.46, 0.12, 0.13, 0.2, 0.05, 0.75, gold, 0);
+    lotusRing(G, 12, 0.34, 0.16, 0.13, 0.2, 0.05, 0.4, gold, 0.5);
+    add(G, new THREE.CylinderGeometry(0.36, 0.38, 0.06, 32), gold, 0, 0.3, 0);
+    const under = add(G, foldLathe([[0, 0], [0.38, 0], [0.36, 0.1], [0.32, 0.4], [0, 0.4]], 48, 13, 0.02, 1), inner, 0, 0.32, 0); under.scale.z = 0.82;
+    const robe = add(G, foldLathe([[0, 0], [0.37, 0], [0.35, 0.1], [0.3, 0.5], [0.27, 0.9], [0.26, 1.12], [0.29, 1.3], [0.3, 1.42], [0.26, 1.52], [0.13, 1.58], [0, 1.59]], 64, 9, 0.035, 0.7), kasaya, 0, 0.42, 0); robe.scale.z = 0.82;
+    for (let k = 0; k < 2; k++) tube(G, [V3(-0.27, 1.92 - k * 0.07, 0.04), V3(-0.05, 1.7 - k * 0.14, 0.27), V3(0.2, 1.4 - k * 0.14, 0.25), V3(0.3, 1.25 - k * 0.12, 0.1)], 0.02, gold);
+    const ring = add(G, new THREE.TorusGeometry(0.05, 0.012, 8, 20), gold, 0.18, 1.75, 0.23, false);
+    // tràng hạt
+    const mala = []; for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; mala.push(V3(Math.cos(a) * 0.17, 1.86 - (Math.sin(a) > 0 ? Math.sin(a) * 0.2 : 0), 0.02 + Math.sin(a) * 0.12)); }
+    beadsAlong(G, mala, 28, 0.017, new THREE.MeshStandardMaterial({ color: '#4A2A1A', roughness: 0.4 }), true);
+    add(G, new THREE.CylinderGeometry(0.07, 0.085, 0.14, 20), gold, 0, 1.97, 0);
+    // tay phải cầm tích trượng
+    limb(G, V3(0.27, 1.82, 0.02), V3(0.36, 1.45, 0.1), 0.055, gold); limb(G, V3(0.36, 1.45, 0.1), V3(0.38, 1.5, 0.22), 0.045, gold);
+    sleeve(G, V3(0.35, 1.45, 0.12), kasaya);
+    tube(G, [V3(0.4, 0.34, 0.24), V3(0.4, 1.5, 0.24), V3(0.4, 2.55, 0.24)], 0.016, gold);
+    hand(G, V3(0.38, 1.52, 0.26), gold, 0, -Math.PI / 2, 0);
+    const loop = add(G, new THREE.TorusGeometry(0.12, 0.012, 8, 40), gold, 0.4, 2.68, 0.24, false);
+    const inner2 = add(G, new THREE.TorusGeometry(0.07, 0.008, 6, 30), gold, 0.4, 2.68, 0.24, false);
+    add(G, new THREE.ConeGeometry(0.03, 0.12, 10), gold, 0.4, 2.85, 0.24, false);
+    add(G, new THREE.SphereGeometry(0.022, 10, 8), gold, 0.4, 2.68, 0.24, false);
+    for (let k = 0; k < 6; k++) { const a = -Math.PI / 2 + (k - 2.5) * 0.45; const r = add(G, new THREE.TorusGeometry(0.035, 0.006, 6, 18), gold, 0.4 + Math.cos(a + Math.PI / 2) * 0.12, 2.68 + Math.sin(a + Math.PI / 2) * 0.12 - 0.03, 0.24, false); r.rotation.y = Math.PI / 2; }
+    // tay trái nâng ngọc minh châu
+    limb(G, V3(-0.27, 1.82, 0.02), V3(-0.32, 1.42, 0.08), 0.055, gold); limb(G, V3(-0.32, 1.42, 0.08), V3(-0.1, 1.42, 0.3), 0.045, gold);
+    sleeve(G, V3(-0.32, 1.42, 0.1), kasaya);
+    hand(G, V3(-0.08, 1.4, 0.32), gold, -1.3, 0, 0);
+    add(G, new THREE.SphereGeometry(0.055, 20, 16), jewelM, -0.08, 1.48, 0.33, false);
+    const jg = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#FFD890', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.8 })); jg.position.set(-0.08, 1.48, 0.34); jg.scale.set(0.45, 0.45, 1); G.add(jg);
+    // đầu tròn của vị tăng
+    const head = new THREE.Group(); head.position.set(0, 2.15, 0.02); G.add(head);
+    const skull = add(head, new THREE.SphereGeometry(0.175, 40, 32), gold, 0, 0, 0); skull.scale.set(0.96, 1.1, 1);
+    const shave = add(head, new THREE.SphereGeometry(0.177, 40, 20, 0, Math.PI * 2, 0, Math.PI * 0.38), goldDark, 0, 0.01, -0.02, false); shave.rotation.x = 0.3;
+    statueFace(head, 0.175, goldDark, goldDark, goldDark);
+    for (const s of [-1, 1]) add(head, new THREE.CapsuleGeometry(0.024, 0.13, 4, 10), gold, s * 0.168, -0.05, 0, false);
+    haloRings(G, 2.17, -0.28, 0.3, gold, glowTex);
     return G;
   }
 
