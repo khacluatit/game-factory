@@ -1,0 +1,6 @@
+1. Screen recording (physical iPhone, latest iOS): see the link in our reply in App Review / Resolution Center.
+2. Purpose & audience: Kitty Grid is a casual logic puzzle for all ages (4+). The player places one cat in every row, column and color zone so that no two cats touch, including diagonally. Each puzzle has exactly one solution, and it plays fully offline.
+3. How to use: Launch the app and tap "PLAY". Tap a cell to place a cat; a wrong cat costs one of 3 hearts. "Hint (Ad)" shows a rewarded ad, then gives a hint. "No Ads" and Restore Purchases are on the menu and in Settings. No account, login or sample files are needed.
+4. External services: Google AdMob (ads) and Apple StoreKit (one non-consumable IAP "Remove Ads", com.beemob.kittygrid.removeads). No other servers, data providers, authentication or AI services.
+5. Regional differences: none. The app works the same in all regions.
+6. Regulated industry / third-party material: not applicable. All art, code and puzzles are original.

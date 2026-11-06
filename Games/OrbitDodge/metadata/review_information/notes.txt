@@ -1,0 +1,6 @@
+1. Screen recording (physical iPhone, latest iOS): see the link in our reply in App Review / Resolution Center.
+2. Purpose & audience: Orbit Dodge is a casual one-tap arcade game for all ages (4+). The player's light orbits a glowing core; tapping reverses the orbit direction to dodge meteors. It offers short, offline play sessions.
+3. How to use: Launch the app and tap "PLAY". Tap anywhere to flip the orbit direction. After a hit, the player can tap "Continue (Ad)" once per run (rewarded ad) or "PLAY AGAIN". "No Ads" and Restore Purchases are on the menu and in Settings. No account, login or sample files are needed.
+4. External services: Google AdMob (banner/interstitial/rewarded ads) and Apple StoreKit (one non-consumable IAP "Remove Ads", com.beemob.orbitdodge.removeads). No other servers, data providers, authentication or AI services.
+5. Regional differences: none. The app works the same in all regions.
+6. Regulated industry / third-party material: not applicable. All art, code and sounds are original.
