@@ -92,12 +92,13 @@ platform :ios do
     app = api::App.find(@bid) or UI.user_error!("Không thấy app #{@bid}")
     ver = app.get_edit_app_store_version(platform: api::Platform::IOS) or UI.user_error!("Không có phiên bản đang soạn")
     UI.message("Phiên bản #{ver.version_string} — trạng thái #{ver.app_store_state}")
+    shots_only = ENV["IAP_SHOTS_ONLY"] == "1"
     num = ENV["SUBMIT_BUILD"].to_s.strip
     builds = api::Build.all(app_id: app.id, version: ver.version_string, sort: "-uploadedDate", limit: 10)
     build = num.empty? ? builds.first : builds.find { |b| b.version == num }
     UI.user_error!("Không thấy build #{num}") unless build
     UI.user_error!("Build #{build.version} chưa xử lý xong (#{build.processing_state})") unless build.processing_state == "VALID"
-    ver.select_build(build_id: build.id)
+    ver.select_build(build_id: build.id) unless shots_only
     UI.success("Đã gắn build #{build.version} vào #{ver.version_string}")
 
     # IAP lần đầu phải nộp cùng phiên bản app
@@ -106,7 +107,7 @@ platform :ios do
     # Ảnh duyệt IAP: Games/<game>/review/iap-<consumable|nonconsumable>.jpg (hoặc iap-<productId>.jpg)
     require "digest"; require "net/http"
     iaps.each do |i|
-      a = i["attributes"]; next unless a["state"] == "MISSING_METADATA"
+      a = i["attributes"]
       pid = a["productId"]; kind = a["inAppPurchaseType"].to_s.downcase.delete("_")
       file = ["#{@dir}/review/iap-#{pid}.jpg", "#{@dir}/review/iap-#{kind}.jpg"].find { |f| File.exist?(f) }
       unless file then UI.important("IAP #{pid}: không có ảnh duyệt trong review/"); next end
@@ -133,6 +134,13 @@ platform :ios do
       end
     end
     sleep 20
+    if shots_only
+      iaps.each do |i|
+        d = rc.get("v2/inAppPurchases/#{i['id']}/appStoreReviewScreenshot").body["data"] rescue nil
+        UI.message("IAP #{i['attributes']['productId']}: ảnh #{d ? d['attributes']['assetDeliveryState'].to_h['state'] : 'không có'}")
+      end
+      next
+    end
     iaps = rc.get("v1/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
     iaps.each do |i|
       a = i["attributes"]; st = a["state"]
