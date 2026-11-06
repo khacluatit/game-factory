@@ -103,6 +103,37 @@ platform :ios do
     # IAP lần đầu phải nộp cùng phiên bản app
     rc = api.client.tunes_request_client
     iaps = rc.get("v1/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
+    # Ảnh duyệt IAP: Games/<game>/review/iap-<consumable|nonconsumable>.jpg (hoặc iap-<productId>.jpg)
+    require "digest"; require "net/http"
+    iaps.each do |i|
+      a = i["attributes"]; next unless a["state"] == "MISSING_METADATA"
+      pid = a["productId"]; kind = a["inAppPurchaseType"].to_s.downcase.delete("_")
+      file = ["#{@dir}/review/iap-#{pid}.jpg", "#{@dir}/review/iap-#{kind}.jpg"].find { |f| File.exist?(f) }
+      unless file then UI.important("IAP #{pid}: không có ảnh duyệt trong review/"); next end
+      begin
+        old = rc.get("v2/inAppPurchases/#{i['id']}/appStoreReviewScreenshot").body["data"] rescue nil
+        rc.delete("v1/inAppPurchaseAppStoreReviewScreenshots/#{old['id']}") if old && old["attributes"]["assetDeliveryState"].to_h["state"] != "COMPLETE"
+        next if old && old["attributes"]["assetDeliveryState"].to_h["state"] == "COMPLETE"
+        bytes = File.binread(file)
+        res = rc.post("v1/inAppPurchaseAppStoreReviewScreenshots", { data: { type: "inAppPurchaseAppStoreReviewScreenshots",
+          attributes: { fileName: File.basename(file), fileSize: bytes.bytesize },
+          relationships: { inAppPurchaseV2: { data: { type: "inAppPurchases", id: i["id"] } } } } }).body["data"]
+        res["attributes"]["uploadOperations"].each do |op|
+          uri = URI(op["url"]); req = Net::HTTP.const_get(op["method"].capitalize).new(uri)
+          (op["requestHeaders"] || []).each { |h| req[h["name"]] = h["value"] }
+          req.body = bytes.byteslice(op["offset"], op["length"])
+          r = Net::HTTP.start(uri.host, uri.port, use_ssl: true) { |h| h.request(req) }
+          UI.user_error!("PUT ảnh lỗi #{r.code}") unless r.code.to_i < 300
+        end
+        rc.patch("v1/inAppPurchaseAppStoreReviewScreenshots/#{res['id']}", { data: { type: "inAppPurchaseAppStoreReviewScreenshots", id: res["id"],
+          attributes: { uploaded: true, sourceFileChecksum: Digest::MD5.hexdigest(bytes) } } })
+        UI.success("IAP #{pid}: đã tải ảnh duyệt #{File.basename(file)}")
+      rescue StandardError => e
+        UI.important("IAP #{pid}: tải ảnh lỗi — #{e.message}")
+      end
+    end
+    sleep 20
+    iaps = rc.get("v1/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
     iaps.each do |i|
       a = i["attributes"]; st = a["state"]
       if st == "READY_TO_SUBMIT"
