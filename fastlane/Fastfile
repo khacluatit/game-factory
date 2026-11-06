@@ -90,16 +90,18 @@ platform :ios do
   lane :submit do
     api = Spaceship::ConnectAPI
     app = api::App.find(@bid) or UI.user_error!("Không thấy app #{@bid}")
+    shots_only = ENV["IAP_SHOTS_ONLY"] == "1"
+    unless shots_only
     ver = app.get_edit_app_store_version(platform: api::Platform::IOS) or UI.user_error!("Không có phiên bản đang soạn")
     UI.message("Phiên bản #{ver.version_string} — trạng thái #{ver.app_store_state}")
-    shots_only = ENV["IAP_SHOTS_ONLY"] == "1"
     num = ENV["SUBMIT_BUILD"].to_s.strip
     builds = api::Build.all(app_id: app.id, version: ver.version_string, sort: "-uploadedDate", limit: 10)
     build = num.empty? ? builds.first : builds.find { |b| b.version == num }
     UI.user_error!("Không thấy build #{num}") unless build
     UI.user_error!("Build #{build.version} chưa xử lý xong (#{build.processing_state})") unless build.processing_state == "VALID"
-    ver.select_build(build_id: build.id) unless shots_only
+    ver.select_build(build_id: build.id)
     UI.success("Đã gắn build #{build.version} vào #{ver.version_string}")
+    end
 
     # IAP lần đầu phải nộp cùng phiên bản app
     rc = api.client.tunes_request_client
