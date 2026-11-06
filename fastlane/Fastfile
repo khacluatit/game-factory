@@ -85,4 +85,44 @@ platform :ios do
       UI.important("⚠️ Metadata text lỗi (#{e.message}) — điền tay trên App Store Connect")
     end
   end
+
+  desc "Gắn build (SUBMIT_BUILD hoặc build mới nhất) vào phiên bản, nộp kèm IAP, rồi Submit for Review"
+  lane :submit do
+    api = Spaceship::ConnectAPI
+    app = api::App.find(@bid) or UI.user_error!("Không thấy app #{@bid}")
+    ver = app.get_edit_app_store_version(platform: api::Platform::IOS) or UI.user_error!("Không có phiên bản đang soạn")
+    UI.message("Phiên bản #{ver.version_string} — trạng thái #{ver.app_store_state}")
+    num = ENV["SUBMIT_BUILD"].to_s.strip
+    builds = api::Build.all(app_id: app.id, version: ver.version_string, sort: "-uploadedDate", limit: 10)
+    build = num.empty? ? builds.first : builds.find { |b| b.version == num }
+    UI.user_error!("Không thấy build #{num}") unless build
+    UI.user_error!("Build #{build.version} chưa xử lý xong (#{build.processing_state})") unless build.processing_state == "VALID"
+    ver.select_build(build_id: build.id)
+    UI.success("Đã gắn build #{build.version} vào #{ver.version_string}")
+
+    # IAP lần đầu phải nộp cùng phiên bản app
+    rc = api.client.tunes_request_client
+    iaps = rc.get("v2/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
+    iaps.each do |i|
+      a = i["attributes"]; st = a["state"]
+      if st == "READY_TO_SUBMIT"
+        begin
+          rc.post("v1/inAppPurchaseSubmissions", { data: { type: "inAppPurchaseSubmissions", relationships: { inAppPurchaseV2: { data: { type: "inAppPurchases", id: i["id"] } } } } })
+          UI.success("IAP #{a['productId']}: đã đưa vào lượt duyệt")
+        rescue StandardError => e
+          UI.important("IAP #{a['productId']}: không nộp được — #{e.message}")
+        end
+      else
+        UI.important("IAP #{a['productId']}: trạng thái #{st} (không nộp)")
+      end
+    end
+
+    sub = app.get_review_submissions(filter: { state: "READY_FOR_REVIEW", platform: "IOS" }).first ||
+          app.create_review_submission(platform: api::Platform::IOS)
+    unless (sub.items || []).any?
+      sub.add_app_store_version_to_review_items(app_store_version_id: ver.id)
+    end
+    sub.submit_for_review
+    UI.success("🚀 #{@game} #{ver.version_string} (build #{build.version}) đã Submit for Review")
+  end
 end
