@@ -120,7 +120,13 @@ platform :ios do
     sub = app.get_review_submissions(filter: { state: "READY_FOR_REVIEW", platform: "IOS" }).first ||
           app.create_review_submission(platform: api::Platform::IOS)
     unless (sub.items || []).any?
-      sub.add_app_store_version_to_review_items(app_store_version_id: ver.id)
+      begin
+        sub.add_app_store_version_to_review_items(app_store_version_id: ver.id)
+      rescue Spaceship::UnexpectedResponse => e
+        info = e.respond_to?(:error_info) ? e.error_info : nil
+        UI.important("Chi tiết lỗi: #{JSON.pretty_generate(info)}") if info
+        raise
+      end
     end
     sub.submit_for_review
     UI.success("🚀 #{@game} #{ver.version_string} (build #{build.version}) đã Submit for Review")
