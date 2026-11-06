@@ -102,7 +102,7 @@ platform :ios do
 
     # IAP lần đầu phải nộp cùng phiên bản app
     rc = api.client.tunes_request_client
-    iaps = rc.get("v2/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
+    iaps = rc.get("v1/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
     iaps.each do |i|
       a = i["attributes"]; st = a["state"]
       if st == "READY_TO_SUBMIT"
