@@ -186,6 +186,17 @@ platform :ios do
     UI.success("Đã cập nhật Review Notes (#{ver['attributes']['versionString']})")
     subs = rc.get("v1/reviewSubmissions", { "filter[app]" => app.id, limit: 5 }).body["data"]
     sub = subs.find { |x| x["attributes"]["state"] == "UNRESOLVED_ISSUES" } or UI.user_error!("Không có lượt nộp UNRESOLVED_ISSUES")
+    items = rc.get("v1/reviewSubmissions/#{sub['id']}/items").body["data"] || []
+    items.each do |it|
+      UI.message("Mục #{it['id'][0, 12]}…: #{it['attributes']['state']}")
+      next unless %w[REJECTED READY_FOR_REVIEW].include?(it["attributes"]["state"])
+      begin
+        rc.patch("v1/reviewSubmissionItems/#{it['id']}", { data: { type: "reviewSubmissionItems", id: it["id"], attributes: { resubmitted: true } } })
+        UI.success("Đánh dấu resubmitted")
+      rescue StandardError => e
+        UI.important("Không đánh dấu được: #{e.message}")
+      end
+    end
     begin
       rc.patch("v1/reviewSubmissions/#{sub['id']}", { data: { type: "reviewSubmissions", id: sub["id"], attributes: { submitted: true } } })
     rescue Spaceship::UnexpectedResponse => e
