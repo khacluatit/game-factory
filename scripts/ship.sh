@@ -13,5 +13,6 @@ case "$LANE" in
   metadata) fastlane metadata ;;
   all)      fastlane beta && fastlane metadata ;;
   submit)   fastlane submit ;;
+  resubmit) fastlane resubmit ;;
   *) echo "lane không hợp lệ: $LANE"; exit 1 ;;
 esac
