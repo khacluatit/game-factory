@@ -186,7 +186,12 @@ platform :ios do
     UI.success("Đã cập nhật Review Notes (#{ver['attributes']['versionString']})")
     subs = rc.get("v1/reviewSubmissions", { "filter[app]" => app.id, limit: 5 }).body["data"]
     sub = subs.find { |x| x["attributes"]["state"] == "UNRESOLVED_ISSUES" } or UI.user_error!("Không có lượt nộp UNRESOLVED_ISSUES")
-    rc.patch("v1/reviewSubmissions/#{sub['id']}", { data: { type: "reviewSubmissions", id: sub["id"], attributes: { submitted: true } } })
+    begin
+      rc.patch("v1/reviewSubmissions/#{sub['id']}", { data: { type: "reviewSubmissions", id: sub["id"], attributes: { submitted: true } } })
+    rescue Spaceship::UnexpectedResponse => e
+      UI.important("Chi tiết lỗi: #{JSON.pretty_generate(e.error_info)}") if e.respond_to?(:error_info) && e.error_info
+      raise
+    end
     UI.success("🚀 #{@game} đã Resubmit to App Review")
   end
 end
