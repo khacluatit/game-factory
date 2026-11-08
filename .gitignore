@@ -9,3 +9,5 @@ Games/*/screenshots/
 *.ipa
 *.dSYM.zip
 .DS_Store
+Games/*/tools/preview/
+__pycache__/

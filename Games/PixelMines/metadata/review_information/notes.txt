@@ -1,0 +1,5 @@
+1. Purpose: Pixel Mines is an offline logic puzzle (4+). Each board is a classic tile-sweeping puzzle; every tile is one pixel of a hidden picture, which is revealed as the player solves the board.
+2. How to use: Tap Continue on the home screen. The first safe area opens automatically. Tap tiles to open them, press and hold to flag. The first three boards show short tips. The daily picture is on the home screen.
+3. In-app purchases (StoreKit only): consumables = 300, 1,000 and 2,200 coins and a one-time Starter pack (800 coins + 3 shields); non-consumables = Chapter 4 (World Wonders), Chapter 5 (Masterpieces) and All pictures. Coins pay for in-game helpers (hint, shield, continue). Restore Purchases is in Settings and in the Shop.
+4. No ads, accounts, servers, analytics or tracking. All pixel art is original; the paintings in chapter 5 are public-domain works redrawn as pixel art, and the world wonders are historic landmarks.
+5. Regional differences: none, except the UI language follows the device (English, Vietnamese).
