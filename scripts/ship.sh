@@ -9,11 +9,12 @@ LANE="${2:-all}"
 cd "$ROOT"
 
 case "$LANE" in
-  beta)     fastlane beta ;;
+  beta)     fastlane beta && (fastlane testers || echo "⚠️ testers lỗi") ;;
   metadata) fastlane metadata ;;
-  all)      fastlane beta && fastlane metadata ;;
+  all)      fastlane beta && fastlane metadata && (fastlane testers || echo "⚠️ testers lỗi") ;;
   submit)   fastlane submit ;;
   resubmit) fastlane resubmit ;;
   store)    fastlane store ;;
+  testers)  fastlane testers ;;
   *) echo "lane không hợp lệ: $LANE"; exit 1 ;;
 esac

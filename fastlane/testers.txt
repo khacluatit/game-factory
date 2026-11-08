@@ -1,0 +1,2 @@
+# Email tự thêm vào TestFlight cho mọi game (mỗi dòng 1 email)
+gamesunrise69@gmail.com

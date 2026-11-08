@@ -173,6 +173,102 @@ platform :ios do
     UI.success("🚀 #{@game} #{ver.version_string} (build #{build.version}) đã Submit for Review")
   end
 
+  desc "Thêm tester mặc định (fastlane/testers.txt) vào TestFlight: thành viên team → nhóm nội bộ, còn lại → nhóm ngoài + gửi Beta Review"
+  lane :testers do
+    api = Spaceship::ConnectAPI
+    app = api::App.find(@bid) or UI.user_error!("Không thấy app #{@bid}")
+    rc = api.client.tunes_request_client
+    emails = File.readlines(File.expand_path("testers.txt", __dir__)).map(&:strip).reject { |l| l.empty? || l.start_with?("#") }
+    UI.user_error!("testers.txt trống") if emails.empty?
+    say = lambda do |label, &blk|
+      begin
+        r = blk.call
+        UI.success(label)
+        r
+      rescue StandardError => e
+        detail = e.respond_to?(:error_info) && e.error_info ? JSON.generate(e.error_info)[0, 500] : e.message[0, 500]
+        UI.important("#{label}: LỖI — #{detail}")
+        nil
+      end
+    end
+    groups = rc.get("v1/apps/#{app.id}/betaGroups", { limit: 50 }).body["data"] || []
+    ensure_group = lambda do |internal|
+      name = internal ? "Team" : "Testers"
+      g = groups.find { |x| x["attributes"]["isInternalGroup"] == internal }
+      g ||= say.call("Tạo nhóm TestFlight #{name}") do
+        attrs = internal ? { name: name, isInternalGroup: true, hasAccessToAllBuilds: true } : { name: name }
+        rc.post("v1/betaGroups", { data: { type: "betaGroups", attributes: attrs,
+          relationships: { app: { data: { type: "apps", id: app.id } } } } }).body["data"]
+      end
+      groups << g if g && !groups.include?(g)
+      g
+    end
+    # Chờ build mới nhất xử lý xong (tối đa ~25 phút) để gắn được vào nhóm ngoài
+    build = nil
+    50.times do
+      build = (rc.get("v1/builds", { "filter[app]" => app.id, sort: "-uploadedDate", limit: 1 }).body["data"] || []).first
+      break if build.nil? || build["attributes"]["processingState"] != "PROCESSING"
+      sleep 30
+    end
+    UI.message(build ? "Build mới nhất #{build['attributes']['version']} — #{build['attributes']['processingState']}" : "Chưa có build")
+    need_review = false
+    emails.each do |email|
+      user = (rc.get("v1/users", { "filter[username]" => email, limit: 1 }).body["data"] || []).first rescue nil
+      internal = !user.nil?
+      g = ensure_group.call(internal) or next
+      say.call("#{email} → nhóm #{internal ? 'nội bộ' : 'ngoài'}") do
+        rc.post("v1/betaTesters", { data: { type: "betaTesters", attributes: { email: email },
+          relationships: { betaGroups: { data: [{ type: "betaGroups", id: g["id"] }] } } } })
+      end
+      need_review ||= !internal
+    end
+    next unless need_review && build
+    UI.user_error!("Build chưa xử lý xong, chạy lại lane testers sau ít phút") unless build["attributes"]["processingState"] == "VALID"
+    ext = groups.find { |x| x["attributes"]["isInternalGroup"] == false }
+    say.call("Gắn build #{build['attributes']['version']} vào nhóm ngoài") do
+      rc.post("v1/betaGroups/#{ext['id']}/relationships/builds", { data: [{ type: "builds", id: build["id"] }] })
+    end
+    # Thông tin cần cho Beta App Review: lấy từ app khác của team nếu app này chưa có
+    detail = rc.get("v1/apps/#{app.id}/betaAppReviewDetail").body["data"]
+    if detail["attributes"]["contactEmail"].to_s.empty?
+      src = nil
+      (rc.get("v1/apps", { limit: 50 }).body["data"] || []).each do |a|
+        next if a["id"] == app.id
+        d = rc.get("v1/apps/#{a['id']}/betaAppReviewDetail").body["data"] rescue nil
+        if d && !d["attributes"]["contactEmail"].to_s.empty? then src = d["attributes"]; break end
+      end
+      if src
+        say.call("Điền liên hệ Beta Review (lấy từ app khác của team)") do
+          rc.patch("v1/betaAppReviewDetails/#{detail['id']}", { data: { type: "betaAppReviewDetails", id: detail["id"],
+            attributes: src.slice("contactFirstName", "contactLastName", "contactPhone", "contactEmail").merge("demoAccountRequired" => false) } })
+        end
+      else
+        UI.important("Chưa có liên hệ Beta Review ở app nào — cần điền tay 1 lần (TestFlight › Test Information)")
+      end
+    end
+    locs = rc.get("v1/apps/#{app.id}/betaAppLocalizations").body["data"] || []
+    if locs.empty?
+      desc = File.read("#{@dir}/metadata/en-US/description.txt").strip[0, 3900] rescue "Test build."
+      say.call("Mô tả bản beta + email góp ý") do
+        rc.post("v1/betaAppLocalizations", { data: { type: "betaAppLocalizations",
+          attributes: { locale: "en-US", description: desc, feedbackEmail: "bm.apple.publish@gmail.com" },
+          relationships: { app: { data: { type: "apps", id: app.id } } } } })
+      end
+    end
+    bl = rc.get("v1/builds/#{build['id']}/betaBuildLocalizations").body["data"] || []
+    if bl.empty?
+      say.call("What to Test") do
+        rc.post("v1/betaBuildLocalizations", { data: { type: "betaBuildLocalizations",
+          attributes: { locale: "en-US", whatsNew: "Please play the first boards, flagging, continue after a bomb, and test in-app purchases (sandbox) and Restore Purchases." },
+          relationships: { build: { data: { type: "builds", id: build["id"] } } } } })
+      end
+    end
+    say.call("Gửi build #{build['attributes']['version']} cho Beta App Review (lần đầu Apple duyệt ~1 ngày, các bản sau thường tự qua)") do
+      rc.post("v1/betaAppReviewSubmissions", { data: { type: "betaAppReviewSubmissions",
+        relationships: { build: { data: { type: "builds", id: build["id"] } } } } })
+    end
+  end
+
   desc "Thiết lập Store qua API: giá app $0 + mọi quốc gia, tạo IAP từ Games/<game>/iap.json (tên/mô tả, giá, quốc gia)"
   lane :store do
     api = Spaceship::ConnectAPI
