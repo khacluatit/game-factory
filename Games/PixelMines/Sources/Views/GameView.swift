@@ -37,7 +37,10 @@ struct GameView: View {
                 Text(game.chapterName).font(Theme.font(18, .black)).foregroundColor(Theme.ink).lineLimit(1)
             }
             Spacer()
-            CoinPill()
+            HStack(spacing: 8) {
+                RoundIconButton(system: "questionmark", label: L("How to play", "Cách chơi")) { app.sheet = .howTo }
+                CoinPill()
+            }
         }
     }
 

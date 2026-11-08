@@ -32,7 +32,7 @@ struct RootView: View {
                 ChapterView(chapterID: id).transition(.move(edge: .trailing))
             case .game:
                 if let g = app.game {
-                    GameView(game: g).id(g.level.id).transition(.opacity)
+                    GameView(game: g).id(ObjectIdentifier(g)).transition(.opacity)
                 }
             }
         }
@@ -44,6 +44,7 @@ struct RootView: View {
                 case .settings: SettingsView()
                 case .locked(let id): LockedChapterView(chapterID: id)
                 case .starter: StarterOfferView()
+                case .howTo: HowToPlayView()
                 }
             }
             .environmentObject(app)

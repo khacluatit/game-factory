@@ -34,6 +34,10 @@ struct SettingsView: View {
             .card(22)
 
             VStack(spacing: 0) {
+                Button { app.sheet = .howTo } label: {
+                    row(L("How to play", "Cách chơi"))
+                }
+                Divider().padding(.leading, 16)
                 Button { Task { await store.restore() } } label: {
                     row(L("Restore purchases", "Khôi phục giao dịch"), color: Theme.primary, chevron: false)
                 }

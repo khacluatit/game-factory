@@ -47,21 +47,22 @@ enum Route: Equatable {
 }
 
 enum Sheet: Identifiable, Equatable {
-    case shop, settings, locked(Int), starter
+    case shop, settings, locked(Int), starter, howTo
     var id: String {
         switch self {
         case .shop: return "shop"
         case .settings: return "settings"
         case .locked(let c): return "locked\(c)"
         case .starter: return "starter"
+        case .howTo: return "howto"
         }
     }
 }
 
 enum Price {
-    static let hint = 30
-    static let shield = 40
-    static let continueGame = 60
+    static let hint = 6
+    static let shield = 8
+    static let continueGame = 12
 }
 
 @MainActor
@@ -156,6 +157,11 @@ final class AppModel: ObservableObject {
     func play(_ level: Level, daily: Bool = false) {
         game = GameController(app: self, level: level, isDaily: daily)
         route = .game
+        // Lần đầu vào bàn: mở hướng dẫn cách chơi.
+        if !data.tutorialSeen.contains("howto"), shot == nil {
+            data.tutorialSeen.insert("howto")
+            sheet = .howTo
+        }
     }
 
     func playNext() {
