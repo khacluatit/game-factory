@@ -216,6 +216,12 @@ platform :ios do
       user = (rc.get("v1/users", { "filter[username]" => email, limit: 1 }).body["data"] || []).first rescue nil
       internal = !user.nil?
       g = ensure_group.call(internal) or next
+      already = (rc.get("v1/betaGroups/#{g['id']}/betaTesters", { "filter[email]" => email, limit: 1 }).body["data"] || []).any? rescue false
+      if already
+        UI.message("#{email}: đã có trong nhóm #{internal ? 'nội bộ' : 'ngoài'}")
+        need_review ||= !internal
+        next
+      end
       say.call("#{email} → nhóm #{internal ? 'nội bộ' : 'ngoài'}") do
         rc.post("v1/betaTesters", { data: { type: "betaTesters", attributes: { email: email },
           relationships: { betaGroups: { data: [{ type: "betaGroups", id: g["id"] }] } } } })
