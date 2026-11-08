@@ -65,6 +65,8 @@ struct RootView: View {
             if let lv = app.pack.level("c5-10") { app.play(lv) }
         case "album":
             app.route = .album
+        case "shop":
+            app.sheet = .shop
         default:
             break
         }
