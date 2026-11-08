@@ -1,0 +1,23 @@
+[
+  {"productId": "com.beemob.pixelmines.coins300", "type": "CONSUMABLE", "ref": "Coins 300", "price": "0.99",
+   "en": {"name": "300 Coins", "desc": "A small bag of 300 coins for hints, shields and continues."},
+   "vi": {"name": "300 xu", "desc": "Túi 300 xu để dùng Đèn soi, Khiên và Tiếp tục."}},
+  {"productId": "com.beemob.pixelmines.coins1000", "type": "CONSUMABLE", "ref": "Coins 1000", "price": "2.99",
+   "en": {"name": "1,000 Coins", "desc": "A medium bag of 1,000 coins for hints, shields and continues."},
+   "vi": {"name": "1.000 xu", "desc": "Túi 1.000 xu để dùng Đèn soi, Khiên và Tiếp tục."}},
+  {"productId": "com.beemob.pixelmines.coins2200", "type": "CONSUMABLE", "ref": "Coins 2200", "price": "4.99",
+   "en": {"name": "2,200 Coins", "desc": "A treasure chest of 2,200 coins. The best value."},
+   "vi": {"name": "2.200 xu", "desc": "Rương 2.200 xu, lợi nhất."}},
+  {"productId": "com.beemob.pixelmines.starter", "type": "CONSUMABLE", "ref": "Starter Pack", "price": "1.99",
+   "en": {"name": "Starter Pack", "desc": "800 coins and 3 shields. Offered once."},
+   "vi": {"name": "Gói khởi đầu", "desc": "800 xu và 3 Khiên. Chỉ bán một lần."}},
+  {"productId": "com.beemob.pixelmines.chapter4", "type": "NON_CONSUMABLE", "ref": "Chapter 4 World Wonders", "price": "1.99",
+   "en": {"name": "World Wonders", "desc": "Unlocks chapter 4: 12 pixel pictures of world wonders."},
+   "vi": {"name": "Kỳ quan thế giới", "desc": "Mở chương 4: 12 tranh pixel kỳ quan thế giới."}},
+  {"productId": "com.beemob.pixelmines.chapter5", "type": "NON_CONSUMABLE", "ref": "Chapter 5 Masterpieces", "price": "1.99",
+   "en": {"name": "Masterpieces", "desc": "Unlocks chapter 5: 12 legendary paintings as pixel art."},
+   "vi": {"name": "Kiệt tác hội hoạ", "desc": "Mở chương 5: 12 kiệt tác hội hoạ dạng pixel."}},
+  {"productId": "com.beemob.pixelmines.allchapters", "type": "NON_CONSUMABLE", "ref": "All Pictures", "price": "4.99",
+   "en": {"name": "All Pictures", "desc": "Unlocks every chapter now and every future chapter."},
+   "vi": {"name": "Trọn bộ tranh", "desc": "Mở mọi chương hiện có và mọi chương ra sau này."}}
+]

@@ -173,6 +173,110 @@ platform :ios do
     UI.success("🚀 #{@game} #{ver.version_string} (build #{build.version}) đã Submit for Review")
   end
 
+  desc "Thiết lập Store qua API: giá app $0 + mọi quốc gia, tạo IAP từ Games/<game>/iap.json (tên/mô tả, giá, quốc gia)"
+  lane :store do
+    api = Spaceship::ConnectAPI
+    app = api::App.find(@bid) or UI.user_error!("Không thấy app #{@bid}")
+    rc = api.client.tunes_request_client
+    step = lambda do |label, &blk|
+      begin
+        blk.call
+        UI.success(label)
+      rescue StandardError => e
+        detail = e.respond_to?(:error_info) && e.error_info ? JSON.generate(e.error_info)[0, 600] : e.message[0, 600]
+        UI.important("#{label}: LỖI — #{detail}")
+      end
+    end
+    territories = []
+    url = "v1/territories"
+    params = { limit: 200 }
+    loop do
+      res = rc.get(url, params).body
+      territories += (res["data"] || []).map { |t| t["id"] }
+      nxt = res.dig("links", "next")
+      break unless nxt
+      url = nxt.sub(%r{^https://[^/]+/}, ""); params = {}
+    end
+    UI.message("#{territories.size} quốc gia")
+
+    step.call("Giá app = Free") do
+      free = rc.get("v1/apps/#{app.id}/appPricePoints", { "filter[territory]" => "USA", limit: 1 }).body["data"].first
+      rc.post("v1/appPriceSchedules", {
+        data: { type: "appPriceSchedules", relationships: {
+          app: { data: { type: "apps", id: app.id } },
+          baseTerritory: { data: { type: "territories", id: "USA" } },
+          manualPrices: { data: [{ type: "appPrices", id: "${p0}" }] } } },
+        included: [{ type: "appPrices", id: "${p0}", attributes: { startDate: nil },
+                     relationships: { appPricePoint: { data: { type: "appPricePoints", id: free["id"] } } } }]
+      })
+    end
+
+    step.call("App có mặt ở mọi quốc gia") do
+      rc.post("v2/appAvailabilities", {
+        data: { type: "appAvailabilities", attributes: { availableInNewTerritories: true }, relationships: {
+          app: { data: { type: "apps", id: app.id } },
+          territoryAvailabilities: { data: territories.map { |t| { type: "territoryAvailabilities", id: "${t#{t}}" } } } } },
+        included: territories.map { |t| { type: "territoryAvailabilities", id: "${t#{t}}", attributes: { available: true },
+                                           relationships: { territory: { data: { type: "territories", id: t } } } } }
+      })
+    end
+
+    list = JSON.parse(File.read("#{@dir}/iap.json"))
+    existing = rc.get("v1/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
+    list.each do |p|
+      pid = p["productId"]
+      iap = existing.find { |i| i["attributes"]["productId"] == pid }
+      if iap
+        UI.message("IAP #{pid}: đã có, bỏ qua bước tạo")
+      else
+        step.call("IAP #{pid}: tạo") do
+          iap = rc.post("v2/inAppPurchases", { data: { type: "inAppPurchases",
+            attributes: { name: p["ref"], productId: pid, inAppPurchaseType: p["type"], familySharable: false },
+            relationships: { app: { data: { type: "apps", id: app.id } } } } }).body["data"]
+        end
+        next unless iap
+      end
+      id = iap["id"]
+      locs = rc.get("v2/inAppPurchases/#{id}/inAppPurchaseLocalizations").body["data"] || []
+      { "en-US" => p["en"], "vi" => p["vi"] }.each do |locale, t|
+        next if locs.any? { |l| l["attributes"]["locale"] == locale }
+        step.call("IAP #{pid}: tên/mô tả #{locale}") do
+          rc.post("v1/inAppPurchaseLocalizations", { data: { type: "inAppPurchaseLocalizations",
+            attributes: { locale: locale, name: t["name"], description: t["desc"] },
+            relationships: { inAppPurchaseV2: { data: { type: "inAppPurchases", id: id } } } } })
+        end
+      end
+      step.call("IAP #{pid}: giá $#{p['price']}") do
+        point = nil
+        url = "v2/inAppPurchases/#{id}/pricePoints"
+        params = { "filter[territory]" => "USA", limit: 200 }
+        while point.nil?
+          res = rc.get(url, params).body
+          point = (res["data"] || []).find { |pp| pp["attributes"]["customerPrice"].to_f == p["price"].to_f }
+          nxt = res.dig("links", "next")
+          break if point || nxt.nil?
+          url = nxt.sub(%r{^https://[^/]+/}, ""); params = {}
+        end
+        UI.user_error!("không thấy mức giá #{p['price']}") unless point
+        rc.post("v1/inAppPurchasePriceSchedules", {
+          data: { type: "inAppPurchasePriceSchedules", relationships: {
+            inAppPurchase: { data: { type: "inAppPurchases", id: id } },
+            baseTerritory: { data: { type: "territories", id: "USA" } },
+            manualPrices: { data: [{ type: "inAppPurchasePrices", id: "${p0}" }] } } },
+          included: [{ type: "inAppPurchasePrices", id: "${p0}", attributes: { startDate: nil },
+                       relationships: { inAppPurchasePricePoint: { data: { type: "inAppPurchasePricePoints", id: point["id"] } } } }]
+        })
+      end
+      step.call("IAP #{pid}: bán ở mọi quốc gia") do
+        rc.post("v1/inAppPurchaseAvailabilities", { data: { type: "inAppPurchaseAvailabilities",
+          attributes: { availableInNewTerritories: true }, relationships: {
+            inAppPurchase: { data: { type: "inAppPurchases", id: id } },
+            availableTerritories: { data: territories.map { |t| { type: "territories", id: t } } } } } })
+      end
+    end
+    UI.success("✅ Store #{@game}: xong phần qua API (còn App Privacy, Age Rating, ảnh duyệt IAP)")
+  end
+
   desc "Sau khi bị 2.1 Information Needed: cập nhật Review Notes từ metadata và Resubmit"
   lane :resubmit do
     api = Spaceship::ConnectAPI

@@ -14,5 +14,6 @@ case "$LANE" in
   all)      fastlane beta && fastlane metadata ;;
   submit)   fastlane submit ;;
   resubmit) fastlane resubmit ;;
+  store)    fastlane store ;;
   *) echo "lane không hợp lệ: $LANE"; exit 1 ;;
 esac
