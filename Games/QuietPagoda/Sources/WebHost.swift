@@ -103,6 +103,12 @@ final class WebHost: NSObject, ObservableObject, WKScriptMessageHandler {
             speaker.say(body["text"] as? String ?? "", lang: body["lang"] as? String ?? "vi-VN", rate: Float(body["rate"] as? Double ?? 0.4)) { [weak self] in self?.send("QP.onSpoken()") }
         case "stopSpeak":
             speaker.stop()
+        case "reload":
+            // đổi ngôn ngữ: nạp lại trang với trạng thái mới nhất (script khởi động được tạo lại)
+            let ucc = webView.configuration.userContentController
+            ucc.removeAllUserScripts()
+            ucc.addUserScript(WKUserScript(source: Self.bootScript(stateKey: stateKey), injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            webView.reload()
         default:
             break
         }

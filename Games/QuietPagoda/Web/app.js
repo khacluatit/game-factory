@@ -10,6 +10,7 @@
   const TZ = (LANG === 'zh' || LANG === 'zhs') ? 8 : (LANG === 'ko' || LANG === 'ja') ? 9 : 7;
   const H24 = 24 * 3600 * 1000;
   const OUT = ['pond', 'gate', 'yard', 'bell'];
+  const LANGS = [['auto', ''], ['vi', 'Tiếng Việt'], ['en', 'English'], ['zh', '繁體中文'], ['zhs', '简体中文'], ['ko', '한국어'], ['ja', '日本語']];
 
   // ---------------- products ----------------
   const P = {
@@ -608,6 +609,8 @@
       <div class="label">${T.notif}</div>
       <div class="list">${sw('nMorning', T.nMorning)}${sw('nEvening', T.nEvening)}${sw('nMoon', T.nMoon)}</div>
       <div class="list"><div class="card"><div class="t"><b>${T.yourName}</b></div><input type="text" id="nameIn" maxlength="20" value="${esc(S.name)}"></div></div>
+      <div class="label">${T.language}</div>
+      <div class="chips">${LANGS.map(([k, n]) => `<button class="${(S.settings.lang || 'auto') === k ? 'sel' : ''}" data-l="${k}">${k === 'auto' ? esc(T.langAuto) : n}</button>`).join('')}</div>
       <button class="link" data-a="tut">${T.tutAgain}</button>
       <button class="link" data-a="restore">${T.restore}</button>
       <button class="link" data-a="privacy">${T.privacy}</button>`);
@@ -617,6 +620,7 @@
       if (b.dataset.a === 'close') closeSheet();
       else if (b.dataset.s) { const k = b.dataset.s; s[k] = !s[k]; b.setAttribute('aria-checked', String(s[k])); if (k === 'ambient') Audio.ambient(s.ambient); if (k[0] === 'n') { if (s[k]) post({ type: 'notifyPermission' }); schedule(); } save(); }
       else if (b.dataset.a === 'restore') { if (native) post({ type: 'restore' }); else toast(T.restored); }
+      else if (b.dataset.l) { if ((S.settings.lang || 'auto') === b.dataset.l) return; S.settings.lang = b.dataset.l === 'auto' ? null : b.dataset.l; const j = JSON.stringify(S); post({ type: 'save', state: j }); try { localStorage.setItem('qp', j); } catch (e) { /* ignore */ } setTimeout(() => { if (native) post({ type: 'reload' }); else location.replace(location.pathname + '?lang=' + b.dataset.l); }, 350); }
       else if (b.dataset.a === 'tut') { closeSheet(); if (mode === 'sit') stand(); if (mode === 'pond') { mode = 'hall'; applyFog(); pondUI.hidden = true; hallUI.hidden = false; } S.tut = 1; save(); showCoach(1); }
       else if (b.dataset.a === 'privacy') { const u = window.QP_PRIVACY || 'https://khacluatit.github.io/game-factory/quietpagoda/privacy.html'; if (native) post({ type: 'open', url: u }); else window.open(u, '_blank'); }
     };
@@ -972,6 +976,7 @@
 
     if (bellSwing2.v > 0) { bellSwing2.v = Math.max(0, bellSwing2.v - dt * 0.25); TP.bell.rotation.z = Math.sin(t * 2.4) * 0.05 * bellSwing2.v; TP.bellLog.rotation.z = Math.sin(t * 2.4 + 1) * 0.12 * bellSwing2.v; }
     TP.bodhi.userData.crown.rotation.y = Math.sin(t * 0.3) * 0.02;
+    if (OUT.includes(mode) || mode === 'tour') TP.flags.forEach(f => { const pos = f.userData.cloth.geometry.attributes.position, b = f.userData.base; for (let i = 0; i < pos.count; i++) { const x = b[i * 3]; pos.setZ(i, Math.sin(x * 3.2 - t * 3.4) * 0.09 * x + Math.sin(t * 1.3) * 0.05 * x); } pos.needsUpdate = true; });
     if (bellSwing > 0) { bellSwing = Math.max(0, bellSwing - dt * 0.35); bellBody.rotation.z = Math.sin(t * 5) * 0.06 * bellSwing; }
     // ritual ambience
     if (inRitual() && S.settings.effects && !chant) { if (!ritualRolled) { ritualRolled = true; Audio.bellRoll(); } if (!Audio.rolling()) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(ritualN % 4 === 0); ritualN++; ritualBeat = 1.05; } } } else ritualRolled = false;
@@ -981,7 +986,7 @@
     if (mode === 'sit' && playerCushion) { camPos.set(playerCushion.userData.x * 0.5 + 0.7, 2.4, playerCushion.userData.z + 3.8); camTarget.set(playerCushion.userData.x * 0.3, 1.6, -8); }
     else if (mode === 'pond') { camPos.set(0, 4.6, 10.6); camTarget.set(0, 0.4, 18.5); }
     else if (mode === 'gate') { camPos.set(0, 2.3, 55); camTarget.set(0, 3.6, 34); }
-    else if (mode === 'yard') { camPos.set(0, 4.4, 35.5); camTarget.set(0, 3.2, 12); }
+    else if (mode === 'yard') { camPos.set(0, 6.4, 37.5); camTarget.set(0, 2.4, 12); }
     else if (mode === 'bell') { camPos.set(-1.2, 3.4, 36.8); camTarget.set(-9.2, 3.6, 27.5); }
     else if (mode === 'tour' && tour) {
       tour.t = Math.min(1, Math.max(tour.t, (performance.now() - tour.t0) / 7500)); const e = tour.t < 0.5 ? 2 * tour.t * tour.t : 1 - Math.pow(-2 * tour.t + 2, 2) / 2;
