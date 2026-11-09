@@ -55,6 +55,8 @@ button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px
 .chant .head { position: relative; display: flex; justify-content: space-between; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0; gap: 8px; }
 .chant .head b { font-family: var(--serif); font-size: 17px; text-align: center; flex: 1; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
 .chant .head .chip { font-size: 13px; }
+.chant .head .round[aria-pressed="false"] #cVoiceW { opacity: 0.25; }
+.chant .head .round[aria-pressed="true"] { background: linear-gradient(180deg, #E4C273 0%, #C9A24A 100%); color: var(--wood); }
 .scroll { position: relative; margin: auto 16px 0; background: var(--paper); color: var(--brown); border: 2px solid var(--gold); border-radius: 16px; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 14px; min-height: 260px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
 .scroll .ln { display: flex; flex-direction: column; gap: 4px; transition: opacity 0.3s; }
 .scroll .ln.dim { opacity: 0.38; }
@@ -174,6 +176,18 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
   <div class="row"><button class="btn plaque" id="bStand"></button></div>
 </div>
 
+<div class="bottom" id="gateUI" hidden>
+  <div class="hint" id="gateHint"></div>
+  <div class="row"><button class="btn primary" id="bGo"></button></div>
+</div>
+<div class="bottom" id="yardUI" hidden>
+  <div class="row"><button class="btn primary" id="yHall"></button><button class="btn plaque" id="yBell"></button></div>
+  <div class="row"><button class="btn plaque" id="yPond"></button><button class="btn plaque" id="yGate"></button></div>
+</div>
+<div class="bottom" id="bellUI" hidden>
+  <div class="hint" id="bellHint"></div>
+  <div class="row"><button class="btn primary" id="bRoll"></button><button class="btn plaque" id="bBack"></button></div>
+</div>
 <div class="bottom" id="pondUI" hidden>
   <div class="chip plaque" id="lotusCount" style="pointer-events:none"></div>
   <div class="row"><button class="btn primary" id="bLantern"></button><button class="btn plaque" id="bEnter"></button></div>
@@ -181,7 +195,7 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
 
 <div class="chant" id="chantUI" hidden>
   <div class="shade"></div>
-  <div class="head"><button class="btn plaque" id="cStop" style="flex:none;padding:0 16px;height:44px"></button><b id="cTitle"></b><div class="chip plaque" id="cRound"></div></div>
+  <div class="head"><button class="btn plaque" id="cStop" style="flex:none;padding:0 16px;height:44px"></button><b id="cTitle"></b><button class="round plaque" id="cVoice" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 4V5L8 9z"/><path id="cVoiceW" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg></button><div class="chip plaque" id="cRound"></div></div>
   <div class="scroll" id="cScroll"></div>
   <div class="prog"><i id="cProg"></i></div>
   <div class="ctrl"><div class="seg" id="cSpeed"><button data-v="0"></button><button data-v="1"></button><button data-v="2"></button></div><button class="mokbtn plaque" id="cMok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="11" cy="14" rx="8" ry="6"/><path d="M7 14h8M17 6l4-3"/></svg></button></div>
@@ -196,6 +210,7 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
 <script src="i18n.js"></script>
 <script src="sutras.js"></script>
 <script src="figures.js"></script>
+<script src="temple.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

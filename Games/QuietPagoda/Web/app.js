@@ -9,6 +9,7 @@
   const post = m => { if (native) { try { window.webkit.messageHandlers.qp.postMessage(m); } catch (e) { /* ignore */ } } };
   const TZ = (LANG === 'zh' || LANG === 'zhs') ? 8 : (LANG === 'ko' || LANG === 'ja') ? 9 : 7;
   const H24 = 24 * 3600 * 1000;
+  const OUT = ['pond', 'gate', 'yard', 'bell'];
 
   // ---------------- products ----------------
   const P = {
@@ -100,7 +101,7 @@
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = 1.55;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
@@ -129,7 +130,7 @@
   const porcelain = new THREE.MeshPhysicalMaterial({ color: '#F4EFE6', roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.15, envMap: envTex, envMapIntensity: 0.6 });
   const lacquer = std('#7A2418', { roughness: 0.45 });
   const darkWood = std('#3A1D14', { roughness: 0.85 });
-  const wallMat = std('#4A2018', { roughness: 0.95 });
+  const wallMat = std('#4A2018', { roughness: 0.95, side: THREE.DoubleSide });
 
   // floor
   const floorTex = canvasTex(512, 512, (g, w) => {
@@ -253,11 +254,9 @@
   tetG.visible = false;
 
   // ---------------- courtyard & lotus pond (outside the front door) ----------------
-  const court = mesh(new THREE.PlaneGeometry(40, 30), std('#5E5446', { roughness: 0.95 }), 0, -0.01, 24.6); court.rotation.x = -Math.PI / 2; court.castShadow = false;
   const waterMat = new THREE.MeshStandardMaterial({ color: '#24394A', roughness: 0.15, metalness: 0.3 });
   const water = mesh(new THREE.CircleGeometry(5, 64), waterMat, 0, 0.03, 18); water.rotation.x = -Math.PI / 2; water.castShadow = false;
   const rim = mesh(new THREE.TorusGeometry(5.05, 0.18, 8, 64), std('#8A8172', { roughness: 0.9 }), 0, 0.06, 18); rim.rotation.x = Math.PI / 2;
-  for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2 + Math.random() * 0.2, r = 7 + Math.random() * 5; const h = 2.5 + Math.random() * 2.5; const t = mesh(new THREE.ConeGeometry(0.9 + Math.random() * 0.6, h, 7), std('#1F3326', { roughness: 0.9 }), Math.cos(a) * r, h / 2, 18 + Math.sin(a) * r + 2); t.castShadow = false; }
   const padMat = std('#3F6B4E', { roughness: 0.8, side: THREE.DoubleSide }), petalMat = std('#E89AAE', { roughness: 0.6 }), petal2 = std('#F0B6C4', { roughness: 0.6 });
   const lotusMats = [[petalMat, petal2], [std('#F4F0E6', { roughness: 0.6 }), std('#FFFFFF', { roughness: 0.6 })], [std('#E9C25A', { roughness: 0.6 }), std('#F2D88A', { roughness: 0.6 })]];
   const lotusG = new THREE.Group(); scene.add(lotusG);
@@ -289,10 +288,14 @@
     });
   }
   renderPondLanterns();
-  const moon = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), new THREE.MeshBasicMaterial({ color: '#F3E6C4', fog: false })); moon.position.set(-9, 2.8, 50); moon.lookAt(0, 4.6, 10.6); scene.add(moon);
+  const moon = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), new THREE.MeshBasicMaterial({ color: '#F3E6C4', fog: false })); moon.position.set(-14, 14, 70); moon.lookAt(0, 4.6, 10.6); scene.add(moon);
   const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F3E6C4', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.5 })); moonGlow.position.copy(moon.position); moonGlow.scale.set(12, 12, 1); scene.add(moonGlow);
   const moonRef = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F3E6C4', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.35 })); moonRef.position.set(-1.8, 0.08, 21.8); moonRef.scale.set(1.2, 0.35, 1); scene.add(moonRef);
   const flies = []; for (let i = 0; i < 24; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F6E27A', blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); s.scale.set(0.25, 0.25, 1); scene.add(s); flies.push({ s, a: Math.random() * 6.28, r: 1.5 + Math.random() * 3.5, h: 0.4 + Math.random() * 1.6, sp: 0.1 + Math.random() * 0.25 }); }
+
+  // ---------------- cảnh quan ngoài: cổng tam quan, sân, gác chuông (1.2) ----------------
+  const TP = window.Temple.build(scene, { lacquer, darkWood, porcelain, gold, glowTex, flameTex, env: envTex }, { label: T.plaque });
+  const bellSwing2 = { v: 0 };
 
   // ---------------- cushions & avatars ----------------
   const cushions = [], cushMat = std('#8A2B1F', { roughness: 0.9 });
@@ -333,28 +336,31 @@
 
   // ---------------- lighting & phases ----------------
   const ambient = new THREE.AmbientLight('#FFE2C0', 0.2); scene.add(ambient);
-  const hemi = new THREE.HemisphereLight('#FFD9A8', '#2A1410', 0.25); scene.add(hemi);
+  const hemi = new THREE.HemisphereLight('#FFE2BC', '#4A2418', 0.55); scene.add(hemi);
+  const fill = new THREE.PointLight('#FFD8A8', 2.2, 16, 1.6); fill.position.set(0, 5.2, -2.5); scene.add(fill);
+  const fill2 = new THREE.PointLight('#FFC890', 1.4, 12, 1.6); fill2.position.set(0, 4.2, 3.5); scene.add(fill2);
   const sun = new THREE.DirectionalLight('#FFB070', 1.4); sun.position.set(-11, 8, 3); sun.target.position.set(0, 0, -1); scene.add(sun, sun.target);
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -11, right: 11, top: 11, bottom: -11, near: 1, far: 40 }); sun.shadow.bias = -0.0005;
   const outLight = new THREE.DirectionalLight('#FFE0B0', 0.0); outLight.position.set(6, 10, 30); outLight.target.position.set(0, 0, 18); scene.add(outLight, outLight.target);
   const PH = {
-    dawn: { win: '#F4C08E', sun: '#FFC9A0', si: 1.2, amb: 0.28, fog: '#2A1A16', sky: '#C98E7A', fd: 0.04, shaft: 0.2, lamp: 0.9, out: 0.8, water: '#5A6A7A' },
-    day: { win: '#F6E3B8', sun: '#FFF0D0', si: 1.6, amb: 0.36, fog: '#2A1A14', sky: '#9DB4C4', fd: 0.035, shaft: 0.18, lamp: 0.6, out: 1.4, water: '#4E6E80' },
-    dusk: { win: '#F2A860', sun: '#FFB070', si: 1.4, amb: 0.2, fog: '#1A0D0A', sky: '#D9875A', fd: 0.045, shaft: 0.24, lamp: 1.0, out: 0.9, water: '#3C4A5C' },
-    night: { win: '#2B3656', sun: '#6A7FB0', si: 0.15, amb: 0.17, fog: '#0E0A0C', sky: '#141A2C', fd: 0.05, shaft: 0.0, lamp: 1.5, out: 0.25, water: '#1C2A3A' }
+    dawn: { win: '#F4C08E', sun: '#FFC9A0', si: 1.4, amb: 0.42, fog: '#3A2620', sky: '#C98E7A', fd: 0.026, shaft: 0.2, lamp: 0.9, out: 0.8, water: '#5A6A7A' },
+    day: { win: '#F6E3B8', sun: '#FFF0D0', si: 1.9, amb: 0.5, fog: '#3A2820', sky: '#9DB4C4', fd: 0.022, shaft: 0.18, lamp: 0.6, out: 1.4, water: '#4E6E80' },
+    dusk: { win: '#F2A860', sun: '#FFB070', si: 1.5, amb: 0.36, fog: '#2A1712', sky: '#D9875A', fd: 0.03, shaft: 0.24, lamp: 1.0, out: 0.9, water: '#3C4A5C' },
+    night: { win: '#2B3656', sun: '#6A7FB0', si: 0.2, amb: 0.3, fog: '#160F10', sky: '#141A2C', fd: 0.034, shaft: 0.0, lamp: 1.5, out: 0.25, water: '#1C2A3A' }
   };
   let curPhase = null;
   function applyPhase(force) {
     const k = phase(); if (k === curPhase && !force) return; curPhase = k; const t = PH[k];
     windowMats.forEach(m => m.color.set(t.win)); shaftMats.forEach(m => m.opacity = t.shaft);
-    sun.color.set(t.sun); sun.intensity = t.si; ambient.intensity = t.amb; outLight.intensity = t.out; waterMat.color.set(t.water);
+    sun.color.set(t.sun); sun.intensity = t.si; ambient.intensity = t.amb; fill.intensity = curPhase === 'night' ? 2.6 : 2.0; outLight.intensity = t.out; waterMat.color.set(t.water);
     flames.forEach(f => f.mult = t.lamp * (moonDay() && f !== flames[0] && f !== flames[1] ? 1.25 : 1));
-    moon.visible = moonGlow.visible = moonRef.visible = k === 'night'; flies.forEach(f => f.s.visible = k === 'night' || k === 'dusk');
+    moon.visible = moonGlow.visible = moonRef.visible = k === 'night';
+    const lampOn = k === 'night' || k === 'dusk'; TP.lanterns.forEach(l => { l.box.material.emissiveIntensity = lampOn ? 1.6 : 0; l.f.material.opacity = lampOn ? 0.75 : 0; }); flies.forEach(f => f.s.visible = k === 'night' || k === 'dusk');
     applyFog();
   }
   function applyFog() {
     const t = PH[curPhase];
-    if (mode === 'pond' || mode === 'toPond') { scene.fog.color.set(t.sky); scene.fog.density = 0.018; scene.background.set(t.sky); }
+    if (OUT.includes(mode) || (mode === 'tour' && camera.position.z > 10)) { scene.fog.color.set(t.sky); scene.fog.density = 0.012; scene.background.set(t.sky); }
     else { scene.fog.color.set(t.fog); scene.fog.density = t.fd; scene.background.set(t.fog); }
   }
   applyPhase(true);
@@ -382,6 +388,14 @@
   function pick(e) {
     const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
+    if (mode === 'gate' || mode === 'tour') { if (mode === 'tour' && tour) tour.t0 = Math.min(tour.t0, performance.now() - 7500 * 0.93); return; }
+    if (mode === 'yard' || mode === 'bell') {
+      const hb = ray.intersectObject(TP.bellTower, true)[0], hq = ray.intersectObject(TP.quanAm, true)[0], ho = ray.intersectObject(TP.bodhi, true)[0];
+      const hits = [hb, hq, ho].filter(Boolean).sort((a, b) => a.distance - b.distance); const h = hits[0]; if (!h) return;
+      if (h === hb) { if (mode === 'yard') goOut('bell'); else { Audio.unlock(); Audio.bigBell(); bellSwing2.v = 1; haptic('soft'); } }
+      else if (h === hq) showTag(TP.quanAm, T.qaOut); else showTag(TP.bodhi, T.bodhiTag);
+      return;
+    }
     if (mode === 'pond') {
       const hit = ray.intersectObjects(pondLanternG.children, true)[0];
       if (hit) { let o = hit.object; while (o.parent && o.parent !== pondLanternG) o = o.parent; const pl = pondLanterns.find(p => p.g === o); if (pl) showTag(pl.g, pl.o.name + ' · ' + T.wishes[pl.o.wish] + ' · ' + T.hoursLeft(Math.max(1, Math.round((pl.o.until - Date.now()) / 3600e3)))); }
@@ -402,7 +416,8 @@
   function showTag(obj, text) { tagFor = obj; tagText = text; tagUntil = clock.elapsedTime + 3.5; $('tag').textContent = text; }
 
   // ---------------- UI ----------------
-  const hallUI = $('hallUI'), sitUI = $('sitUI'), pondUI = $('pondUI');
+  const hallUI = $('hallUI'), sitUI = $('sitUI'), pondUI = $('pondUI'), gateUI = $('gateUI'), yardUI = $('yardUI'), bellUI = $('bellUI');
+  function showUI(m) { hallUI.hidden = m !== 'hall'; sitUI.hidden = m !== 'sit'; pondUI.hidden = m !== 'pond'; gateUI.hidden = m !== 'gate'; yardUI.hidden = m !== 'yard'; bellUI.hidden = m !== 'bell'; }
   function renderTop() {
     const l = lunarToday(); $('lunar').firstChild.nodeValue = T.lunar(l.day, l.month);
     $('lunar2').textContent = l.day === 1 ? T.newMoon : T.toFull(daysToFull());
@@ -412,6 +427,9 @@
     $('bIncense').textContent = T.incense; $('bPond').textContent = T.pond; $('bEnter').textContent = T.enter; $('bStand').textContent = T.stand;
     $('npcNote').textContent = T.npcNote; $('hint').textContent = T.tapCushion;
     $('bLantern').textContent = T.items.lantern + ' · ' + price.lantern;
+    $('bPond').textContent = T.toYard; $('bEnter').textContent = T.back; $('bGo').textContent = T.enterTemple; $('gateHint').textContent = T.gateHint;
+    $('yHall').textContent = T.toHall; $('yBell').textContent = T.bellTower; $('yPond').textContent = T.pondBtn; $('yGate').textContent = T.toGate;
+    $('bRoll').textContent = T.ringRoll; $('bBack').textContent = T.back; $('bellHint').textContent = T.bellHint; $('cVoice').setAttribute('aria-label', T.voice);
     ['gassho', 'bow', 'beads', 'moktak', 'chant'].forEach(k => { $('r-' + k).querySelector('span').textContent = T[k]; });
     $('cStop').textContent = T.cStop; [...$('cSpeed').children].forEach((b, i) => { b.textContent = T.speeds[i]; });
     $('bJournal').setAttribute('aria-label', T.journal); $('bSettings').setAttribute('aria-label', T.settings);
@@ -428,8 +446,8 @@
   }
   function updateBanner() {
     const b = $('banner'), h = hourNow();
-    if (mode === 'pond') { b.hidden = true; return; }
-    if (inRitual()) { b.textContent = T.ritualNow; b.hidden = false; return; }
+    if (mode !== 'hall' && mode !== 'sit') { b.hidden = true; return; }
+    if (inRitual()) { b.textContent = T.ritualNow + (chant ? '' : ' · ' + T.ritualTap); b.hidden = false; return; }
     const next = [5, 18].find(x => x > h && x - h <= 0.5);
     if (next !== undefined && !SHOT) { b.textContent = T.ritualSoon(next === 5 ? '5:00' : '18:00'); b.hidden = false; } else b.hidden = true;
   }
@@ -440,7 +458,7 @@
     walk = { pts: [player.position.clone(), new THREE.Vector3(0, 0, c.userData.z + 0.9), new THREE.Vector3(c.userData.x, 0, c.userData.z + 0.9), new THREE.Vector3(c.userData.x, 0.12, c.userData.z)], i: 0 };
     flashHint(T.walking); haptic('light');
   }
-  function sitDone() { mode = 'sit'; player.rotation.y = 0; player.userData.setPose('sit'); hallUI.hidden = true; sitUI.hidden = false; selectRitual(ritual === 'chant' ? 'bow' : ritual); showCount(); if (S.tut === 1) { S.tut = 2; save(); showCoach(2); } }
+  function sitDone() { mode = 'sit'; player.rotation.y = 0; player.userData.setPose('sit'); hallUI.hidden = true; sitUI.hidden = false; selectRitual(ritual === 'chant' ? 'bow' : ritual); showCount(); if (S.tut === 1) { S.tut = 2; save(); showCoach(2); } if (pendingKhoaLe) { pendingKhoaLe = false; startKhoaLe(); } }
   function stand() {
     mode = 'hall'; if (playerCushion) playerCushion.userData.taken = null; playerCushion = null; holdBow = false;
     player.position.copy(HALL_SPOT); player.rotation.y = 0; player.userData.pivot.rotation.x = 0; player.userData.bowT = 0; player.userData.setPose('stand');
@@ -509,12 +527,24 @@
     rollDay(); if (S.today.litAt) { toast(T.incenseUsed); return; }
     S.today.litAt = Date.now(); practiced(); tipMat.color.set('#FF7A3A'); Audio.match(); setTimeout(() => Audio.bell(0.7), 900); haptic('soft'); toast(T.incenseLit); save();
   }
-  $('bPond').addEventListener('click', () => { Audio.unlock(); goPond(); });
-  $('bEnter').addEventListener('click', goHall);
+  $('bPond').addEventListener('click', () => { Audio.unlock(); goOut('yard'); });
+  $('bEnter').addEventListener('click', () => goOut('yard'));
+  $('yHall').addEventListener('click', goHall); $('yBell').addEventListener('click', () => goOut('bell')); $('yPond').addEventListener('click', goPond); $('yGate').addEventListener('click', () => goOut('gate'));
+  $('bBack').addEventListener('click', () => goOut('yard'));
+  $('bRoll').addEventListener('click', () => { Audio.unlock(); Audio.bellRoll(); bellSwing2.v = 1; haptic('soft'); });
+  $('bGo').addEventListener('click', () => { Audio.unlock(); startTour(); });
+  $('banner').addEventListener('click', () => { if (!inRitual() || chant) return; Audio.unlock(); if (mode === 'sit') startKhoaLe(); else if (mode === 'hall') { const c = freeCushions().sort((a, b) => Math.abs(a.userData.x) - Math.abs(b.userData.x))[0]; if (c) { pendingKhoaLe = true; goSit(c); } } });
+  let pendingKhoaLe = false;
+  function goOut(m) { fadeTo(() => { if (mode === 'sit') stand(); mode = m; applyFog(); showUI(m); renderStatic(); }); }
+  // đi bộ từ cổng tam quan vào chính điện
+  let tour = null;
+  const TOUR = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 2.3, 55), new THREE.Vector3(0, 1.9, 39), new THREE.Vector3(0, 1.85, 31), new THREE.Vector3(-4.2, 1.85, 24.5), new THREE.Vector3(-6.4, 1.85, 18), new THREE.Vector3(-3.6, 1.85, 12.2), new THREE.Vector3(0, 2.2, 10.6), new THREE.Vector3(0, 2.9, 8.6)]);
+  function startTour() { tour = { t: 0, step: 0, t0: performance.now() }; mode = 'tour'; showUI('none'); $('hint').textContent = T.tapSkip; }
+  function endTour() { tour = null; S.gateDay = dayKey(new Date()); save(); mode = 'hall'; applyFog(); showUI('hall'); snapCam = true; renderStatic(); renderTop(); updateBanner(); }
   $('bLantern').addEventListener('click', () => openOffer('lantern'));
   function fadeTo(fn) { const f = $('fade'); f.style.opacity = '1'; setTimeout(() => { fn(); snapCam = true; setTimeout(() => { f.style.opacity = '0'; }, 120); }, 320); }
-  function goPond() { fadeTo(() => { if (mode === 'sit') stand(); mode = 'pond'; applyFog(); hallUI.hidden = true; sitUI.hidden = true; pondUI.hidden = false; renderStatic(); }); }
-  function goHall() { fadeTo(() => { mode = 'hall'; applyFog(); pondUI.hidden = true; hallUI.hidden = false; renderTop(); }); }
+  function goPond() { goOut('pond'); }
+  function goHall() { fadeTo(() => { mode = 'hall'; applyFog(); showUI('hall'); renderTop(); updateBanner(); }); }
 
   // ---------------- sheets ----------------
   const wrap = $('sheetWrap'), sheet = $('sheet');
@@ -541,7 +571,7 @@
     sheet.onclick = e => {
       const b = e.target.closest('button'); if (!b) return;
       if (b.dataset.a === 'close') closeSheet();
-      else if (b.dataset.a === 'free') { closeSheet(); if (mode !== 'hall' && mode !== 'sit') { mode = 'hall'; applyFog(); pondUI.hidden = true; hallUI.hidden = false; } lightFree(); }
+      else if (b.dataset.a === 'free') { closeSheet(); if (mode !== 'hall' && mode !== 'sit') { mode = 'hall'; applyFog(); showUI('hall'); } lightFree(); }
       else if (b.dataset.o) { offerSel = b.dataset.o; openOffer(); }
       else if (b.dataset.w) { wishSel = +b.dataset.w; openOffer(); }
       else if (b.dataset.a === 'buy') { buy(offerSel, wishSel); }
@@ -620,24 +650,33 @@
   let chant = null;
   function openChantPick() {
     openSheet(`<div class="grab"></div><div class="shead"><h2>${T.chantPick}</h2><button class="pill" data-a="close">${T.done}</button></div>
-      <div class="sutras">${SUTRAS.map(x => `<button data-s="${x.id}"><b>${esc(x.title[TKEY] || x.title.en)}</b><span>${esc(T.sutraSub[x.id] || '')} · ${T.lines(x.lines.length)}</span></button>`).join('')}</div>`);
-    sheet.onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.a === 'close') closeSheet(); else if (b.dataset.s) { closeSheet(); startChant(b.dataset.s); } };
+      <div class="sutras"><button data-s="khoa-le"><b>${esc(T.khoaLe)}</b><span>${esc(T.khoaLeSub)}</span></button>${SUTRAS.map(x => `<button data-s="${x.id}"><b>${esc(x.title[TKEY] || x.title.en)}</b><span>${esc(T.sutraSub[x.id] || '')} · ${T.lines(x.lines.length)}</span></button>`).join('')}</div>`);
+    sheet.onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.a === 'close') closeSheet(); else if (b.dataset.s) { closeSheet(); if (b.dataset.s === 'khoa-le') startKhoaLe(); else startChant(b.dataset.s); } };
   }
-  function startChant(id) {
+  let chantQueue = [];
+  function startKhoaLe() {
+    chantQueue = ['sam-hoi', 'hoi-huong'];
+    Audio.bigBell(); setTimeout(() => Audio.bigBell(), 3200); setTimeout(() => Audio.bigBell(), 6400);
+    setTimeout(() => { rollDay(); if (!S.today.litAt) { S.today.litAt = Date.now(); save(); } Audio.match(); }, 8000);
+    startChant('heart', 9.5);
+  }
+  function startChant(id, delay) {
     const x = SUTRAS.find(q => q.id === id); if (!x) return;
     rollDay();
     const total = x.lines.reduce((n, l) => n + l.h.length, 0);
-    chant = { x, line: 0, ch: -1, wait: 2.6, done: 0, total, round: (S.today.chant || 0) + 1 };
+    chant = { x, line: 0, ch: -1, wait: delay || 2.6, done: 0, total, round: (S.today.chant || 0) + 1, speaking: false };
     sitUI.hidden = true; $('chantUI').hidden = false; $('coach').hidden = true; document.querySelector('.top').hidden = true; $('banner').hidden = true;
     $('cTitle').textContent = x.title[TKEY] || x.title.en; $('cRound').textContent = T.round(chant.round);
     [...$('cSpeed').children].forEach((b, i) => b.classList.toggle('sel', i === S.settings.chantSpeed));
-    Audio.bell(1.4); haptic('soft'); renderChant();
+    if (!delay) Audio.bell(1.4); haptic('soft'); renderChant();
+    $('cVoice').setAttribute('aria-pressed', String(!!S.settings.voice));
   }
-  function stopChant() { chant = null; $('chantUI').hidden = true; document.querySelector('.top').hidden = false; if (mode === 'sit') { sitUI.hidden = false; showCount(); } }
+  function stopChant() { chant = null; chantQueue = []; Speech.stop(); $('chantUI').hidden = true; document.querySelector('.top').hidden = false; if (mode === 'sit') { sitUI.hidden = false; showCount(); } }
   function finishChant() {
     practiced(); S.today.chant = (S.today.chant || 0) + 1; S.totals.chant = (S.totals.chant || 0) + 1;
-    Audio.khanh(); setTimeout(() => Audio.bell(1.8), 1400); haptic('success'); save();
-    stopChant(); toast(T.chantDone);
+    Audio.khanh(); haptic('success'); save();
+    if (chantQueue.length) { const next = chantQueue.shift(), q = chantQueue; chant = null; Speech.stop(); setTimeout(() => { if (mode === 'sit') { startChant(next, 1.6); chantQueue = q; } }, 1500); return; }
+    setTimeout(() => Audio.bell(1.8), 1400); stopChant(); toast(T.chantDone);
   }
   const spans = (arr, upto, cls) => arr.map((c, i) => `<span${i <= upto ? ` class="${cls}"` : ''}>${esc(c)}</span>`).join(READ === 'vi' || READ === 'zh' ? ' ' : '');
   function readTokens(l) { if (READ === 'vi') return l.vi.split(' '); if (READ === 'zh') return l.zh.split(' '); if (READ === 'ko') return [...l.ko.replace(/\s/g, '')]; return null; }
@@ -659,7 +698,9 @@
   function tickChant(dt) {
     if (!chant) return; chant.wait -= dt; if (chant.wait > 0) return;
     const L = chant.x.lines; let l = L[chant.line];
+    if (chant.ch + 1 >= l.h.length && chant.speaking) return;
     chant.ch++;
+    if (chant.ch === 0) speakLine(chant.line);
     if (chant.ch >= l.h.length) {
       chant.line++; chant.ch = -1;
       if (chant.line >= L.length) { finishChant(); return; }
@@ -673,6 +714,29 @@
     chant.wait = CH_SPEED[S.settings.chantSpeed]; renderChant();
   }
   $('cStop').addEventListener('click', () => { stopChant(); });
+  $('cVoice').addEventListener('click', () => { S.settings.voice = !S.settings.voice; $('cVoice').setAttribute('aria-pressed', String(S.settings.voice)); if (!S.settings.voice) { Speech.stop(); if (chant) chant.speaking = false; } save(); });
+  // Giọng đọc: dùng giọng có sẵn trên iPhone (AVSpeechSynthesizer qua cầu nối native; trình duyệt dùng speechSynthesis).
+  // Khi có file thu âm thật (Web/audio/<kinh>/<dòng>.m4a) có thể thay ở đây.
+  const VOICE_LANG = { vi: 'vi-VN', ko: 'ko-KR', zh: 'zh-TW', zhs: 'zh-CN', ja: 'ja-JP', en: 'en-US' }[LANG] || 'en-US';
+  const Speech = (() => {
+    let cb = null, timer = 0;
+    const done = () => { clearTimeout(timer); const f = cb; cb = null; if (f) f(); };
+    return {
+      say(text, onEnd) {
+        if (!text) { onEnd && onEnd(); return; }
+        cb = onEnd || null; clearTimeout(timer); timer = setTimeout(done, 2500 + text.length * 260);
+        if (native) { post({ type: 'speak', text, lang: VOICE_LANG, rate: 0.36 }); return; }
+        try { const u = new SpeechSynthesisUtterance(text); u.lang = VOICE_LANG; u.rate = 0.72; u.pitch = 0.85; u.onend = done; u.onerror = done; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); } catch (e) { done(); }
+      },
+      stop() { cb = null; clearTimeout(timer); if (native) post({ type: 'stopSpeak' }); else { try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } } },
+      ended: done
+    };
+  })();
+  function speakLine(i) {
+    if (!S.settings.voice || !chant || SHOT) return; const l = chant.x.lines[i];
+    if (READ) { chant.speaking = true; const text = READ === 'vi' ? l.vi : READ === 'ko' ? l.ko : (LANG === 'zhs' ? l.s : l.h); Speech.say(text, () => { if (chant) chant.speaking = false; }); }
+    else { const sec = chant.x.sections.find(z => z.from === i); if (sec) Speech.say(LANG === 'ja' ? sec.ja : sec.en); }
+  }
   $('cMok').addEventListener('click', () => { Audio.unlock(); Audio.moktak(true); haptic('light'); });
   $('cSpeed').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.settings.chantSpeed = +b.dataset.v; [...$('cSpeed').children].forEach((x, i) => x.classList.toggle('sel', i === S.settings.chantSpeed)); save(); });
 
@@ -731,6 +795,7 @@
     onOwned(ids) { (ids || []).forEach(id => { const k = keyById(id); if (k && P[k].kind === 'keep') S.owned[k] = true; }); applyOfferings(); save(); if (!wrap.hidden && sheet.classList.contains('full')) openJournal(); },
     onRestored(ids) { this.onOwned(ids); toast(T.restored); },
     onNotifyPermission(granted) { if (!granted) { S.settings.nMorning = S.settings.nEvening = S.settings.nMoon = false; save(); } else schedule(); },
+    onSpoken() { Speech.ended(); },
     onForeground() { rollDay(); applyPhase(); applyOfferings(); renderTop(); updateBanner(); }
   };
 
@@ -903,8 +968,10 @@
     if (mode === 'walking' && walk && S.settings.effects) { stepT -= dt; if (stepT <= 0) { stepT = 0.42; Audio.step(); } }
     if (!$('coach').hidden) placeCoach(); else if (S.tut === 3 && mode === 'hall' && !SHOT && wrap.hidden) showCoach(3);
     tickAvatar(player, dt);
-    player.visible = mode !== 'pond';
+    player.visible = mode === 'hall' || mode === 'sit' || mode === 'walking';
 
+    if (bellSwing2.v > 0) { bellSwing2.v = Math.max(0, bellSwing2.v - dt * 0.25); TP.bell.rotation.z = Math.sin(t * 2.4) * 0.05 * bellSwing2.v; TP.bellLog.rotation.z = Math.sin(t * 2.4 + 1) * 0.12 * bellSwing2.v; }
+    TP.bodhi.userData.crown.rotation.y = Math.sin(t * 0.3) * 0.02;
     if (bellSwing > 0) { bellSwing = Math.max(0, bellSwing - dt * 0.35); bellBody.rotation.z = Math.sin(t * 5) * 0.06 * bellSwing; }
     // ritual ambience
     if (inRitual() && S.settings.effects && !chant) { if (!ritualRolled) { ritualRolled = true; Audio.bellRoll(); } if (!Audio.rolling()) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(ritualN % 4 === 0); ritualN++; ritualBeat = 1.05; } } } else ritualRolled = false;
@@ -913,8 +980,17 @@
     // camera
     if (mode === 'sit' && playerCushion) { camPos.set(playerCushion.userData.x * 0.5 + 0.7, 2.4, playerCushion.userData.z + 3.8); camTarget.set(playerCushion.userData.x * 0.3, 1.6, -8); }
     else if (mode === 'pond') { camPos.set(0, 4.6, 10.6); camTarget.set(0, 0.4, 18.5); }
+    else if (mode === 'gate') { camPos.set(0, 2.3, 55); camTarget.set(0, 3.6, 34); }
+    else if (mode === 'yard') { camPos.set(0, 4.4, 35.5); camTarget.set(0, 3.2, 12); }
+    else if (mode === 'bell') { camPos.set(-1.2, 3.4, 36.8); camTarget.set(-9.2, 3.6, 27.5); }
+    else if (mode === 'tour' && tour) {
+      tour.t = Math.min(1, Math.max(tour.t, (performance.now() - tour.t0) / 7500)); const e = tour.t < 0.5 ? 2 * tour.t * tour.t : 1 - Math.pow(-2 * tour.t + 2, 2) / 2;
+      TOUR.getPointAt(e, camPos); TOUR.getPointAt(Math.min(1, e + 0.06), camTarget); camTarget.y = 2.4; if (e > 0.94) camTarget.set(0, 1.7, -6);
+      tour.step -= dt; if (tour.step <= 0 && tour.t < 0.97) { tour.step = 0.5; Audio.step(); }
+      if (tour.t >= 1) endTour(); else if (camPos.z < 10.2 && !tour.inside) { tour.inside = true; applyFog(); }
+    }
     else { camPos.set(0, 2.9, 8.6); camTarget.set(0, 1.7, -6); }
-    const k = (SHOT || snapCam) ? 1 : 1 - Math.pow(0.03, dt); snapCam = false;
+    const k = (SHOT || snapCam || mode === 'tour') ? 1 : 1 - Math.pow(0.03, dt); snapCam = false;
     camAt.lerp(camPos, k); camLook.lerp(camTarget, k);
     camera.position.copy(camAt).add(tmp2.set(Math.sin(t * 0.15) * 0.12, Math.sin(t * 0.2) * 0.04, 0));
     const look = camLook.clone().sub(camera.position), sph = new THREE.Spherical().setFromVector3(look);
@@ -923,7 +999,7 @@
 
     // tag
     const tagEl = $('tag');
-    if (tagFor && t < tagUntil) { const p = new THREE.Vector3(); tagFor.getWorldPosition(p); p.y += mode === 'pond' ? 0.7 : 1.35; p.project(camera); tagEl.style.left = ((p.x + 1) / 2 * window.innerWidth) + 'px'; tagEl.style.top = ((1 - p.y) / 2 * window.innerHeight) + 'px'; tagEl.hidden = p.z > 1; }
+    if (tagFor && t < tagUntil) { const p = new THREE.Vector3(); tagFor.getWorldPosition(p); p.y += mode === 'pond' ? 0.7 : (tagFor === TP.quanAm ? 4.4 : tagFor === TP.bodhi ? 4 : 1.35); p.project(camera); tagEl.style.left = ((p.x + 1) / 2 * window.innerWidth) + 'px'; tagEl.style.top = ((1 - p.y) / 2 * window.innerHeight) + 'px'; tagEl.hidden = p.z > 1; }
     else tagEl.hidden = true;
 
     slowT -= dt; if (slowT <= 0) { slowT = 20; applyPhase(); updateBanner(); if (S.offerings.some(o => o.until < Date.now())) applyOfferings(); }
@@ -935,10 +1011,12 @@
   for (let i = 0; i < npcTarget(); i++) spawnSeated();
   renderTop(); renderStatic(); updateBanner(); applyRobe();
   if (SHOT === 'sit') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); player.userData.bowT = 1.1; }
-  else if (SHOT === 'pond') { mode = 'pond'; applyFog(); hallUI.hidden = true; pondUI.hidden = false; renderStatic(); }
+  else if (SHOT === 'pond') { mode = 'pond'; applyFog(); showUI('pond'); renderStatic(); }
+  else if (['gate', 'yard', 'bell'].includes(SHOT)) { mode = SHOT; applyFog(); showUI(SHOT); renderStatic(); }
   else if (SHOT === 'journal') openJournal();
   else if (SHOT === 'chant') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); startChant('heart'); chant.line = 4; chant.ch = 3; chant.done = 24; chant.wait = 999; renderChant(); }
   else if (!S.onboarded) onboarding(0);
+  else if (!SHOT && S.gateDay !== dayKey(new Date()) && !(S.tut > 0 && S.tut < 3)) { mode = 'gate'; applyFog(); showUI('gate'); snapCam = true; }
   else if (S.tut > 0 && S.tut < 3) { S.tut = 1; showCoach(1); }
   if (!SHOT) schedule();
   post({ type: 'ready' });

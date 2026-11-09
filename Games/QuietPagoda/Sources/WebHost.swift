@@ -1,12 +1,14 @@
 import SwiftUI
 import WebKit
 import UIKit
+import AVFoundation
 
 /// Giữ WKWebView chạy cảnh 3D (Web/index.html) và cầu nối JS ⇄ Swift.
 @MainActor
 final class WebHost: NSObject, ObservableObject, WKScriptMessageHandler {
     let webView: WKWebView
     private let stateKey = "qp.state"
+    private let speaker = Speaker()
 
     override init() {
         let config = WKWebViewConfiguration()
@@ -97,6 +99,10 @@ final class WebHost: NSObject, ObservableObject, WKScriptMessageHandler {
             Task { await Notifier.schedule(items) }
         case "open":
             if let s = body["url"] as? String, let u = URL(string: s) { UIApplication.shared.open(u) }
+        case "speak":
+            speaker.say(body["text"] as? String ?? "", lang: body["lang"] as? String ?? "vi-VN", rate: Float(body["rate"] as? Double ?? 0.4)) { [weak self] in self?.send("QP.onSpoken()") }
+        case "stopSpeak":
+            speaker.stop()
         default:
             break
         }
@@ -126,5 +132,28 @@ enum Haptics {
         case "soft": UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         default: UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
+    }
+}
+
+/// Giọng đọc kinh bằng giọng có sẵn của iOS (bản 1.2; sẽ thay bằng bản thu người thật khi có).
+@MainActor
+final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
+    private let synth = AVSpeechSynthesizer()
+    private var onEnd: (() -> Void)?
+    override init() { super.init(); synth.delegate = self }
+    func say(_ text: String, lang: String, rate: Float, onEnd: @escaping () -> Void) {
+        stop()
+        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+        self.onEnd = onEnd
+        let u = AVSpeechUtterance(string: text)
+        u.voice = AVSpeechSynthesisVoice(language: lang)
+        u.rate = max(AVSpeechUtteranceMinimumSpeechRate, min(rate, AVSpeechUtteranceDefaultSpeechRate))
+        u.pitchMultiplier = 0.85
+        u.postUtteranceDelay = 0.15
+        synth.speak(u)
+    }
+    func stop() { onEnd = nil; if synth.isSpeaking { synth.stopSpeaking(at: .immediate) } }
+    nonisolated func speechSynthesizer(_ s: AVSpeechSynthesizer, didFinish u: AVSpeechUtterance) {
+        Task { @MainActor in let f = self.onEnd; self.onEnd = nil; f?() }
     }
 }

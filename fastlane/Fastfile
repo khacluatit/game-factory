@@ -33,6 +33,25 @@ platform :ios do
   end
 
   desc "Build Release + upload TestFlight"
+  # Mỗi lần CI build (ký tự động) tạo 1 chứng chỉ "Apple Development: Created via API" trên máy ảo rồi bỏ đó.
+  # Thu hồi các chứng chỉ loại này đã tạo hơn 2 giờ (không đụng chứng chỉ Distribution, không ảnh hưởng app đã phát hành).
+  def revoke_ci_dev_certs
+    api = Spaceship::ConnectAPI
+    certs = api::Certificate.all rescue []
+    certs.each do |c|
+      next unless %w[DEVELOPMENT IOS_DEVELOPMENT].include?(c.certificate_type.to_s)
+      next unless c.name.to_s.include?("Created via API") || c.display_name.to_s.include?("Created via API")
+      created = (Time.parse(c.expiration_date.to_s) - 365 * 86_400 rescue nil)
+      next if created && created > Time.now - 2 * 3600
+      begin
+        c.delete!
+        UI.message("Đã thu hồi chứng chỉ dev CI cũ: #{c.name} (hết hạn #{c.expiration_date})")
+      rescue StandardError => e
+        UI.important("Không thu hồi được #{c.name}: #{e.message[0, 200]}")
+      end
+    end
+  end
+
   lane :beta do
     latest = begin
       latest_testflight_build_number(app_identifier: @bid, version: ENV["MARKETING_VERSION"])
@@ -41,6 +60,7 @@ platform :ios do
     end
     build = latest.to_i + 1
     increment_build_number(build_number: build, xcodeproj: "#{@dir}/#{@game}.xcodeproj")
+    revoke_ci_dev_certs
 
     build_app(
       project: "#{@dir}/#{@game}.xcodeproj",
