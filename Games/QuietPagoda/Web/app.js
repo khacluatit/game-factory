@@ -7,7 +7,7 @@
   const SHOT = params.get('shot') || window.QP_SHOT || null;
   const native = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.qp);
   const post = m => { if (native) { try { window.webkit.messageHandlers.qp.postMessage(m); } catch (e) { /* ignore */ } } };
-  const TZ = LANG === 'zh' ? 8 : 7;
+  const TZ = (LANG === 'zh' || LANG === 'zhs') ? 8 : (LANG === 'ko' || LANG === 'ja') ? 9 : 7;
   const H24 = 24 * 3600 * 1000;
 
   // ---------------- products ----------------
@@ -25,9 +25,9 @@
   // ---------------- state ----------------
   const DEF = {
     v: 1, name: null, streak: 0, lastDay: null, restWeek: null, visits: 0, lotus: 0, wish: '',
-    totals: { bow: 0, beads: 0, moktak: 0 }, today: { day: null, bow: 0, beads: 0, moktak: 0, litAt: 0, prompted: false },
+    totals: { bow: 0, beads: 0, moktak: 0, chant: 0 }, today: { day: null, bow: 0, beads: 0, moktak: 0, chant: 0, litAt: 0, prompted: false },
     owned: {}, robe: '#7A6A5A', tetOn: true, offerings: [],
-    settings: { ambient: true, effects: true, haptics: true, nMorning: false, nEvening: false, nMoon: true }, onboarded: false
+    settings: { ambient: true, effects: true, haptics: true, nMorning: false, nEvening: false, nMoon: true, chantSpeed: 1 }, onboarded: false, tut: 0
   };
   const clone = o => JSON.parse(JSON.stringify(o));
   function load() {
@@ -40,6 +40,7 @@
     out.totals = Object.assign(clone(DEF.totals), s.totals || {});
     out.today = Object.assign(clone(DEF.today), s.today || {});
     out.owned = Object.assign({}, s.owned || {});
+    if (s.onboarded && s.tut === undefined) out.tut = 9; // người dùng 1.0 không cần xem hướng dẫn
     return out;
   }
   let S = load();
@@ -57,7 +58,7 @@
   const pad = n => (n < 10 ? '0' : '') + n;
   const dayKey = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   const weekKey = d => { const x = new Date(d); const wd = (x.getDay() + 6) % 7; x.setDate(x.getDate() - wd); return dayKey(x); };
-  function rollDay() { const k = dayKey(new Date()); if (S.today.day !== k) S.today = { day: k, bow: 0, beads: 0, moktak: 0, litAt: 0, prompted: false }; }
+  function rollDay() { const k = dayKey(new Date()); if (S.today.day !== k) S.today = { day: k, bow: 0, beads: 0, moktak: 0, chant: 0, litAt: 0, prompted: false }; }
   function markVisit() {
     const now = new Date(), k = dayKey(now);
     if (S.lastDay === k) return;
@@ -72,7 +73,7 @@
   S.offerings = (S.offerings || []).filter(o => o.until > Date.now());
 
   if (SHOT) {
-    Object.assign(S, { streak: 7, visits: 23, lotus: 12, onboarded: true, wish: LANG === 'vi' ? 'Mong mẹ mau khỏe, cả nhà bình an qua mùa đông.' : (LANG === 'zh' ? '願母親早日康復，闔家平安過冬。' : 'May my mother get well soon and the family stay safe this winter.') });
+    Object.assign(S, { streak: 7, visits: 23, lotus: 12, onboarded: true, wish: ({ vi: 'Mong mẹ mau khỏe, cả nhà bình an qua mùa đông.', zh: '願母親早日康復，闔家平安過冬。', zhs: '愿母亲早日康复，阖家平安过冬。', ko: '어머니가 빨리 회복하시고 가족 모두 평안히 겨울을 나길.', ja: '母が早く元気になり、家族みんなで穏やかに冬を越せますように。' })[LANG] || 'May my mother get well soon and the family stay safe this winter.' });
     S.totals = { bow: 1240, beads: 9 * 108, moktak: 300 };
     S.today = { day: dayKey(new Date()), bow: 72, beads: 0, moktak: 0, litAt: Date.now(), prompted: true };
     S.offerings = [
@@ -298,7 +299,7 @@
   for (const z of [-2.6, -0.4, 1.8]) for (const x of [-4.5, -3.0, -1.5, 1.5, 3.0, 4.5]) { const c = mesh(new THREE.CylinderGeometry(0.38, 0.4, 0.14, 24), cushMat, x, 0.07, z); c.userData = { x, z, taken: null }; cushions.push(c); window.Figures.blob(scene, x, z, 0.6, 0.5); }
   for (const x of [-3.5, 3.5]) for (const z of [-6.2, -2.4, 1.4, 5.2]) window.Figures.blob(scene, x, z, 0.8, 0.45);
   const robes = ['#6F7F8F', '#8C7D6B', '#7A5A3A', '#D9D3C6', '#9AA3AD', '#5E6E7E'];
-  function makeAvatar(robe) { const g = window.Figures.makeAvatar({ robe }); scene.add(g); return g; }
+  function makeAvatar(robe, kind) { const g = window.Figures.makeAvatar({ robe, kind }); scene.add(g); return g; }
   const npcs = [];
   const seatAt = (av, c) => { av.position.set(c.userData.x, 0.12, c.userData.z); av.rotation.y = 0; c.userData.taken = av; av.userData.cushion = c; av.userData.setPose('sit'); };
   const freeCushions = () => cushions.filter(c => !c.userData.taken);
@@ -324,7 +325,7 @@
   }
 
   // player
-  const player = makeAvatar(S.robe);
+  const player = makeAvatar(S.robe, 'adult');
   const HALL_SPOT = new THREE.Vector3(0.9, 0, 5.4);
   player.position.copy(HALL_SPOT); player.userData.setPose('stand');
   function applyRobe() { player.userData.body.material.color.set(S.robe); }
@@ -411,7 +412,8 @@
     $('bIncense').textContent = T.incense; $('bPond').textContent = T.pond; $('bEnter').textContent = T.enter; $('bStand').textContent = T.stand;
     $('npcNote').textContent = T.npcNote; $('hint').textContent = T.tapCushion;
     $('bLantern').textContent = T.items.lantern + ' · ' + price.lantern;
-    ['gassho', 'bow', 'beads', 'moktak'].forEach(k => { $('r-' + k).querySelector('span').textContent = T[k]; });
+    ['gassho', 'bow', 'beads', 'moktak', 'chant'].forEach(k => { $('r-' + k).querySelector('span').textContent = T[k]; });
+    $('cStop').textContent = T.cStop; [...$('cSpeed').children].forEach((b, i) => { b.textContent = T.speeds[i]; });
     $('bJournal').setAttribute('aria-label', T.journal); $('bSettings').setAttribute('aria-label', T.settings);
     $('lotusCount').textContent = T.lotusCount(S.lotus % 36 || (S.lotus ? 36 : 0), 36);
     document.title = T.title;
@@ -438,19 +440,20 @@
     walk = { pts: [player.position.clone(), new THREE.Vector3(0, 0, c.userData.z + 0.9), new THREE.Vector3(c.userData.x, 0, c.userData.z + 0.9), new THREE.Vector3(c.userData.x, 0.12, c.userData.z)], i: 0 };
     flashHint(T.walking); haptic('light');
   }
-  function sitDone() { mode = 'sit'; player.rotation.y = 0; player.userData.setPose('sit'); hallUI.hidden = true; sitUI.hidden = false; selectRitual(ritual); showCount(); }
+  function sitDone() { mode = 'sit'; player.rotation.y = 0; player.userData.setPose('sit'); hallUI.hidden = true; sitUI.hidden = false; selectRitual(ritual === 'chant' ? 'bow' : ritual); showCount(); if (S.tut === 1) { S.tut = 2; save(); showCoach(2); } }
   function stand() {
     mode = 'hall'; if (playerCushion) playerCushion.userData.taken = null; playerCushion = null; holdBow = false;
     player.position.copy(HALL_SPOT); player.rotation.y = 0; player.userData.pivot.rotation.x = 0; player.userData.bowT = 0; player.userData.setPose('stand');
-    hallUI.hidden = false; sitUI.hidden = true; $('beadstrip').hidden = true;
+    hallUI.hidden = false; sitUI.hidden = true; $('beadstrip').hidden = true; if (chant) stopChant();
   }
   let ritual = 'bow', holdBow = false;
-  function selectRitual(k) { ritual = k; ['gassho', 'bow', 'beads', 'moktak'].forEach(id => $('r-' + id).classList.toggle('on', id === k)); $('beadstrip').hidden = k !== 'beads'; if (k === 'beads') drawBeads(); showCount(); }
+  function selectRitual(k) { ritual = k; ['gassho', 'bow', 'beads', 'moktak', 'chant'].forEach(id => $('r-' + id).classList.toggle('on', id === k)); $('beadstrip').hidden = k !== 'beads'; if (k === 'beads') drawBeads(); showCount(); }
   function showCount() {
     const c = $('count'), lab = $('countLabel');
     if (ritual === 'bow') { c.textContent = (S.today.bow % 108 || (S.today.bow ? 108 : 0)) + ' / 108'; lab.textContent = T.bowsToday; }
     else if (ritual === 'beads') { c.textContent = (S.today.beads % 108 || (S.today.beads ? 108 : 0)) + ' / 108'; lab.textContent = T.beadsToday; }
     else if (ritual === 'moktak') { c.textContent = String(S.today.moktak); lab.textContent = T.moktakToday; }
+    else if (ritual === 'chant') { c.textContent = String(S.today.chant || 0); lab.textContent = T.chantToday + ' · ' + T.chantTap; }
     else { c.textContent = '·'; lab.textContent = T.gasshoNow; }
   }
   function practiced() { rollDay(); markVisit(); }
@@ -474,6 +477,7 @@
   $('r-gassho').addEventListener('click', () => { Audio.unlock(); selectRitual('gassho'); doGassho(); });
   $('r-beads').addEventListener('click', () => { Audio.unlock(); if (ritual !== 'beads') selectRitual('beads'); else doBead(); });
   $('r-moktak').addEventListener('click', () => { Audio.unlock(); selectRitual('moktak'); doMoktak(); });
+  $('r-chant').addEventListener('click', () => { Audio.unlock(); selectRitual('chant'); openChantPick(); });
   $('bStand').addEventListener('click', stand);
 
   // bead strip
@@ -503,7 +507,7 @@
   $('bIncense').addEventListener('click', () => { Audio.unlock(); openOffer(); });
   function lightFree() {
     rollDay(); if (S.today.litAt) { toast(T.incenseUsed); return; }
-    S.today.litAt = Date.now(); practiced(); tipMat.color.set('#FF7A3A'); Audio.bell(0.7); haptic('soft'); toast(T.incenseLit); save();
+    S.today.litAt = Date.now(); practiced(); tipMat.color.set('#FF7A3A'); Audio.match(); setTimeout(() => Audio.bell(0.7), 900); haptic('soft'); toast(T.incenseLit); save();
   }
   $('bPond').addEventListener('click', () => { Audio.unlock(); goPond(); });
   $('bEnter').addEventListener('click', goHall);
@@ -548,7 +552,7 @@
     const rounds = Math.floor(S.totals.beads / 108);
     openSheet(`<div class="shead"><h2>${T.journal}</h2><button class="pill" data-a="close">${T.done}</button></div>
       <div class="streak"><span>${T.streakHead}</span><b>${T.streak(S.streak)}</b><span>${T.restLeft}</span></div>
-      <div class="stats"><div><b>${S.totals.bow.toLocaleString()}</b><span>${T.totBow}</span></div><div><b>${rounds}</b><span>${T.totBeads}</span></div><div><b>${S.visits}</b><span>${T.totDays}</span></div></div>
+      <div class="stats"><div><b>${S.totals.bow.toLocaleString()}</b><span>${T.totBow}</span></div><div><b>${rounds}</b><span>${T.totBeads}</span></div><div><b>${S.totals.chant || 0}</b><span>${T.totChant}</span></div></div><div class="stats" style="grid-template-columns:1fr"><div><b>${S.visits}</b><span>${T.totDays}</span></div></div>
       <div class="label">${T.yourWish}</div>
       <textarea id="wish" placeholder="${esc(T.wishPh)}">${esc(S.wish)}</textarea>
       <div class="label">${T.keep}</div>
@@ -574,6 +578,7 @@
       <div class="label">${T.notif}</div>
       <div class="list">${sw('nMorning', T.nMorning)}${sw('nEvening', T.nEvening)}${sw('nMoon', T.nMoon)}</div>
       <div class="list"><div class="card"><div class="t"><b>${T.yourName}</b></div><input type="text" id="nameIn" maxlength="20" value="${esc(S.name)}"></div></div>
+      <button class="link" data-a="tut">${T.tutAgain}</button>
       <button class="link" data-a="restore">${T.restore}</button>
       <button class="link" data-a="privacy">${T.privacy}</button>`);
     const ni = $('nameIn'); ni.addEventListener('change', () => { const v = ni.value.trim(); if (v) { S.name = v; save(); } });
@@ -582,6 +587,7 @@
       if (b.dataset.a === 'close') closeSheet();
       else if (b.dataset.s) { const k = b.dataset.s; s[k] = !s[k]; b.setAttribute('aria-checked', String(s[k])); if (k === 'ambient') Audio.ambient(s.ambient); if (k[0] === 'n') { if (s[k]) post({ type: 'notifyPermission' }); schedule(); } save(); }
       else if (b.dataset.a === 'restore') { if (native) post({ type: 'restore' }); else toast(T.restored); }
+      else if (b.dataset.a === 'tut') { closeSheet(); if (mode === 'sit') stand(); if (mode === 'pond') { mode = 'hall'; applyFog(); pondUI.hidden = true; hallUI.hidden = false; } S.tut = 1; save(); showCoach(1); }
       else if (b.dataset.a === 'privacy') { const u = window.QP_PRIVACY || 'https://khacluatit.github.io/game-factory/quietpagoda/privacy.html'; if (native) post({ type: 'open', url: u }); else window.open(u, '_blank'); }
     };
   }
@@ -601,8 +607,108 @@
     $('obNext').onclick = () => {
       Audio.unlock();
       if (step < 2) return onboarding(step + 1);
-      ob.hidden = true; S.onboarded = true; if (S.settings.nMoon) post({ type: 'notifyPermission' }); schedule(); save();
+      ob.hidden = true; S.onboarded = true; if (S.settings.nMoon) post({ type: 'notifyPermission' }); schedule(); S.tut = 1; save(); showCoach(1);
     };
+  }
+
+
+  // ---------------- tụng kinh ----------------
+  const SUTRAS = window.SUTRAS || [];
+  const CH_SPEED = [0.95, 0.7, 0.5];
+  const TKEY = { vi: 'vi', en: 'en', zh: 'zh', zhs: 'zhs', ko: 'ko', ja: 'ja' }[LANG] || 'en';
+  const READ = { vi: 'vi', ko: 'ko', zh: 'zh', zhs: 'zh' }[LANG] || null;
+  let chant = null;
+  function openChantPick() {
+    openSheet(`<div class="grab"></div><div class="shead"><h2>${T.chantPick}</h2><button class="pill" data-a="close">${T.done}</button></div>
+      <div class="sutras">${SUTRAS.map(x => `<button data-s="${x.id}"><b>${esc(x.title[TKEY] || x.title.en)}</b><span>${esc(T.sutraSub[x.id] || '')} · ${T.lines(x.lines.length)}</span></button>`).join('')}</div>`);
+    sheet.onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.a === 'close') closeSheet(); else if (b.dataset.s) { closeSheet(); startChant(b.dataset.s); } };
+  }
+  function startChant(id) {
+    const x = SUTRAS.find(q => q.id === id); if (!x) return;
+    rollDay();
+    const total = x.lines.reduce((n, l) => n + l.h.length, 0);
+    chant = { x, line: 0, ch: -1, wait: 2.6, done: 0, total, round: (S.today.chant || 0) + 1 };
+    sitUI.hidden = true; $('chantUI').hidden = false; $('coach').hidden = true; document.querySelector('.top').hidden = true; $('banner').hidden = true;
+    $('cTitle').textContent = x.title[TKEY] || x.title.en; $('cRound').textContent = T.round(chant.round);
+    [...$('cSpeed').children].forEach((b, i) => b.classList.toggle('sel', i === S.settings.chantSpeed));
+    Audio.bell(1.4); haptic('soft'); renderChant();
+  }
+  function stopChant() { chant = null; $('chantUI').hidden = true; document.querySelector('.top').hidden = false; if (mode === 'sit') { sitUI.hidden = false; showCount(); } }
+  function finishChant() {
+    practiced(); S.today.chant = (S.today.chant || 0) + 1; S.totals.chant = (S.totals.chant || 0) + 1;
+    Audio.khanh(); setTimeout(() => Audio.bell(1.8), 1400); haptic('success'); save();
+    stopChant(); toast(T.chantDone);
+  }
+  const spans = (arr, upto, cls) => arr.map((c, i) => `<span${i <= upto ? ` class="${cls}"` : ''}>${esc(c)}</span>`).join(READ === 'vi' || READ === 'zh' ? ' ' : '');
+  function readTokens(l) { if (READ === 'vi') return l.vi.split(' '); if (READ === 'zh') return l.zh.split(' '); if (READ === 'ko') return [...l.ko.replace(/\s/g, '')]; return null; }
+  function lineHtml(l, cls, upto) {
+    const han = [...(LANG === 'zhs' ? l.s : l.h)], rt = readTokens(l);
+    const hh = han.map((c, k) => `<span${k <= upto ? ' class="on"' : ''}>${esc(c)}</span>`).join('');
+    return `<div class="ln ${cls}"><div class="han">${hh}</div>${rt ? `<div class="rd">${spans(rt, upto, 'on')}</div>` : ''}</div>`;
+  }
+  function renderChant() {
+    if (!chant) return; const L = chant.x.lines, i = chant.line;
+    let h = '';
+    if (i > 0) h += lineHtml(L[i - 1], 'dim', -1);
+    h += lineHtml(L[i], 'cur', chant.ch);
+    if (i + 1 < L.length) h += lineHtml(L[i + 1], 'dim', -1);
+    if (!READ) { const sec = chant.x.sections.find(z => i >= z.from && i < z.to); if (sec) h += `<div class="mean">${esc(LANG === 'ja' ? sec.ja : sec.en)}</div>`; }
+    $('cScroll').innerHTML = h;
+    $('cProg').style.width = (100 * chant.done / chant.total).toFixed(1) + '%';
+  }
+  function tickChant(dt) {
+    if (!chant) return; chant.wait -= dt; if (chant.wait > 0) return;
+    const L = chant.x.lines; let l = L[chant.line];
+    chant.ch++;
+    if (chant.ch >= l.h.length) {
+      chant.line++; chant.ch = -1;
+      if (chant.line >= L.length) { finishChant(); return; }
+      if (chant.x.sections.some(z => z.from === chant.line)) { Audio.khanh(); chant.wait = 2.2; }
+      else chant.wait = CH_SPEED[S.settings.chantSpeed] * 0.8;
+      renderChant(); return;
+    }
+    chant.done++;
+    Audio.moktak(chant.ch === 0);
+    const u = player.userData; if (u.bowT <= 0) { u.bowT = 0.35; u.small = true; u.smallAmp = 0.05; }
+    chant.wait = CH_SPEED[S.settings.chantSpeed]; renderChant();
+  }
+  $('cStop').addEventListener('click', () => { stopChant(); });
+  $('cMok').addEventListener('click', () => { Audio.unlock(); Audio.moktak(true); haptic('light'); });
+  $('cSpeed').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.settings.chantSpeed = +b.dataset.v; [...$('cSpeed').children].forEach((x, i) => x.classList.toggle('sel', i === S.settings.chantSpeed)); save(); });
+
+  // ---------------- hướng dẫn chơi ----------------
+  let coachStep = 0;
+  function showCoach(n) {
+    if (SHOT) return; coachStep = n; const c = $('coach');
+    const txt = { 1: [T.tut1t, T.tut1b], 2: [T.tut2t, T.tut2b], 3: [T.tut3t, T.tut3b] }[n];
+    $('coachT').textContent = txt[0]; $('coachB').textContent = txt[1]; $('coachN').textContent = n + ' / 3';
+    $('coachSkip').textContent = T.skip;
+    let ok = $('coachOk'); if (!ok) { ok = document.createElement('button'); ok.id = 'coachOk'; ok.className = 'pill gold'; $('coachSkip').parentNode.appendChild(ok); ok.onclick = coachNext; }
+    ok.textContent = T.gotIt; ok.hidden = n === 1;
+    const bub = $('coachBub');
+    if (n === 1) { bub.style.top = 'calc(env(safe-area-inset-top, 0px) + 96px)'; bub.style.bottom = ''; }
+    else { bub.style.top = ''; bub.style.bottom = n === 2 ? 'calc(env(safe-area-inset-bottom, 0px) + 230px)' : 'calc(env(safe-area-inset-bottom, 0px) + 150px)'; }
+    c.hidden = false; placeCoach();
+  }
+  function coachNext() {
+    if (coachStep === 2) { S.tut = 3; $('coach').hidden = true; save(); if (mode === 'hall') showCoach(3); }
+    else { S.tut = 9; $('coach').hidden = true; save(); }
+  }
+  $('coachSkip').addEventListener('click', () => { S.tut = 9; $('coach').hidden = true; save(); });
+  const cvec = new THREE.Vector3();
+  function placeCoach() {
+    const c = $('coach'); if (c.hidden) return; const ring = $('coachRing');
+    if (coachStep === 1) {
+      let free = null, bs = 1e9;
+      for (const q of freeCushions()) { cvec.set(q.userData.x, 0.2, q.userData.z).project(camera); if (Math.abs(cvec.x) > 0.75 || cvec.y < -0.55 || cvec.z > 1) continue; const sc = Math.abs(cvec.x) * 2 - cvec.y * 0.5; if (sc < bs) { bs = sc; free = q; } }
+      if (!free) { ring.hidden = true; return; }
+      cvec.set(free.userData.x, 0.2, free.userData.z).project(camera);
+      ring.hidden = false; ring.style.left = ((cvec.x + 1) / 2 * window.innerWidth) + 'px'; ring.style.top = ((1 - cvec.y) / 2 * window.innerHeight) + 'px';
+    } else {
+      const el = coachStep === 2 ? document.querySelector('.ritual') : $('bIncense'); const r = el.getBoundingClientRect();
+      ring.hidden = !r.width; ring.style.left = (r.left + r.width / 2) + 'px'; ring.style.top = (r.top + r.height / 2) + 'px';
+      if (coachStep === 2) { ring.style.width = ring.style.height = '0px'; ring.hidden = true; }
+    }
   }
 
   // ---------------- store bridge ----------------
@@ -709,15 +815,33 @@
         roll = t + 8;
       },
       rolling() { return !!(ac && roll && ac.currentTime < roll); },
+      // Khánh: chuông đá/đồng mỏng, tiếng trong, ngân ~3 s — mở và kết mỗi đoạn kinh
+      khanh() { if (!on()) return; const t = ac.currentTime + 0.01, bus = ac.createGain(); bus.gain.value = 0.42; out(bus, 0.55);
+        for (const [f, a, d, dt] of [[1318, 0.5, 3.2, 0], [1318, 0.22, 3.2, 5], [3420, 0.18, 1.8, 0], [5140, 0.08, 0.9, -4], [7300, 0.04, 0.4, 0]]) partial(f, a, d, t, bus, dt);
+        strike(t, 5200, 0.12, 0.02, bus); },
+      // Que diêm quẹt + hương bén lửa
+      match() { if (!on()) return; const t = ac.currentTime + 0.01, bus = ac.createGain(); bus.gain.value = 0.9; out(bus, 0.2);
+        const n = noise(), bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(2400, t); bp.frequency.exponentialRampToValueAtTime(5200, t + 0.12); bp.Q.value = 1.5; n.connect(bp); env(bp, 0.5, 0.16, t, 0.004).connect(bus); n.start(t); n.stop(t + 0.2);
+        const n2 = noise(), lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; n2.connect(lp); env(lp, 0.18, 0.7, t + 0.12, 0.05).connect(bus); n2.start(t + 0.1); n2.stop(t + 0.9);
+        for (let i = 0; i < 6; i++) { const tt = t + 0.25 + Math.random() * 0.6, c = noise(), hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3000; c.connect(hp); env(hp, 0.12, 0.012, tt, 0.001).connect(bus); c.start(tt); c.stop(tt + 0.03); } },
+      // Bước chân trên nền gạch
+      step() { if (!on()) return; const t = ac.currentTime + 0.005, bus = ac.createGain(); bus.gain.value = 0.35 + Math.random() * 0.1; out(bus, 0.35);
+        const n = noise(), lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380 + Math.random() * 120; n.connect(lp); env(lp, 0.6, 0.09, t, 0.004).connect(bus); n.start(t); n.stop(t + 0.12);
+        const n2 = noise(), bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = 2; n2.connect(bp); env(bp, 0.05, 0.05, t + 0.02, 0.002).connect(bus); n2.start(t + 0.02); n2.stop(t + 0.08); },
+      // Ếch kêu ban đêm
+      frog() { if (!ac || !S.settings.ambient) return; const t0 = ac.currentTime + 0.01, k = 2 + Math.floor(Math.random() * 3), f0 = 300 + Math.random() * 120;
+        for (let i = 0; i < k; i++) { const t = t0 + i * 0.16, o = ac.createOscillator(), am = ac.createOscillator(), ag = ac.createGain(); o.type = 'sawtooth'; o.frequency.value = f0; am.frequency.value = 38; ag.gain.value = 0.5; am.connect(ag.gain);
+          const lp = ac.createBiquadFilter(); lp.type = 'bandpass'; lp.frequency.value = f0 * 2.2; lp.Q.value = 3; o.connect(lp); lp.connect(ag); env(ag, 0.03, 0.11, t, 0.01).connect(master); o.start(t); am.start(t); o.stop(t + 0.13); am.stop(t + 0.13); } },
       bead() { if (!on()) return; const t = ac.currentTime, bus = ac.createGain(); bus.gain.value = 1; out(bus, 0.25); const n = noise(), bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = S.owned.beadsSkin ? 1500 : 2600; bp.Q.value = 10; n.connect(bp); env(bp, S.owned.beadsSkin ? 0.5 : 0.3, 0.05, t, 0.001).connect(bus); n.start(t); n.stop(t + 0.01); },
       ambient(enable) {
         if (!ac) return;
-        if (amb) { try { amb.src.stop(); } catch (e) { /* ignore */ } amb = null; }
+        if (amb) { try { amb.src.stop(); amb.lfo.stop(); } catch (e) { /* ignore */ } amb = null; }
         if (!enable) return;
         const b = ac.createBuffer(1, ac.sampleRate * 4, ac.sampleRate), d = b.getChannelData(0); let last = 0; for (let i = 0; i < d.length; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
         const src = ac.createBufferSource(); src.buffer = b; src.loop = true;
         const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 500;
-        const g = ac.createGain(); g.gain.value = 0.05; src.connect(f); f.connect(g); g.connect(master); src.start(); amb = { src, g };
+        const g = ac.createGain(); g.gain.value = 0.05; src.connect(f); f.connect(g); g.connect(master); src.start();
+        const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 0.07; lg.gain.value = 220; lfo.connect(lg); lg.connect(f.frequency); lfo.start(); amb = { src, g, lfo };
       },
       chirp() { if (!ac || !S.settings.ambient) return; const o = ac.createOscillator(); o.type = 'sine'; const t = ac.currentTime, base = 2600 + Math.random() * 1200; o.frequency.setValueAtTime(base, t); o.frequency.exponentialRampToValueAtTime(base * 1.4, t + 0.08); env(o, 0.025, 0.12, t, 0.01).connect(master); o.start(); o.stop(t + 0.15); },
       cricket() { if (!ac || !S.settings.ambient) return; for (let i = 0; i < 3; i++) { const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = 4400; const t = ac.currentTime + i * 0.07; env(o, 0.012, 0.05, t, 0.01).connect(master); o.start(t); o.stop(t + 0.06); } }
@@ -737,7 +861,7 @@
     if (u.bowT <= 0) { u.pivot.rotation.x = 0; u.small = false; }
   }
   const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
-  let slowT = 0, ritualBeat = 0, ritualN = 0, ritualRolled = false, ambT = 0, snapCam = false;
+  let stepT = 0, slowT = 0, ritualBeat = 0, ritualN = 0, ritualRolled = false, ambT = 0, snapCam = false;
   function frame() {
     const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
     for (const f of flames) { const k = (f.mult || 1) * (0.85 + 0.15 * Math.sin(t * 9 + f.seed) * Math.sin(t * 4.3 + f.seed * 2)); f.l.intensity = f.base * k; if (f.sp) f.sp.scale.set(0.32 + 0.04 * Math.sin(t * 11 + f.seed), 0.48 + 0.06 * Math.sin(t * 7 + f.seed), 1); }
@@ -775,13 +899,16 @@
       else { tmp.normalize(); player.position.addScaledVector(tmp, Math.min(d, dt * 1.8)); player.rotation.y = Math.atan2(-tmp.x, -tmp.z); player.userData.walkCycle(t); }
     }
     if (mode === 'sit' && holdBow && player.userData.bowT <= 0) doBow();
+    tickChant(dt);
+    if (mode === 'walking' && walk && S.settings.effects) { stepT -= dt; if (stepT <= 0) { stepT = 0.42; Audio.step(); } }
+    if (!$('coach').hidden) placeCoach(); else if (S.tut === 3 && mode === 'hall' && !SHOT && wrap.hidden) showCoach(3);
     tickAvatar(player, dt);
     player.visible = mode !== 'pond';
 
     if (bellSwing > 0) { bellSwing = Math.max(0, bellSwing - dt * 0.35); bellBody.rotation.z = Math.sin(t * 5) * 0.06 * bellSwing; }
     // ritual ambience
-    if (inRitual() && S.settings.effects) { if (!ritualRolled) { ritualRolled = true; Audio.bellRoll(); } if (!Audio.rolling()) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(ritualN % 4 === 0); ritualN++; ritualBeat = 1.05; } } } else ritualRolled = false;
-    ambT -= dt; if (ambT <= 0) { ambT = 2 + Math.random() * 5; if (phase() === 'night') Audio.cricket(); else if (phase() !== 'dusk' || Math.random() < 0.4) Audio.chirp(); }
+    if (inRitual() && S.settings.effects && !chant) { if (!ritualRolled) { ritualRolled = true; Audio.bellRoll(); } if (!Audio.rolling()) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(ritualN % 4 === 0); ritualN++; ritualBeat = 1.05; } } } else ritualRolled = false;
+    ambT -= dt; if (ambT <= 0) { ambT = 2 + Math.random() * 5; if (phase() === 'night') { if (Math.random() < 0.3) Audio.frog(); else Audio.cricket(); } else if (phase() !== 'dusk' || Math.random() < 0.4) Audio.chirp(); }
 
     // camera
     if (mode === 'sit' && playerCushion) { camPos.set(playerCushion.userData.x * 0.5 + 0.7, 2.4, playerCushion.userData.z + 3.8); camTarget.set(playerCushion.userData.x * 0.3, 1.6, -8); }
@@ -810,7 +937,9 @@
   if (SHOT === 'sit') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); player.userData.bowT = 1.1; }
   else if (SHOT === 'pond') { mode = 'pond'; applyFog(); hallUI.hidden = true; pondUI.hidden = false; renderStatic(); }
   else if (SHOT === 'journal') openJournal();
+  else if (SHOT === 'chant') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); startChant('heart'); chant.line = 4; chant.ch = 3; chant.done = 24; chant.wait = 999; renderChant(); }
   else if (!S.onboarded) onboarding(0);
+  else if (S.tut > 0 && S.tut < 3) { S.tut = 1; showCoach(1); }
   if (!SHOT) schedule();
   post({ type: 'ready' });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) window.QP.onForeground(); });

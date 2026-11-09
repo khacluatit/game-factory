@@ -1,1 +1,6 @@
-Phiên bản đầu tiên.
+Có gì mới ở 1.1:
+• Tụng kinh theo nhịp mõ: Bát Nhã Tâm Kinh, Phổ Môn cầu an, kệ Sám hối, Hồi hướng
+• Giao diện mới theo phong cách chùa, có hướng dẫn cho người mới
+• Âm thanh mới: khánh, que diêm thắp hương, bước chân, gió, tiếng ếch đêm
+• Khách hành hương sắc nét và đa dạng hơn
+• Thêm tiếng Hàn, tiếng Nhật, tiếng Trung giản thể

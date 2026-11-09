@@ -6,9 +6,10 @@
 <title>Quiet Pagoda</title>
 <style>
 :root {
-  --ink: #F4EBDD; --ink-soft: #D8C8B2; --glass: rgba(20, 10, 8, 0.55); --gold: #D9A441; --wood: #2A1A12;
-  --paper: #F4EBDD; --paper-2: #EADFCD; --brown: #3B2A24; --brown-soft: #6A5A50; --red: #7A2E1F; --line: rgba(244, 235, 221, 0.35);
+  --ink: #F3EAD8; --ink-soft: #E2CFAE; --glass: rgba(74, 28, 20, 0.86); --gold: #C9A24A; --gold-hi: #E4C273; --wood: #2B1E16;
+  --paper: #F3EAD8; --paper-2: #E8DAC0; --brown: #2B1E16; --brown-soft: #6A5546; --red: #7A2E1E; --red-deep: #4A1C14; --line: rgba(201, 162, 74, 0.85);
   --font: -apple-system-ui-rounded, ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --serif: "New York", "Songti TC", "Songti SC", "Hiragino Mincho ProN", "AppleMyungjo", Georgia, serif;
   color-scheme: dark;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
@@ -16,66 +17,106 @@ html, body { margin: 0; height: 100%; background: #120806; color: var(--ink); fo
 [hidden] { display: none !important; }
 #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
 button { font-family: var(--font); cursor: pointer; }
-button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.top { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; pointer-events: none; }
-.chip { background: var(--glass); border-radius: 18px; padding: 8px 14px; font-size: 15px; font-weight: 600; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+button:active { transform: scale(0.97); }
+button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.plaque { background: linear-gradient(180deg, #86341F 0%, #6E2817 100%); border: 1.5px solid var(--line); box-shadow: inset 0 1px 0 rgba(255,220,160,0.25), 0 4px 14px rgba(0,0,0,0.35); }
+.top { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; pointer-events: none; }
+.chip { border-radius: 12px; padding: 7px 13px; font-size: 15px; font-weight: 600; color: var(--ink); }
 .chip small { display: block; font-size: 12px; font-weight: 400; color: var(--ink-soft); }
-.chip.serif { font-family: "New York", "Songti TC", Georgia, serif; }
+.chip.serif { font-family: var(--serif); font-weight: 700; }
 .icons { display: flex; gap: 8px; align-items: center; pointer-events: auto; }
-.round { width: 44px; height: 44px; border-radius: 22px; border: 0; background: var(--glass); display: flex; align-items: center; justify-content: center; color: var(--ink); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.round { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--ink); padding: 0; }
 .round svg { width: 20px; height: 20px; }
-.banner { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 70px); background: rgba(59,42,36,0.85); color: var(--ink); border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: 600; white-space: nowrap; pointer-events: none; }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); top: 42%; background: rgba(244,235,221,0.95); color: var(--brown); border-radius: 18px; padding: 12px 18px; font-size: 15px; font-weight: 700; text-align: center; max-width: 86%; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.banner { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 74px); color: var(--ink); border-radius: 12px; padding: 7px 14px; font-size: 13px; font-weight: 600; white-space: nowrap; pointer-events: none; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); top: 42%; background: var(--paper); border: 2px solid var(--gold); color: var(--brown); border-radius: 16px; padding: 14px 18px; font-size: 15px; font-weight: 700; text-align: center; max-width: 86%; display: flex; flex-direction: column; gap: 10px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
 .toast .row { width: auto; }
-.toast button { height: 40px; padding: 0 16px; border-radius: 20px; border: 0; font-weight: 700; font-size: 14px; }
-.bottom { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 14px calc(env(safe-area-inset-bottom, 0px) + 14px); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
+.toast button { height: 40px; padding: 0 16px; border-radius: 10px; border: 0; font-weight: 700; font-size: 14px; }
+.bottom { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 12px); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
 .bottom > * { pointer-events: auto; }
-.hint { font-size: 13px; color: var(--ink-soft); text-align: center; text-shadow: 0 1px 6px rgba(0,0,0,0.7); pointer-events: none !important; }
+.hint { font-size: 13px; color: var(--ink-soft); text-align: center; text-shadow: 0 1px 6px rgba(0,0,0,0.8); pointer-events: none !important; }
 .row { display: flex; gap: 10px; width: 100%; max-width: 480px; }
-.btn { flex: 1; height: 52px; border-radius: 26px; border: 1.5px solid var(--line); background: var(--glass); color: var(--ink); font-weight: 700; font-size: 16px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.btn.primary { background: rgba(217,164,65,0.94); border-color: transparent; color: var(--wood); }
-.counter { font-size: 36px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 2px 14px rgba(0,0,0,0.7); pointer-events: none !important; }
-.ritual { width: 100%; max-width: 480px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; background: var(--glass); border-radius: 26px; padding: 8px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.ritual button { height: 68px; border: 0; border-radius: 18px; background: transparent; color: var(--ink); font-weight: 600; font-size: 13px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
-.ritual button.on { background: rgba(217,164,65,0.92); color: var(--wood); }
-.ritual svg { width: 24px; height: 24px; }
-.beadstrip { width: 100%; max-width: 480px; height: 64px; border-radius: 32px; background: var(--glass); position: relative; overflow: hidden; touch-action: none; }
+.btn { flex: 1; height: 52px; border-radius: 12px; color: var(--ink); font-weight: 700; font-size: 16px; font-family: var(--serif); }
+.btn.primary { background: linear-gradient(180deg, #E4C273 0%, #C9A24A 100%); border: 1.5px solid #F2DDA0; color: var(--wood); }
+.counter { font-family: var(--serif); font-size: 36px; font-weight: 700; font-variant-numeric: tabular-nums; text-shadow: 0 2px 14px rgba(0,0,0,0.75); pointer-events: none !important; }
+.ritual { width: 100%; max-width: 480px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; background: var(--paper); border: 2px solid var(--gold); border-radius: 18px; padding: 10px 4px 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+.ritual button { height: 80px; border: 0; background: transparent; color: var(--brown); font-weight: 600; font-size: 12.5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 0; }
+.ritual button i { width: 46px; height: 46px; border-radius: 23px; border: 1.5px solid var(--gold); display: flex; align-items: center; justify-content: center; color: var(--red); }
+.ritual button.on i { background: var(--red); color: var(--paper); border-width: 2px; }
+.ritual button.on { color: var(--red); font-weight: 800; }
+.ritual svg { width: 23px; height: 23px; }
+.beadstrip { width: 100%; max-width: 480px; height: 64px; border-radius: 14px; background: var(--glass); border: 1.5px solid var(--line); position: relative; overflow: hidden; touch-action: none; }
 .beadstrip canvas { width: 100%; height: 100%; display: block; }
-.note { font-size: 11px; color: var(--ink-soft); opacity: 0.85; text-align: center; pointer-events: none !important; }
-.tag { position: fixed; transform: translate(-50%, -100%); background: rgba(244,235,221,0.94); color: var(--brown); font-size: 12px; padding: 4px 9px; border-radius: 10px; pointer-events: none; white-space: nowrap; }
+.note { font-size: 11px; color: var(--ink-soft); opacity: 0.9; text-align: center; pointer-events: none !important; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+.tag { position: fixed; transform: translate(-50%, -100%); background: var(--paper); border: 1px solid var(--gold); color: var(--brown); font-size: 12px; padding: 4px 9px; border-radius: 8px; pointer-events: none; white-space: nowrap; }
+/* chanting */
+.chant { position: fixed; inset: 0; display: flex; flex-direction: column; pointer-events: none; }
+.chant > * { pointer-events: auto; }
+.chant .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,8,5,0.15) 0%, rgba(20,8,5,0.55) 45%, rgba(20,8,5,0.85) 100%); pointer-events: none; }
+.chant .head { position: relative; display: flex; justify-content: space-between; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0; gap: 8px; }
+.chant .head b { font-family: var(--serif); font-size: 17px; text-align: center; flex: 1; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
+.chant .head .chip { font-size: 13px; }
+.scroll { position: relative; margin: auto 16px 0; background: var(--paper); color: var(--brown); border: 2px solid var(--gold); border-radius: 16px; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 14px; min-height: 260px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
+.scroll .ln { display: flex; flex-direction: column; gap: 4px; transition: opacity 0.3s; }
+.scroll .ln.dim { opacity: 0.38; }
+.scroll .han { font-family: "Songti TC", "Songti SC", "Hiragino Mincho ProN", "AppleMyungjo", serif; font-size: 20px; letter-spacing: 1px; line-height: 1.35; }
+.scroll .ln.cur .han { font-size: 30px; }
+.scroll .rd { font-family: var(--serif); font-size: 14px; line-height: 1.4; color: var(--brown-soft); }
+.scroll .ln.cur .rd { font-size: 18px; color: var(--brown); }
+.scroll .on { color: var(--red); font-weight: 700; }
+.scroll .mean { font-size: 13px; line-height: 1.45; color: var(--brown-soft); border-top: 1px solid #E2D2B6; padding-top: 10px; }
+.prog { position: relative; height: 5px; margin: 14px 16px 0; border-radius: 3px; background: rgba(243,234,216,0.2); }
+.prog i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--gold); width: 0; transition: width 0.4s; }
+.ctrl { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); gap: 10px; }
+.seg { display: flex; gap: 4px; padding: 4px; border-radius: 12px; border: 1.5px solid var(--line); background: rgba(20,8,5,0.4); }
+.seg button { height: 40px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; color: var(--ink); font-size: 14px; }
+.seg button.sel { background: var(--gold); color: var(--wood); font-weight: 700; }
+.mokbtn { width: 64px; height: 64px; border-radius: 32px; display: flex; align-items: center; justify-content: center; color: var(--ink); padding: 0; }
+.mokbtn svg { width: 30px; height: 30px; }
+.sutras { display: flex; flex-direction: column; gap: 10px; }
+.sutras button { text-align: left; background: #FFFFFF; border: 1.5px solid #E2D2B6; border-radius: 14px; padding: 14px 16px; color: var(--brown); display: flex; flex-direction: column; gap: 3px; }
+.sutras b { font-family: var(--serif); font-size: 17px; }
+.sutras span { font-size: 13px; color: var(--brown-soft); }
+/* tutorial */
+.coach { position: fixed; inset: 0; pointer-events: none; }
+.coach .bub { position: absolute; left: 50%; transform: translateX(-50%); width: min(86%, 380px); background: var(--paper); color: var(--brown); border: 2px solid var(--gold); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); pointer-events: auto; }
+.coach .bub b { font-family: var(--serif); font-size: 17px; }
+.coach .bub span { font-size: 14px; line-height: 1.45; color: var(--brown-soft); }
+.coach .bub .row { justify-content: space-between; align-items: center; }
+.coach .ring { position: absolute; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 42px; border: 3px solid var(--gold-hi); box-shadow: 0 0 0 6px rgba(228,194,115,0.25); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.15); opacity: 0.7; } }
 /* sheets */
 .scrim { position: fixed; inset: 0; background: rgba(10,6,5,0.45); }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; max-height: 88%; overflow-y: auto; background: var(--paper); color: var(--brown); border-radius: 28px 28px 0 0; padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 22px); display: flex; flex-direction: column; gap: 14px; -webkit-user-select: auto; user-select: auto; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; max-height: 88%; overflow-y: auto; background: var(--paper); color: var(--brown); border-top: 3px solid var(--gold); border-radius: 22px 22px 0 0; padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 22px); display: flex; flex-direction: column; gap: 14px; -webkit-user-select: auto; user-select: auto; }
 .sheet.full { top: 0; max-height: none; border-radius: 0; padding-top: calc(env(safe-area-inset-top, 0px) + 16px); }
 .grab { width: 40px; height: 5px; border-radius: 3px; background: #CDBBA4; align-self: center; flex: none; }
 .shead { display: flex; justify-content: space-between; align-items: center; }
-.shead h2 { margin: 0; font-size: 24px; font-weight: 800; }
-.pill { height: 40px; padding: 0 16px; border-radius: 20px; border: 0; background: var(--paper-2); color: var(--brown); font-weight: 700; font-size: 15px; }
+.shead h2 { margin: 0; font-family: var(--serif); font-size: 24px; font-weight: 700; }
+.pill { height: 40px; padding: 0 16px; border-radius: 10px; border: 0; background: var(--paper-2); color: var(--brown); font-weight: 700; font-size: 15px; }
 .pill.gold { background: var(--gold); }
 .pill.dark { background: var(--red); color: var(--paper); }
-.card { background: #FFFFFF; border-radius: 20px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.card { background: #FFFFFF; border: 1.5px solid #E2D2B6; border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .card .t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .card .t b { font-size: 16px; }
 .card .t span { font-size: 13px; color: var(--brown-soft); }
 .label { font-size: 12px; font-weight: 700; color: var(--brown-soft); letter-spacing: 0.05em; text-transform: uppercase; }
 .items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.item { background: #FFFFFF; border: 2px solid transparent; border-radius: 20px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--brown); font-size: 13px; font-weight: 700; text-align: center; }
+.item { background: #FFFFFF; border: 2px solid #E2D2B6; border-radius: 14px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--brown); font-size: 13px; font-weight: 700; text-align: center; }
 .item.sel { border-color: var(--gold); }
 .item svg { width: 44px; height: 44px; }
 .item .p { color: var(--red); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chips button { height: 38px; padding: 0 14px; border-radius: 19px; border: 0; background: var(--paper-2); color: var(--brown); font-weight: 600; font-size: 14px; }
+.chips button { height: 38px; padding: 0 14px; border-radius: 10px; border: 0; background: var(--paper-2); color: var(--brown); font-weight: 600; font-size: 14px; }
 .chips button.sel { background: #3E5C66; color: var(--paper); }
-.big { height: 56px; border-radius: 28px; border: 0; background: var(--red); color: var(--paper); font-size: 17px; font-weight: 700; flex: none; }
-.streak { background: var(--red); color: var(--paper); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 4px; }
-.streak b { font-size: 34px; }
+.big { height: 56px; border-radius: 12px; font-family: var(--serif); border: 0; background: var(--red); color: var(--paper); font-size: 17px; font-weight: 700; flex: none; }
+.streak { background: var(--red); color: var(--paper); border: 2px solid var(--gold); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 4px; }
+.streak b { font-family: var(--serif); font-size: 34px; }
 .streak span { font-size: 13px; color: #EAD9C2; }
 .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.stats div { background: #FFFFFF; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.stats div { background: #FFFFFF; border: 1.5px solid #E2D2B6; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
 .stats b { font-size: 22px; font-variant-numeric: tabular-nums; }
 .stats span { font-size: 13px; color: var(--brown-soft); }
 textarea { width: 100%; min-height: 90px; border: 0; border-radius: 16px; background: #FFFFFF; padding: 12px; font: 15px/1.45 var(--font); color: var(--brown); resize: none; -webkit-user-select: auto; user-select: auto; }
-.list { background: #FFFFFF; border-radius: 20px; padding: 2px 16px; }
+.list { background: #FFFFFF; border: 1.5px solid #E2D2B6; border-radius: 14px; padding: 2px 16px; }
 .list .card { padding: 12px 0; border-radius: 0; border-bottom: 1px solid #EFE5D6; }
 .list .card:last-child { border-bottom: 0; }
 .sw { width: 52px; height: 32px; border-radius: 16px; border: 0; background: #CDBBA4; position: relative; flex: none; }
@@ -89,7 +130,7 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
 .link { background: none; border: 0; color: var(--red); font-weight: 600; font-size: 14px; align-self: center; padding: 10px; }
 /* onboarding */
 .ob { position: fixed; inset: 0; background: var(--paper); color: var(--brown); display: flex; flex-direction: column; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 80px) 28px calc(env(safe-area-inset-bottom, 0px) + 28px); gap: 14px; text-align: center; }
-.ob h1 { margin: 24px 0 0; font-size: 28px; font-weight: 800; }
+.ob h1 { margin: 24px 0 0; font-family: var(--serif); font-size: 28px; font-weight: 700; }
 .ob p { margin: 0; font-size: 17px; line-height: 1.5; color: #5C4A42; max-width: 420px; }
 .dots { margin-top: auto; display: flex; gap: 8px; }
 .dots i { width: 8px; height: 8px; border-radius: 4px; background: #CDBBA4; }
@@ -102,20 +143,20 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
 <canvas id="c"></canvas>
 
 <div class="top">
-  <div class="chip serif" id="lunar">…<small id="lunar2"></small></div>
+  <div class="chip serif plaque" id="lunar">…<small id="lunar2"></small></div>
   <div class="icons">
-    <div class="chip" id="streakChip">0</div>
-    <button class="round" id="bJournal" aria-label="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg></button>
-    <button class="round" id="bSettings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
+    <div class="chip plaque" id="streakChip">0</div>
+    <button class="round plaque" id="bJournal" aria-label="Journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></svg></button>
+    <button class="round plaque" id="bSettings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
   </div>
 </div>
-<div class="banner" id="banner" hidden></div>
+<div class="banner plaque" id="banner" hidden></div>
 <div class="tag" id="tag" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
 <div class="bottom" id="hallUI">
   <div class="hint" id="hint"></div>
-  <div class="row"><button class="btn primary" id="bIncense"></button><button class="btn" id="bPond"></button></div>
+  <div class="row"><button class="btn primary" id="bIncense"></button><button class="btn plaque" id="bPond"></button></div>
   <div class="note" id="npcNote"></div>
 </div>
 
@@ -124,19 +165,28 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
   <div class="hint" id="countLabel"></div>
   <div class="beadstrip" id="beadstrip" hidden><canvas id="beadc"></canvas></div>
   <div class="ritual">
-    <button id="r-gassho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v9M9 6l3-3 3 3M8 21c0-5 1-8 4-9 3 1 4 4 4 9"/></svg><span></span></button>
-    <button id="r-bow" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="7" r="3"/><path d="M5 20h14M8 10c2 3 6 5 10 6"/></svg><span></span></button>
-    <button id="r-beads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6"/><circle cx="20" cy="12" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="4" cy="12" r="1.6"/></svg><span></span></button>
-    <button id="r-moktak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="11" cy="14" rx="8" ry="6"/><path d="M7 14h8M17 6l4-3"/></svg><span></span></button>
+    <button id="r-gassho"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v9M9 6l3-3 3 3M8 21c0-5 1-8 4-9 3 1 4 4 4 9"/></svg></i><span></span></button>
+    <button id="r-bow" class="on"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="7" r="3"/><path d="M5 20h14M8 10c2 3 6 5 10 6"/></svg></i><span></span></button>
+    <button id="r-beads"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="4" r="1.6"/><circle cx="20" cy="12" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="4" cy="12" r="1.6"/></svg></i><span></span></button>
+    <button id="r-moktak"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="11" cy="14" rx="8" ry="6"/><path d="M7 14h8M17 6l4-3"/></svg></i><span></span></button>
+    <button id="r-chant"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h10l4 4v12H5z"/><path d="M8 10h8M8 14h8M8 18h5"/></svg></i><span></span></button>
   </div>
-  <div class="row"><button class="btn" id="bStand"></button></div>
+  <div class="row"><button class="btn plaque" id="bStand"></button></div>
 </div>
 
 <div class="bottom" id="pondUI" hidden>
-  <div class="chip" id="lotusCount" style="pointer-events:none"></div>
-  <div class="row"><button class="btn primary" id="bLantern"></button><button class="btn" id="bEnter"></button></div>
+  <div class="chip plaque" id="lotusCount" style="pointer-events:none"></div>
+  <div class="row"><button class="btn primary" id="bLantern"></button><button class="btn plaque" id="bEnter"></button></div>
 </div>
 
+<div class="chant" id="chantUI" hidden>
+  <div class="shade"></div>
+  <div class="head"><button class="btn plaque" id="cStop" style="flex:none;padding:0 16px;height:44px"></button><b id="cTitle"></b><div class="chip plaque" id="cRound"></div></div>
+  <div class="scroll" id="cScroll"></div>
+  <div class="prog"><i id="cProg"></i></div>
+  <div class="ctrl"><div class="seg" id="cSpeed"><button data-v="0"></button><button data-v="1"></button><button data-v="2"></button></div><button class="mokbtn plaque" id="cMok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="11" cy="14" rx="8" ry="6"/><path d="M7 14h8M17 6l4-3"/></svg></button></div>
+</div>
+<div class="coach" id="coach" hidden><div class="ring" id="coachRing"></div><div class="bub" id="coachBub"><b id="coachT"></b><span id="coachB"></span><div class="row"><button class="link" id="coachSkip" style="padding:8px 0"></button><span id="coachN" style="font-size:12px"></span></div></div></div>
 <div id="sheetWrap" hidden><div class="scrim" id="scrim"></div><div class="sheet" id="sheet"></div></div>
 <div class="ob" id="ob" hidden></div>
 <div id="fade" style="position:fixed;inset:0;background:#0A0605;opacity:0;pointer-events:none;transition:opacity .3s"></div>
@@ -144,6 +194,7 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
 <script src="three.min.js"></script>
 <script src="lunar.js"></script>
 <script src="i18n.js"></script>
+<script src="sutras.js"></script>
 <script src="figures.js"></script>
 <script src="app.js"></script>
 </body>

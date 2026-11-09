@@ -135,7 +135,17 @@ platform :ios do
         UI.important("IAP #{pid}: tải ảnh lỗi — #{e.message}")
       end
     end
-    sleep 20
+    # chờ Apple xử lý xong ảnh duyệt (tối đa ~5 phút) trước khi nộp gói mua
+    20.times do
+      pending = iaps.select do |i|
+        next false if i["attributes"]["state"] == "APPROVED"
+        d = (rc.get("v2/inAppPurchases/#{i['id']}/appStoreReviewScreenshot").body["data"] rescue nil)
+        d && d["attributes"]["assetDeliveryState"].to_h["state"] != "COMPLETE"
+      end
+      break if pending.empty?
+      UI.message("Đang chờ Apple xử lý ảnh duyệt: #{pending.map { |i| i['attributes']['productId'] }.join(', ')}")
+      sleep 15
+    end
     if shots_only
       iaps.each do |i|
         d = rc.get("v2/inAppPurchases/#{i['id']}/appStoreReviewScreenshot").body["data"] rescue nil

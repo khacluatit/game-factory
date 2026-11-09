@@ -259,9 +259,12 @@
   const STYLES = ['short', 'bun', 'long', 'short', 'bun', 'bald'];
   function makeAvatar(opts) {
     opts = opts || {};
-    const robeColor = opts.robe || '#7D8A96', style = opts.style || STYLES[Math.floor(Math.random() * STYLES.length)];
+    const kind = opts.kind || ['adult', 'adult', 'adult', 'elder', 'child', 'monk'][Math.floor(Math.random() * 6)];
+    const robeColor = kind === 'monk' ? ['#8A5A2E', '#B8742E', '#6E4A32'][Math.floor(Math.random() * 3)] : (opts.robe || '#7D8A96');
+    const style = kind === 'monk' ? 'bald' : kind === 'elder' ? 'bun' : (opts.style || STYLES[Math.floor(Math.random() * 4)]);
     const skin = new THREE.MeshStandardMaterial({ color: opts.skin || SKIN[Math.floor(Math.random() * SKIN.length)], roughness: 0.65 });
-    const hairM = new THREE.MeshStandardMaterial({ color: style === 'bald' ? '#24170F' : (opts.hair || HAIR[Math.floor(Math.random() * HAIR.length)]), roughness: 0.85 });
+    const hairM = new THREE.MeshStandardMaterial({ color: kind === 'elder' ? '#BDB8B0' : (opts.hair || HAIR[Math.floor(Math.random() * 3)]), roughness: 0.8 });
+    const white = new THREE.MeshBasicMaterial({ color: '#FFFFFF' });
     const robe = new THREE.MeshStandardMaterial({ color: robeColor, roughness: 0.85 });
     const trim = new THREE.MeshStandardMaterial({ color: new THREE.Color(robeColor).multiplyScalar(0.62), roughness: 0.85 });
     const dark = new THREE.MeshStandardMaterial({ color: '#3A2620', roughness: 0.7 });
@@ -280,24 +283,32 @@
     footL.scale.set(1, 0.6, 1.5); footR.scale.set(1, 0.6, 1.5);
     // thân áo tràng
     p.position.y = 0.1;
-    const body = add(p, lathe([[0, 0], [0.34, 0], [0.33, 0.12], [0.27, 0.32], [0.24, 0.44], [0.25, 0.5], [0.16, 0.56], [0.1, 0.58], [0, 0.58]], 28), robe, 0, 0, 0); body.scale.z = 0.86;
+    const body = add(p, foldLathe([[0, 0], [0.34, 0], [0.33, 0.12], [0.27, 0.32], [0.24, 0.44], [0.25, 0.5], [0.16, 0.56], [0.1, 0.58], [0, 0.58]], 40, 9, 0.05, 1), robe, 0, 0, 0); body.scale.z = 0.86;
+    add(p, new THREE.TorusGeometry(0.335, 0.012, 6, 40), trim, 0, 0.012, 0, false).rotation.x = Math.PI / 2;
+    if (kind === 'monk') { const sash = new THREE.MeshStandardMaterial({ color: '#C9822E', roughness: 0.8 }); tube(p, [V3(-0.2, 0.56, 0.06), V3(-0.05, 0.42, -0.24), V3(0.18, 0.2, -0.26), V3(0.3, 0.06, -0.1)], 0.04, sash); tube(p, [V3(-0.2, 0.56, 0.06), V3(0.05, 0.4, 0.24), V3(0.26, 0.18, 0.22)], 0.04, sash); }
     const belt = add(p, new THREE.TorusGeometry(0.3, 0.02, 6, 28), trim, 0, 0.12, 0, false); belt.rotation.x = Math.PI / 2; belt.scale.y = 0.86;
     const collarL = limb(p, V3(-0.12, 0.56, -0.08), V3(0.05, 0.3, -0.25), 0.022, trim), collarR = limb(p, V3(0.12, 0.56, -0.08), V3(-0.02, 0.33, -0.25), 0.022, trim);
     // tay
-    const armL = { up: limb(p, V3(-0.24, 0.5, 0), V3(-0.27, 0.32, -0.08), 0.07, robe), lo: limb(p, V3(-0.27, 0.32, -0.08), V3(-0.04, 0.4, -0.27), 0.065, robe), hand: add(p, new THREE.SphereGeometry(0.055, 12, 8), skin, -0.03, 0.42, -0.28) };
-    const armR = { up: limb(p, V3(0.24, 0.5, 0), V3(0.27, 0.32, -0.08), 0.07, robe), lo: limb(p, V3(0.27, 0.32, -0.08), V3(0.04, 0.4, -0.27), 0.065, robe), hand: add(p, new THREE.SphereGeometry(0.055, 12, 8), skin, 0.03, 0.42, -0.28) };
+    const palm = () => { const h = add(p, new THREE.SphereGeometry(0.05, 14, 10), skin, 0, 0, 0); h.scale.set(0.62, 1.25, 0.95); return h; };
+    const armL = { up: limb(p, V3(-0.24, 0.5, 0), V3(-0.27, 0.32, -0.08), 0.07, robe), lo: limb(p, V3(-0.27, 0.32, -0.08), V3(-0.04, 0.4, -0.27), 0.068, robe), hand: palm() };
+    const armR = { up: limb(p, V3(0.24, 0.5, 0), V3(0.27, 0.32, -0.08), 0.07, robe), lo: limb(p, V3(0.27, 0.32, -0.08), V3(0.04, 0.4, -0.27), 0.068, robe), hand: palm() };
     // đầu
     const head = new THREE.Group(); head.position.y = 0.84; p.add(head);
     const skull = add(head, new THREE.SphereGeometry(0.28, 32, 24), skin, 0, 0, 0); skull.scale.set(1, 0.96, 0.96);
     for (const s of [-1, 1]) add(head, new THREE.SphereGeometry(0.05, 10, 8), skin, s * 0.27, -0.02, 0.02, false);
-    arc(head, 0.04, 0.01, dark, -0.1, -0.01, -0.262, 0, Math.PI);   // mắt nhắm cong (mặt nhìn -z)
-    arc(head, 0.04, 0.01, dark, 0.1, -0.01, -0.262, 0, Math.PI);
-    arc(head, 0.025, 0.008, dark, 0, -0.1, -0.262, Math.PI, Math.PI);
+    // mặt nhìn -z: mắt mở có ánh sáng, mày, mũi, miệng cười hiền
+    for (const s of [-1, 1]) {
+      const e = add(head, new THREE.SphereGeometry(0.036, 14, 12), dark, s * 0.1, -0.005, -0.248, false); e.scale.set(0.78, kind === 'elder' ? 0.7 : 1.12, 0.5);
+      add(head, new THREE.SphereGeometry(0.011, 8, 6), white, s * 0.1 + 0.012, 0.014, -0.266, false);
+      const br = arc(head, 0.04, 0.007, kind === 'monk' ? dark : hairM, s * 0.105, 0.075, -0.255, 0, Math.PI); if (br) br.rotation.z = s * -0.12;
+    }
+    const nose = add(head, new THREE.SphereGeometry(0.022, 10, 8), skin, 0, -0.05, -0.275, false); nose.scale.set(1, 0.8, 0.7);
+    arc(head, 0.028, 0.008, new THREE.MeshStandardMaterial({ color: '#9A4A40', roughness: 0.6 }), 0, -0.1, -0.262, Math.PI, Math.PI);
     for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.CircleGeometry(0.045, 16), blush); b.position.set(s * 0.16, -0.07, -0.25); b.rotation.y = Math.PI + s * 0.5; head.add(b); }
     if (style !== 'bald') {
       const cap = add(head, new THREE.SphereGeometry(0.295, 32, 20, 0, Math.PI * 2, 0, Math.PI * 0.55), hairM, 0, 0.02, 0.02); cap.rotation.x = 0.5;
       const fringe = add(head, new THREE.SphereGeometry(0.29, 24, 10, Math.PI * 0.15, Math.PI * 0.7, Math.PI * 0.18, Math.PI * 0.22), hairM, 0, 0.02, 0, false); fringe.rotation.y = Math.PI;
-      if (style === 'bun' || style === 'long') add(head, new THREE.SphereGeometry(0.11, 16, 12), hairM, 0, 0.22, 0.2);
+      if (style === 'bun' || style === 'long') { add(head, new THREE.SphereGeometry(0.11, 16, 12), hairM, 0, 0.22, 0.2); add(head, new THREE.TorusGeometry(0.06, 0.012, 6, 16), new THREE.MeshStandardMaterial({ color: '#7A2E1E' }), 0, 0.2, 0.15, false).rotation.x = 0.6; }
       if (style === 'long') { const back = add(head, new THREE.CapsuleGeometry(0.16, 0.32, 6, 12), hairM, 0, -0.2, 0.16); back.scale.z = 0.6; }
     } else {
       skull.material = skin;
@@ -312,6 +323,7 @@
         else if (mode === 'lap') { el = V3(s * 0.3, 0.26, -0.08); hd = V3(s * 0.06, 0.2, -0.26); }
         else { el = V3(s * 0.3, 0.28, 0.02); hd = V3(s * 0.31, 0.08, -0.02); }
         setLimb(a.up, sh[k], el); setLimb(a.lo, el, hd); a.hand.position.copy(hd);
+        a.hand.rotation.set(mode === 'gassho' ? -0.3 : 0.2, 0, mode === 'gassho' ? s * -0.15 : 0);
       }
     }
     function setPose(mode) {
@@ -320,8 +332,10 @@
       p.position.y = standing ? 0.3 : 0.1; setArms(standing ? 'hang' : (opts.armsSit || 'gassho'));
     }
     function walkCycle(t) { const s = Math.sin(t * 8) * 0.12; legL.position.z = s * 0.5; legR.position.z = -s * 0.5; footL.position.z = -0.03 + s; footR.position.z = -0.03 - s; }
+    if (kind === 'child') g.scale.setScalar(0.76);
+    if (kind === 'elder') head.rotation.x = 0.12;
     setPose('sit');
-    g.userData = { pivot: p, body, robe, bowT: 0, small: false, setPose, setArms, walkCycle, style };
+    g.userData = { pivot: p, body, robe, bowT: 0, small: false, setPose, setArms, walkCycle, style, kind };
     return g;
   }
 

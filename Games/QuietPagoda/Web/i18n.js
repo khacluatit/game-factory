@@ -1,4 +1,4 @@
-// Chuỗi giao diện: vi, zh-Hant, en.
+// Chuỗi giao diện: vi, zh-Hant, zh-Hans (sinh bằng tools/gen_zhs.py), ko, ja, en.
 (function () {
   const S = {
     vi: {
@@ -28,7 +28,12 @@
       ob3n: 'Nhắc ngày rằm, mùng một', next: 'Tiếp', start: 'Vào chùa', bought: 'Đã dâng', buyFail: 'Chưa mua được, thử lại sau',
       offerToast: 'Thả một đèn hoa đăng?', later: 'Để sau',
       nMorningT: 'Thời kinh sáng', nMorningB: 'Chùa sắp vào thời kinh lúc 5:00.', nEveningT: 'Thời kinh chiều', nEveningB: 'Chùa sắp vào thời kinh lúc 18:00.',
-      nFullT: 'Hôm nay là ngày rằm', nNewT: 'Hôm nay mùng một', nMoonB: 'Ghé chùa thắp một nén hương nhé.'
+      nFullT: 'Hôm nay là ngày rằm', nNewT: 'Hôm nay mùng một', nMoonB: 'Ghé chùa thắp một nén hương nhé.',
+      chant: 'Tụng kinh', chantPick: 'Chọn bài kinh', lines: n => n + ' câu', speeds: ['Chậm', 'Vừa', 'Nhanh'], cStop: 'Dừng', round: n => 'Biến ' + n,
+      chantDone: 'Tròn một biến kinh', totChant: 'biến kinh', chantToday: 'biến kinh hôm nay', chantTap: 'chạm để tụng', meaning: 'Nghĩa',
+      sutraSub: { heart: 'Tụng mỗi ngày', 'pho-mon': 'Cầu an cho mình và người thân', 'sam-hoi': 'Sám hối, làm mới tâm', 'hoi-huong': 'Kết thúc buổi tụng' },
+      tut1t: 'Chạm vào bồ đoàn', tut1b: 'Chạm một bồ đoàn trống để ngồi trước Phật.', tut2t: 'Chọn nghi thức', tut2b: 'Lạy, chắp tay, lần chuỗi, gõ mõ hoặc tụng kinh. Đủ 108 lạy hay 108 hạt, ngoài hồ nở một bông sen.',
+      tut3t: 'Thắp hương', tut3b: 'Chạm Thắp hương để dâng 3 nén hương miễn phí mỗi ngày.', skip: 'Bỏ qua', tutAgain: 'Xem lại hướng dẫn', gotIt: 'Đã hiểu'
     },
     zh: {
       title: '靜心寺', tapCushion: '輕觸空的蒲團坐下', seatTaken: '這個位子已有人', walking: '正在走向座位', seated: '正在佛前靜坐',
@@ -54,7 +59,105 @@
       ob3n: '初一、十五提醒', next: '下一步', start: '進入大殿', bought: '已供奉', buyFail: '購買未完成，請稍後再試',
       offerToast: '放一盞蓮花燈？', later: '稍後',
       nMorningT: '早課', nMorningB: '寺院 5:00 即將早課。', nEveningT: '晚課', nEveningB: '寺院 18:00 即將晚課。',
-      nFullT: '今天是十五', nNewT: '今天是初一', nMoonB: '來寺裡上一炷香吧。'
+      nFullT: '今天是十五', nNewT: '今天是初一', nMoonB: '來寺裡上一炷香吧。',
+      chant: '誦經', chantPick: '選擇經文', lines: n => n + ' 句', speeds: ['慢', '中', '快'], cStop: '停止', round: n => '第 ' + n + ' 遍',
+      chantDone: '圓滿一遍', totChant: '遍經', chantToday: '今日誦經', chantTap: '輕觸誦經', meaning: '釋義',
+      sutraSub: { heart: '每日持誦', 'pho-mon': '為自己與家人祈求平安', 'sam-hoi': '懺悔，清淨身心', 'hoi-huong': '誦經圓滿' },
+      tut1t: '輕觸蒲團', tut1b: '輕觸空的蒲團，在佛前坐下。', tut2t: '選擇儀式', tut2b: '禮拜、合掌、撥念珠、敲木魚或誦經。滿 108 拜或 108 顆念珠，池中便開一朵蓮花。',
+      tut3t: '上香', tut3b: '輕觸「上香」，每天可免費供三炷香。', skip: '略過', tutAgain: '重看教學', gotIt: '知道了'
+    },
+    /*ZHS*/zhs: {
+      title: '静心寺', tapCushion: '轻触空的蒲团坐下', seatTaken: '这个位子已有人', walking: '正在走向座位', seated: '正在佛前静坐',
+      incense: '上香', pond: '到莲花池', enter: '进入大殿', stand: '起身', gassho: '合掌', bow: '礼拜', beads: '拨念珠', moktak: '敲木鱼',
+      bowsToday: '今日礼拜 · 长按连续礼拜', beadsToday: '今日念珠 · 滑动念珠', moktakToday: '今日木鱼声', gasshoNow: '合掌，慢慢呼吸',
+      lunar: (d, m) => '农历' + ['正', '二', '三', '四', '五', '六', '七', '八', '九', '十', '冬', '腊'][m - 1] + '月' + (d <= 10 ? '初' + '一二三四五六七八九十'[d - 1] : d === 15 ? '十五' : d < 20 ? '十' + '一二三四五六七八九'[d - 11] : d === 20 ? '二十' : d < 30 ? '廿' + '一二三四五六七八九'[d - 21] : '三十'),
+      toFull: n => n === 0 ? '今天是十五' : '距十五还有 ' + n + ' 天', newMoon: '今天是初一',
+      streak: n => '连续 ' + n + ' 天', ritualSoon: h => '早晚课 ' + h, ritualNow: '早晚课进行中',
+      lotusBloom: '池中开了一朵莲花', lotusCount: (n, m) => n + ' / ' + m + ' 朵莲花', npcNote: '寺中香客为模拟角色', pilgrim: '香客',
+      incenseLit: '香正在燃', incenseUsed: '今天已免费上过香', censer: '香炉', free3: '三炷香', freeLeft: '免费 · 今天还有 1 次', freeUsed: '免费 · 明天再上', light: '点香',
+      itemsHead: '供品 · 在寺中摆放 24 小时', wishHead: '祈愿', offer: (n, p) => '供奉' + n + ' · ' + p,
+      wishes: ['阖家平安', '追思先人', '身体健康', '心安', '工作顺利'],
+      items: { incense: '沉香', lantern: '莲花灯', fruit: '五果盘', robes: '海青三色', beadsSkin: '檀香念珠', tet: '新春布置' },
+      itemsSub: { robes: '褐、黄、白', beadsSkin: '木珠，声音更温润', tet: '桃花、梅花、红灯笼' },
+      hoursLeft: h => '剩 ' + h + ' 小时', journal: '手账', done: '完成', streakHead: '连续到寺天数', restLeft: '每周可休息一天不中断',
+      totBow: '礼拜', totBeads: '串念珠', totDays: '到寺天数', yourWish: '你的祈愿', wishPh: '写下你的心愿…只存在这支手机',
+      keep: '永久项目', owned: '已拥有', restore: '恢复购买', restored: '已恢复', robeColor: '海青颜色', tetOn: '新春布置',
+      settings: '设定', ambient: '环境音', effects: '钟、木鱼、念珠', haptics: '震动', notif: '通知',
+      nMorning: '早课 (5:00)', nEvening: '晚课 (18:00)', nMoon: '初一、十五 (6:30)', yourName: '你的名字', privacy: '隐私权政策',
+      ob1t: '属于你的一座小寺', ob1b: '随时都能来：佛前静坐、礼拜、拨念珠、敲木鱼、上一炷香。没有聊天，不受打扰。',
+      ob2t: '轻触蒲团坐下', ob2b: '坐下后在下方选择仪式。满 108 拜或 108 颗念珠，池中便开一朵莲花。',
+      ob3t: '你不是一个人', ob3b: '寺中的香客是模拟角色，随一天的时辰来去。他们不是真人，也没有人看得到你。',
+      ob3n: '初一、十五提醒', next: '下一步', start: '进入大殿', bought: '已供奉', buyFail: '购买未完成，请稍后再试',
+      offerToast: '放一盏莲花灯？', later: '稍后',
+      nMorningT: '早课', nMorningB: '寺院 5:00 即将早课。', nEveningT: '晚课', nEveningB: '寺院 18:00 即将晚课。',
+      nFullT: '今天是十五', nNewT: '今天是初一', nMoonB: '来寺里上一炷香吧。',
+      chant: '诵经', chantPick: '选择经文', lines: n => n + ' 句', speeds: ['慢', '中', '快'], cStop: '停止', round: n => '第 ' + n + ' 遍',
+      chantDone: '圆满一遍', totChant: '遍经', chantToday: '今日诵经', chantTap: '轻触诵经', meaning: '释义',
+      sutraSub: { heart: '每日持诵', 'pho-mon': '为自己与家人祈求平安', 'sam-hoi': '忏悔，清净身心', 'hoi-huong': '诵经圆满' },
+      tut1t: '轻触蒲团', tut1b: '轻触空的蒲团，在佛前坐下。', tut2t: '选择仪式', tut2b: '礼拜、合掌、拨念珠、敲木鱼或诵经。满 108 拜或 108 颗念珠，池中便开一朵莲花。',
+      tut3t: '上香', tut3b: '轻触「上香」，每天可免费供三炷香。', skip: '略过', tutAgain: '重看教学', gotIt: '知道了'
+    },/*END*/
+    ko: {
+      title: '고요한 절', tapCushion: '빈 방석을 눌러 앉으세요', seatTaken: '이미 누가 앉아 있어요', walking: '자리로 가는 중', seated: '부처님 앞에 앉아 있어요',
+      incense: '향 올리기', pond: '연못으로', enter: '법당으로', stand: '일어나기', gassho: '합장', bow: '절', beads: '염주', moktak: '목탁',
+      bowsToday: '오늘 절 · 길게 누르면 계속 절하기', beadsToday: '오늘 염주 · 염주를 밀어 넘기기', moktakToday: '오늘 목탁 소리', gasshoNow: '합장하고 천천히 숨 쉬기',
+      lunar: (d, m) => '음력 ' + m + '월 ' + d + '일',
+      toFull: n => n === 0 ? '오늘은 보름' : '보름까지 ' + n + '일', newMoon: '오늘은 초하루',
+      streak: n => n + '일 연속', ritualSoon: h => h + ' 예불', ritualNow: '예불 중',
+      lotusBloom: '연못에 연꽃 한 송이가 피었어요', lotusCount: (n, m) => '연꽃 ' + n + ' / ' + m, npcNote: '절 안의 참배객은 가상 캐릭터입니다', pilgrim: '참배객',
+      incenseLit: '향이 타고 있어요', incenseUsed: '오늘 무료 향은 이미 올렸어요', censer: '향로', free3: '향 세 대', freeLeft: '무료 · 오늘 1번 남음', freeUsed: '무료 · 내일 다시', light: '올리기',
+      itemsHead: '공양물 · 절 안에 24시간 놓여요', wishHead: '발원', offer: (n, p) => n + ' 올리기 · ' + p,
+      wishes: ['가족의 평안', '돌아가신 분을 기리며', '건강', '마음의 평화', '일이 잘 풀리길'],
+      items: { incense: '침향', lantern: '연등', fruit: '과일 공양', robes: '법복 3색', beadsSkin: '백단 염주', tet: '설날 장식' },
+      itemsSub: { robes: '갈색, 황색, 흰색', beadsSkin: '나무 염주, 더 따뜻한 소리', tet: '복숭아꽃, 매화, 붉은 등' },
+      hoursLeft: h => h + '시간 남음', journal: '수행 일지', done: '완료', streakHead: '연속 방문', restLeft: '일주일에 하루는 쉬어도 이어져요',
+      totBow: '절', totBeads: '108 염주', totDays: '방문', yourWish: '나의 발원', wishPh: '바라는 것을 적어 보세요… 이 휴대폰에만 저장돼요',
+      keep: '영구 소장', owned: '보유 중', restore: '구매 복원', restored: '복원됨', robeColor: '법복 색', tetOn: '설날 장식',
+      settings: '설정', ambient: '배경 소리', effects: '종, 목탁, 염주', haptics: '진동', notif: '알림',
+      nMorning: '새벽 예불 (5:00)', nEvening: '저녁 예불 (18:00)', nMoon: '초하루, 보름 (6:30)', yourName: '이름', privacy: '개인정보 처리방침',
+      ob1t: '당신만의 작은 절', ob1b: '언제든 들르세요. 부처님 앞에 앉아 절하고, 염주를 돌리고, 목탁을 치고, 향을 올려요. 채팅도, 방해도 없어요.',
+      ob2t: '방석을 눌러 앉기', ob2b: '앉은 뒤 아래에서 수행을 고르세요. 절이나 염주 108번을 채우면 연못에 연꽃이 피어요.',
+      ob3t: '혼자가 아니에요', ob3b: '절 안의 참배객은 시간에 따라 오가는 가상 캐릭터예요. 실제 사람이 아니며 아무도 당신을 볼 수 없어요.',
+      ob3n: '초하루, 보름 알림', next: '다음', start: '법당으로', bought: '올렸어요', buyFail: '구매가 완료되지 않았어요. 잠시 후 다시 시도해 주세요',
+      offerToast: '연등을 띄울까요?', later: '나중에',
+      nMorningT: '새벽 예불', nMorningB: '5:00에 예불이 시작돼요.', nEveningT: '저녁 예불', nEveningB: '18:00에 예불이 시작돼요.',
+      nFullT: '오늘은 보름', nNewT: '오늘은 초하루', nMoonB: '절에 들러 향을 올려 보세요.',
+      chant: '독경', chantPick: '경전 고르기', lines: n => n + '구절', speeds: ['느리게', '보통', '빠르게'], cStop: '멈추기', round: n => n + '번째',
+      chantDone: '한 번 독송을 마쳤어요', totChant: '독송', chantToday: '오늘 독송', chantTap: '눌러서 독경', meaning: '뜻',
+      sutraSub: { heart: '매일 독송', 'pho-mon': '나와 가족의 평안을 비는 기도', 'sam-hoi': '참회로 마음을 새롭게', 'hoi-huong': '독경을 마치며' },
+      tut1t: '방석 누르기', tut1b: '빈 방석을 눌러 부처님 앞에 앉으세요.', tut2t: '수행 고르기', tut2b: '절, 합장, 염주, 목탁, 독경 중에서 고르세요. 108번을 채우면 연못에 연꽃이 피어요.',
+      tut3t: '향 올리기', tut3b: '향 올리기를 누르면 매일 향 세 대를 무료로 올릴 수 있어요.', skip: '건너뛰기', tutAgain: '안내 다시 보기', gotIt: '알겠어요'
+    },
+    ja: {
+      title: '静心寺', tapCushion: '空いている座布団をタップして座る', seatTaken: 'この席は使われています', walking: '席へ向かっています', seated: '仏前に座っています',
+      incense: 'お線香をあげる', pond: '蓮池へ', enter: '本堂へ', stand: '立ち上がる', gassho: '合掌', bow: '礼拝', beads: '数珠', moktak: '木魚',
+      bowsToday: '今日の礼拝 · 長押しで続けて礼拝', beadsToday: '今日の数珠 · スワイプで繰る', moktakToday: '今日の木魚', gasshoNow: '合掌して、ゆっくり呼吸',
+      lunar: (d, m) => '旧暦' + m + '月' + d + '日',
+      toFull: n => n === 0 ? '今日は満月' : '満月まであと' + n + '日', newMoon: '今日は新月',
+      streak: n => n + '日連続', ritualSoon: h => h + 'からお勤め', ritualNow: 'お勤めの時間です',
+      lotusBloom: '池に蓮の花が一輪咲きました', lotusCount: (n, m) => '蓮 ' + n + ' / ' + m, npcNote: '境内の参拝者はシミュレーションのキャラクターです', pilgrim: '参拝者',
+      incenseLit: 'お線香が燃えています', incenseUsed: '今日の無料のお線香はあげました', censer: '香炉', free3: 'お線香3本', freeLeft: '無料 · 今日はあと1回', freeUsed: '無料 · また明日', light: 'あげる',
+      itemsHead: 'お供え · 24時間お寺に置かれます', wishHead: '願い', offer: (n, p) => n + 'を供える · ' + p,
+      wishes: ['家族の平安', '亡き人をしのんで', '健康', '心の安らぎ', '仕事の順調'],
+      items: { incense: '沈香', lantern: '灯籠', fruit: '果物のお供え', robes: '法衣3色', beadsSkin: '白檀の数珠', tet: '旧正月の飾り' },
+      itemsSub: { robes: '茶、黄、白', beadsSkin: '木の数珠、あたたかな音', tet: '桃の花、梅、赤い提灯' },
+      hoursLeft: h => '残り' + h + '時間', journal: '手帳', done: '完了', streakHead: '連続参拝', restLeft: '週に1日休んでも続きます',
+      totBow: '礼拝', totBeads: '108数珠', totDays: '参拝', yourWish: 'あなたの願い', wishPh: '願いを書いてください… この端末にだけ保存されます',
+      keep: 'ずっと使える', owned: '購入済み', restore: '購入を復元', restored: '復元しました', robeColor: '法衣の色', tetOn: '旧正月の飾り',
+      settings: '設定', ambient: '環境音', effects: '鐘、木魚、数珠', haptics: '振動', notif: '通知',
+      nMorning: '朝のお勤め (5:00)', nEvening: '夕のお勤め (18:00)', nMoon: '新月・満月 (6:30)', yourName: 'お名前', privacy: 'プライバシーポリシー',
+      ob1t: 'あなたのための小さなお寺', ob1b: 'いつでも立ち寄れます。仏前に座り、礼拝し、数珠を繰り、木魚を打ち、お線香をあげましょう。チャットも邪魔もありません。',
+      ob2t: '座布団をタップして座る', ob2b: '座ったら下で行を選びます。礼拝か数珠を108回で、池に蓮が咲きます。',
+      ob3t: 'ひとりではありません', ob3b: '境内の参拝者は時間とともに行き来するシミュレーションのキャラクターです。実在の人ではなく、誰もあなたを見ることはできません。',
+      ob3n: '新月・満月のお知らせ', next: '次へ', start: '本堂へ', bought: 'お供えしました', buyFail: '購入が完了しませんでした。後でもう一度お試しください',
+      offerToast: '灯籠を流しますか？', later: 'あとで',
+      nMorningT: '朝のお勤め', nMorningB: '5:00にお勤めが始まります。', nEveningT: '夕のお勤め', nEveningB: '18:00にお勤めが始まります。',
+      nFullT: '今日は満月', nNewT: '今日は新月', nMoonB: 'お寺に寄ってお線香をあげましょう。',
+      chant: '読経', chantPick: 'お経を選ぶ', lines: n => n + '句', speeds: ['ゆっくり', 'ふつう', 'はやく'], cStop: 'やめる', round: n => n + '回目',
+      chantDone: '一巻読み終えました', totChant: '読経', chantToday: '今日の読経', chantTap: 'タップして読経', meaning: '意味',
+      sutraSub: { heart: '毎日のお勤めに', 'pho-mon': '自分と家族の平安を祈る', 'sam-hoi': '懺悔して心を新たに', 'hoi-huong': '読経の結び' },
+      tut1t: '座布団をタップ', tut1b: '空いている座布団をタップして仏前に座ります。', tut2t: '行を選ぶ', tut2b: '礼拝、合掌、数珠、木魚、読経から選びます。108回で池に蓮が咲きます。',
+      tut3t: 'お線香', tut3b: '「お線香をあげる」で毎日3本を無料で供えられます。', skip: 'スキップ', tutAgain: '案内をもう一度見る', gotIt: 'わかりました'
     },
     en: {
       title: 'Quiet Pagoda', tapCushion: 'Tap an empty cushion to sit', seatTaken: 'Someone is sitting here', walking: 'Walking to your seat', seated: 'Sitting before the Buddha',
@@ -80,15 +183,24 @@
       ob3n: 'Full & new moon reminders', next: 'Next', start: 'Enter', bought: 'Offered', buyFail: 'Purchase not completed, try again later',
       offerToast: 'Float a lotus lantern?', later: 'Later',
       nMorningT: 'Morning chanting', nMorningB: 'Chanting begins at 5:00.', nEveningT: 'Evening chanting', nEveningB: 'Chanting begins at 18:00.',
-      nFullT: 'Full moon today', nNewT: 'New moon today', nMoonB: 'Stop by and light some incense.'
+      nFullT: 'Full moon today', nNewT: 'New moon today', nMoonB: 'Stop by and light some incense.',
+      chant: 'Chant', chantPick: 'Choose a sutra', lines: n => n + ' lines', speeds: ['Slow', 'Medium', 'Fast'], cStop: 'Stop', round: n => 'Round ' + n,
+      chantDone: 'One full recitation', totChant: 'recitations', chantToday: 'recitations today', chantTap: 'tap to chant', meaning: 'Meaning',
+      sutraSub: { heart: 'For daily practice', 'pho-mon': 'Prayers for peace for you and your family', 'sam-hoi': 'Repentance, a fresh start', 'hoi-huong': 'Closing dedication' },
+      tut1t: 'Tap a cushion', tut1b: 'Tap an empty cushion to sit before the Buddha.', tut2t: 'Pick a practice', tut2b: 'Bow, join palms, count beads, strike the moktak or chant. Reach 108 and a lotus blooms in the pond.',
+      tut3t: 'Light incense', tut3b: 'Tap Light incense to offer 3 free sticks every day.', skip: 'Skip', tutAgain: 'Replay the tour', gotIt: 'Got it'
     }
   };
   const want = (window.QP_LANG || navigator.language || 'en').toLowerCase();
-  const lang = want.startsWith('vi') ? 'vi' : (want.startsWith('zh') ? 'zh' : 'en');
+  const lang = want.startsWith('vi') ? 'vi' : want.startsWith('ko') ? 'ko' : want.startsWith('ja') ? 'ja'
+    : want.startsWith('zh') ? (/hans|-cn|-sg|_cn/.test(want) && !/hant/.test(want) ? 'zhs' : 'zh') : 'en';
   window.LANG = lang; window.T = S[lang];
   window.NAMES = {
     vi: ['Sen Hồng', 'Mây Trắng', 'Trúc Xanh', 'Gió Nhẹ', 'Hạt Sương', 'Lá Bồ Đề', 'Trăng Non', 'Suối Nhỏ', 'Hoa Cau', 'Nắng Sớm', 'Đá Rêu', 'Chim Sẻ'],
     zh: ['蓮心', '白雲', '青竹', '清風', '朝露', '菩提', '新月', '小溪', '晨曦', '松影', '石苔', '雀鳥'],
+    zhs: ['莲心', '白云', '青竹', '清风', '朝露', '菩提', '新月', '小溪', '晨曦', '松影', '石苔', '雀鸟'],
+    ko: ['연꽃', '흰구름', '대나무', '산들바람', '이슬', '보리수잎', '초승달', '시냇물', '새벽빛', '소나무', '이끼', '참새'],
+    ja: ['蓮', '白雲', '青竹', 'そよ風', '朝露', '菩提', '新月', '小川', '朝日', '松', '苔', '雀'],
     en: ['Lotus', 'White Cloud', 'Bamboo', 'Breeze', 'Dew', 'Bodhi Leaf', 'New Moon', 'Brook', 'Dawn', 'Pine', 'Moss', 'Sparrow']
   }[lang];
 })();
