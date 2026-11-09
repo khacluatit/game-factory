@@ -228,11 +228,34 @@
 
   // lanterns
   const lanternLights = [];
+  // đèn lồng lục giác khung gỗ, lụa đỏ vẽ sen, tua đỏ (thay cho đèn tròn)
+  const silkTex = canvasTex(256, 128, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#E8B060'); gr.addColorStop(0.5, '#F6D08A'); gr.addColorStop(1, '#E09A50'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#B8321F'; g.fillRect(0, 0, w, 12); g.fillRect(0, h - 12, w, 12);
+    for (let i = 0; i < 6; i++) { const cx = (i + 0.5) * w / 6, cy = h / 2 + 4; g.fillStyle = '#C8462A';
+      for (let k = -2; k <= 2; k++) { g.save(); g.translate(cx, cy + 8); g.rotate(k * 0.42); g.beginPath(); g.ellipse(0, -14, 5, 15, 0, 0, Math.PI * 2); g.fill(); g.restore(); }
+      g.fillStyle = '#5E7A3A'; g.fillRect(cx - 9, cy + 18, 18, 3); }
+  });
+  const silkMat = new THREE.MeshStandardMaterial({ map: silkTex, emissive: '#FFB060', emissiveMap: silkTex, emissiveIntensity: 0.9, roughness: 0.7, side: THREE.DoubleSide });
+  const lanWood = std('#4A1E12', { roughness: 0.6 }), lanGold = std('#C9963E', { metalness: 0.7, roughness: 0.35 }), tassel = std('#B8241A', { roughness: 0.8 });
   function hangLantern(x, z, y) {
-    mesh(new THREE.CylinderGeometry(0.008, 0.008, 6.2 - (y || 4.4), 4), darkWood, x, (6.2 + (y || 4.4)) / 2, z, false);
-    const lan = mesh(new THREE.SphereGeometry(0.24, 20, 14), new THREE.MeshStandardMaterial({ color: '#B8321F', emissive: '#C8462A', emissiveIntensity: 0.8, roughness: 0.6 }), x, y || 4.4, z, false); lan.scale.y = 1.2;
-    mesh(new THREE.CylinderGeometry(0.02, 0.05, 0.3, 6), std('#D9A441'), x, (y || 4.4) - 0.45, z, false);
-    return lan;
+    y = y || 4.4;
+    mesh(new THREE.CylinderGeometry(0.01, 0.01, 6.2 - y - 0.45, 4), lanGold, x, (6.2 + y + 0.45) / 2, z, false);
+    const g = new THREE.Group(); g.position.set(x, y, z); scene.add(g);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.5, 6, 1, true), silkMat); g.add(body);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; mesh(new THREE.BoxGeometry(0.035, 0.56, 0.035), lanWood, Math.sin(a) * 0.3, 0, Math.cos(a) * 0.3, false, g); }
+    mesh(new THREE.CylinderGeometry(0.36, 0.33, 0.06, 6), lanWood, 0, 0.29, 0, false, g);
+    mesh(new THREE.CylinderGeometry(0.16, 0.36, 0.14, 6), lanWood, 0, 0.39, 0, false, g);
+    mesh(new THREE.SphereGeometry(0.05, 10, 8), lanGold, 0, 0.5, 0, false, g);
+    mesh(new THREE.CylinderGeometry(0.33, 0.28, 0.06, 6), lanWood, 0, -0.29, 0, false, g);
+    mesh(new THREE.CylinderGeometry(0.1, 0.2, 0.08, 6), lanWood, 0, -0.36, 0, false, g);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2, cx = Math.sin(a) * 0.36, cz = Math.cos(a) * 0.36;
+      const hook = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(cx, 0.31, cz), new THREE.Vector3(cx * 1.25, 0.36, cz * 1.25), new THREE.Vector3(cx * 1.3, 0.47, cz * 1.3)]), 6, 0.012, 5), lanGold); g.add(hook);
+      mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.22, 4), tassel, cx * 0.92, -0.42, cz * 0.92, false, g);
+      mesh(new THREE.SphereGeometry(0.022, 6, 5), tassel, cx * 0.92, -0.3, cz * 0.92, false, g); }
+    mesh(new THREE.CylinderGeometry(0.035, 0.012, 0.36, 8), tassel, 0, -0.58, 0, false, g);
+    mesh(new THREE.SphereGeometry(0.04, 8, 6), lanGold, 0, -0.4, 0, false, g);
+    return body;
   }
   for (const [x, z] of [[-2, -5.4], [2, -5.4], [-2, -3.0], [2, -3.0]]) {
     hangLantern(x, z, 4.9);

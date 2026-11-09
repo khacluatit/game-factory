@@ -53,61 +53,76 @@
     lotusRing(B, 20, 0.92, 0.36, 0.2, 0.3, 0.08, 0.75, gold, 0);
     lotusRing(B, 14, 0.7, 0.42, 0.22, 0.32, 0.09, 0.45, gold, 0.5);
     add(B, new THREE.CylinderGeometry(0.78, 0.82, 0.1, 32), gold, 0, 0.55, 0);
-    // chân xếp bằng kiết già, áo phủ gối
-    const lap = add(B, foldLathe([[0, 0], [1.0, 0], [0.98, 0.12], [0.86, 0.22], [0.5, 0.3], [0, 0.31]], 48, 7, 0.04, 1), gold, 0, 0.6, 0.1); lap.scale.set(1, 1, 0.66);
-    limb(B, V3(-0.66, 0.8, 0.34), V3(0.4, 0.84, 0.52), 0.15, gold);
-    limb(B, V3(0.66, 0.84, 0.32), V3(-0.38, 0.88, 0.48), 0.14, gold);
-    for (const [x, y, z, r] of [[0.42, 0.97, 0.46, -0.3], [-0.4, 0.99, 0.4, 0.3]]) {
-      const sole = add(B, new THREE.SphereGeometry(0.12, 16, 12), gold, x, y, z); sole.scale.set(1.4, 0.42, 0.75); sole.rotation.y = r;
-      for (let k = 0; k < 5; k++) add(B, new THREE.SphereGeometry(0.022 - k * 0.002, 8, 6), gold, x + Math.sign(x) * 0.15 + Math.sign(x) * 0.005 * k, y + 0.03, z - 0.06 + k * 0.03, false);
-    }
-    for (let k = 0; k < 6; k++) tube(B, [V3(-0.75 + k * 0.3, 0.86, 0.5), V3(-0.7 + k * 0.28, 0.72, 0.68), V3(-0.62 + k * 0.25, 0.64, 0.72)], 0.012, goldDark);
-    // thân: vai rộng, eo thon, áo cà sa vắt vai trái, hở vai phải
-    const torso = add(B, foldLathe([[0, 0], [0.56, 0], [0.6, 0.12], [0.54, 0.38], [0.5, 0.58], [0.54, 0.76], [0.57, 0.86], [0.5, 0.96], [0.3, 1.03], [0.16, 1.07], [0, 1.08]], 56, 5, 0.025, 0.6), gold, 0, 0.86, 0);
-    torso.scale.set(1.04, 1, 0.72);
-    tube(B, [V3(-0.44, 1.8, 0.16), V3(-0.2, 1.64, 0.37), V3(0.14, 1.4, 0.41), V3(0.4, 1.12, 0.33), V3(0.52, 0.94, 0.2)], 0.018, goldDark);
-    for (let k = 1; k < 5; k++) tube(B, [V3(-0.46, 1.74 - k * 0.07, 0.18), V3(-0.3, 1.56 - k * 0.11, 0.35), V3(-0.05, 1.36 - k * 0.11, 0.39), V3(0.18, 1.12 - k * 0.08, 0.37)], 0.008, goldDark);
-    tube(B, [V3(-0.44, 1.8, 0.16), V3(-0.52, 1.84, -0.12), V3(-0.4, 1.56, -0.34), V3(-0.2, 1.2, -0.38)], 0.018, goldDark);
-    // tay: thủ ấn thiền định, tay áo trái buông
-    limb(B, V3(-0.52, 1.74, 0.02), V3(-0.64, 1.26, 0.14), 0.12, gold); limb(B, V3(-0.64, 1.26, 0.14), V3(-0.14, 1.04, 0.46), 0.1, gold);
-    limb(B, V3(0.52, 1.74, 0.02), V3(0.64, 1.26, 0.14), 0.12, gold); limb(B, V3(0.64, 1.26, 0.14), V3(0.14, 1.06, 0.47), 0.1, gold);
-    const drape = add(B, new THREE.SphereGeometry(0.3, 20, 14), gold, -0.66, 1.06, 0.1); drape.scale.set(0.42, 0.9, 0.3); drape.rotation.z = 0.2;
-    const pl = add(B, new THREE.SphereGeometry(0.15, 18, 12), gold, 0, 1.02, 0.5); pl.scale.set(1.75, 0.38, 1.05);
-    const pr = add(B, new THREE.SphereGeometry(0.15, 18, 12), gold, 0, 1.075, 0.52); pr.scale.set(1.7, 0.36, 1.0);
-    for (let k = -1; k <= 2; k++) tube(B, [V3(-0.18, 1.1, 0.48 + k * 0.035), V3(0, 1.11, 0.5 + k * 0.035), V3(0.18, 1.1, 0.48 + k * 0.035)], 0.006, goldDark);
-    const th = add(B, new THREE.TorusGeometry(0.075, 0.022, 8, 20, Math.PI), gold, 0, 1.1, 0.5); th.rotation.x = -0.25;
+    // chất liệu: da vàng nhạt, y vàng ánh kim, tóc xoắn ốc màu xanh lam
+    const skin = gold.clone(); skin.color = new THREE.Color('#E9C98E'); skin.metalness = 0.55; skin.roughness = 0.32;
+    const robeM = gold.clone(); robeM.color = new THREE.Color('#D9A845'); robeM.roughness = 0.3;
+    const foldM = gold.clone(); foldM.color = new THREE.Color('#B07E2C'); foldM.roughness = 0.4;
+    const hairM = new THREE.MeshStandardMaterial({ color: '#2C3552', roughness: 0.45, metalness: 0.2 });
+    const lineM = new THREE.MeshStandardMaterial({ color: '#6A4A24', roughness: 0.6 });
+    const lipM = new THREE.MeshStandardMaterial({ color: '#C9845E', roughness: 0.45 });
+    // chân kiết già, y phủ kín gối với nhiều nếp
+    const lap = add(B, foldLathe([[0, 0], [1.02, 0], [1.0, 0.13], [0.88, 0.24], [0.5, 0.32], [0, 0.33]], 64, 9, 0.05, 1), robeM, 0, 0.6, 0.1); lap.scale.set(1, 1, 0.68);
+    limb(B, V3(-0.68, 0.8, 0.36), V3(0.42, 0.85, 0.55), 0.16, robeM);
+    limb(B, V3(0.68, 0.84, 0.34), V3(-0.4, 0.89, 0.5), 0.15, robeM);
+    for (let k = 0; k < 7; k++) tube(B, [V3(-0.8 + k * 0.27, 0.88, 0.5), V3(-0.74 + k * 0.25, 0.74, 0.7), V3(-0.66 + k * 0.22, 0.63, 0.74)], 0.014, foldM);
+    const sole = add(B, new THREE.SphereGeometry(0.12, 16, 12), skin, 0.4, 0.99, 0.5); sole.scale.set(1.4, 0.4, 0.75); sole.rotation.y = -0.3;
+    // thân: y phủ hai vai, cổ áo chữ U lộ ngực, nếp y chéo dày
+    const torso = add(B, foldLathe([[0, 0], [0.58, 0], [0.62, 0.12], [0.56, 0.38], [0.52, 0.6], [0.56, 0.78], [0.6, 0.88], [0.52, 0.97], [0.3, 1.04], [0.16, 1.08], [0, 1.09]], 64, 6, 0.03, 0.7), robeM, 0, 0.86, 0);
+    torso.scale.set(1.05, 1, 0.74);
+    const chest = add(B, new THREE.SphereGeometry(0.3, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), skin, 0, 1.68, 0.255, false); chest.scale.set(0.95, 0.78, 0.66); chest.rotation.x = -0.45;
+    tube(B, [V3(-0.36, 1.84, 0.24), V3(-0.24, 1.6, 0.43), V3(0, 1.48, 0.46), V3(0.24, 1.6, 0.43), V3(0.36, 1.84, 0.24)], 0.035, foldM);
+    for (let k = 0; k < 5; k++) tube(B, [V3(-0.5, 1.8 - k * 0.1, 0.18), V3(-0.25, 1.4 - k * 0.12, 0.42), V3(0.15, 1.18 - k * 0.1, 0.42), V3(0.48, 1.0 - k * 0.06, 0.3)], 0.016 - k * 0.001, foldM);
+    for (let k = 0; k < 3; k++) tube(B, [V3(0.5, 1.82 - k * 0.12, 0.1), V3(0.56, 1.5 - k * 0.1, 0.3), V3(0.48, 1.2 - k * 0.06, 0.38)], 0.012, foldM);
+    // chữ Vạn trên ngực (biểu tượng cát tường Phật giáo)
+    const sw = new THREE.Group(); sw.position.set(0, 1.66, 0.47); sw.rotation.x = -0.35; B.add(sw);
+    const bar = (w, h, x, y) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.012), foldM); m.position.set(x, y, 0); sw.add(m); };
+    const u = 0.028; bar(u, 4 * u, 0, 0); bar(4 * u, u, 0, 0); bar(u, 2 * u, -2 * u, -u * 1.0 - u * 0.5 + u * 0.5); bar(2 * u, u, -u, 2 * u); bar(u, 2 * u, 2 * u, u); bar(2 * u, u, u, -2 * u);
+    // tay trái: đặt trong lòng, ngửa
+    limb(B, V3(-0.54, 1.76, 0.02), V3(-0.66, 1.28, 0.16), 0.13, robeM); limb(B, V3(-0.66, 1.28, 0.16), V3(-0.12, 1.06, 0.48), 0.11, robeM);
+    const lp = add(B, new THREE.SphereGeometry(0.15, 18, 12), skin, -0.02, 1.05, 0.52); lp.scale.set(1.6, 0.36, 1.05);
+    for (let k = 0; k < 4; k++) { const f = add(B, new THREE.CapsuleGeometry(0.022, 0.1, 4, 8), skin, 0.14 + k * 0.004, 1.07, 0.44 + k * 0.045, false); f.rotation.z = Math.PI / 2; }
+    const sleeveL = add(B, new THREE.SphereGeometry(0.3, 20, 14), robeM, -0.7, 1.08, 0.18); sleeveL.scale.set(0.45, 0.95, 0.5);
+    // tay phải: giơ lên, lòng bàn tay hướng ra trước, ngón cái chạm ngón trỏ (thủ ấn thuyết pháp)
+    limb(B, V3(0.54, 1.76, 0.02), V3(0.68, 1.3, 0.22), 0.13, robeM);
+    limb(B, V3(0.68, 1.3, 0.22), V3(0.6, 1.66, 0.52), 0.1, skin);
+    const sleeveR = add(B, new THREE.SphereGeometry(0.26, 20, 14), robeM, 0.74, 1.24, 0.26); sleeveR.scale.set(0.5, 0.75, 0.6);
+    const brace = add(B, new THREE.TorusGeometry(0.1, 0.022, 8, 20), gold, 0.62, 1.6, 0.5, false); brace.rotation.x = 1.3;
+    const rh = new THREE.Group(); rh.position.set(0.6, 1.78, 0.56); rh.rotation.set(-0.15, -0.25, 0.12); B.add(rh);
+    const palm = add(rh, new THREE.SphereGeometry(0.1, 18, 14), skin, 0, 0, 0); palm.scale.set(1.0, 1.25, 0.4);
+    for (let k = 0; k < 4; k++) { const len = [0.11, 0.13, 0.125, 0.1][k]; const f = add(rh, new THREE.CapsuleGeometry(0.022, len, 4, 8), skin, -0.055 + k * 0.037, 0.12 + len / 2, 0.005, false); if (k === 0) { f.rotation.z = 0.9; f.position.set(-0.09, 0.1, 0.03); } }
+    const thumb = add(rh, new THREE.CapsuleGeometry(0.024, 0.08, 4, 8), skin, -0.1, 0.05, 0.04, false); thumb.rotation.z = 0.6;
     // cổ ba ngấn
-    add(B, new THREE.CylinderGeometry(0.15, 0.18, 0.22, 24), gold, 0, 2.0, 0);
-    for (let k = 0; k < 3; k++) { const t = add(B, new THREE.TorusGeometry(0.158, 0.011, 6, 24), goldDark, 0, 1.94 + k * 0.05, 0.005, false); t.rotation.x = Math.PI / 2; }
-    // đầu: mặt trái xoan, mắt nhìn xuống, mày cong liền sống mũi, môi đầy, dái tai dài
+    add(B, new THREE.CylinderGeometry(0.15, 0.18, 0.22, 24), skin, 0, 2.0, 0);
+    for (let k = 0; k < 3; k++) { const t = add(B, new THREE.TorusGeometry(0.158, 0.008, 6, 24), lineM, 0, 1.94 + k * 0.05, 0.005, false); t.rotation.x = Math.PI / 2; }
+    // đầu: mặt đầy đặn, mày cong, mắt khép hờ nhìn xuống, môi mỉm, dái tai dài, tóc xoắn ốc xanh, nhục kế
     const head = new THREE.Group(); head.position.set(0, 2.36, 0.03); B.add(head);
-    const skull = add(head, new THREE.SphereGeometry(0.33, 48, 36), gold, 0, 0, 0); skull.scale.set(0.94, 1.16, 0.98);
-    const cheekL = add(head, new THREE.SphereGeometry(0.12, 16, 12), gold, -0.12, -0.11, 0.16, false); cheekL.scale.set(0.9, 0.9, 0.6);
-    const cheekR = add(head, new THREE.SphereGeometry(0.12, 16, 12), gold, 0.12, -0.11, 0.16, false); cheekR.scale.set(0.9, 0.9, 0.6);
-    for (const s of [-1, 1]) { const e = add(head, new THREE.CapsuleGeometry(0.048, 0.36, 6, 12), gold, s * 0.315, -0.14, 0.01); e.rotation.z = s * 0.06; e.scale.z = 0.55; }
-    curls(head, V3(0, 0.02, 0), 0.34, 170, 0.08, 0.034, goldDark, true);
-    add(head, new THREE.SphereGeometry(0.16, 24, 16), gold, 0, 0.4, -0.02);
-    curls(head, V3(0, 0.4, -0.02), 0.16, 44, -0.2, 0.028, goldDark, false);
-    const lineM = goldDark;
-    const lid = (x) => { const g = add(head, new THREE.SphereGeometry(0.058, 16, 10), gold, x, 0.04, 0.29, false); g.scale.set(1.25, 0.55, 0.45);
+    const skull = add(head, new THREE.SphereGeometry(0.33, 48, 36), skin, 0, 0, 0); skull.scale.set(0.99, 1.1, 0.98);
+    for (const sx of [-1, 1]) { const c = add(head, new THREE.SphereGeometry(0.11, 16, 12), skin, sx * 0.12, -0.1, 0.17, false); c.scale.set(0.9, 0.9, 0.6); }
+    for (const sx of [-1, 1]) { const e = add(head, new THREE.CapsuleGeometry(0.06, 0.34, 6, 12), skin, sx * 0.32, -0.15, 0.0); e.rotation.z = sx * 0.08; e.scale.z = 0.5; }
+    curls(head, V3(0, 0.02, 0), 0.34, 190, 0.1, 0.034, hairM, true);
+    const ush = add(head, new THREE.SphereGeometry(0.16, 24, 16), hairM, 0, 0.4, -0.02); ush.scale.y = 0.9;
+    curls(head, V3(0, 0.4, -0.02), 0.16, 48, -0.2, 0.028, hairM, false);
+    add(head, new THREE.SphereGeometry(0.05, 12, 10), new THREE.MeshStandardMaterial({ color: '#D9A441', metalness: 0.7, roughness: 0.3, emissive: '#5A3A10', emissiveIntensity: 0.3 }), 0, 0.31, 0.2, false);
+    const lid = (x) => { const g = add(head, new THREE.SphereGeometry(0.058, 16, 10), skin, x, 0.04, 0.29, false); g.scale.set(1.25, 0.55, 0.45);
       const t = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.006, 6, 20, 0.95), lineM); t.position.set(x, 0.135, 0.312); t.rotation.z = -Math.PI / 2 - 0.475; head.add(t); };
     lid(-0.105); lid(0.105);
-    for (const s of [-1, 1]) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.007, 6, 24, 1.15), lineM); t.position.set(s * 0.1, -0.04, 0.3); t.rotation.z = Math.PI / 2 - 0.575 + s * 0.22; head.add(t); }
-    const bridge = add(head, new THREE.BoxGeometry(0.04, 0.16, 0.04), gold, 0, -0.01, 0.325, false); bridge.rotation.x = -0.2;
-    const nose = add(head, new THREE.SphereGeometry(0.045, 14, 10), gold, 0, -0.1, 0.345, false); nose.scale.set(1.05, 0.9, 0.85);
-    const up = add(head, new THREE.SphereGeometry(0.05, 14, 10), gold, 0, -0.2, 0.312, false); up.scale.set(1.45, 0.4, 0.55);
-    const lo = add(head, new THREE.SphereGeometry(0.045, 14, 10), gold, 0, -0.24, 0.305, false); lo.scale.set(1.3, 0.5, 0.55);
-    const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.005, 6, 16, 0.9), lineM); mouth.position.set(0, -0.15, 0.322); mouth.rotation.z = -Math.PI / 2 - 0.45; head.add(mouth);
-    add(head, new THREE.SphereGeometry(0.016, 10, 8), goldDark, 0, 0.165, 0.315, false);
-    // hào quang + vầng lửa
+    for (const sx of [-1, 1]) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.007, 6, 24, 1.15), lineM); t.position.set(sx * 0.1, -0.04, 0.3); t.rotation.z = Math.PI / 2 - 0.575 + sx * 0.22; head.add(t); }
+    const bridge = add(head, new THREE.BoxGeometry(0.04, 0.16, 0.04), skin, 0, -0.01, 0.325, false); bridge.rotation.x = -0.2;
+    const nose = add(head, new THREE.SphereGeometry(0.045, 14, 10), skin, 0, -0.1, 0.345, false); nose.scale.set(1.05, 0.9, 0.85);
+    const up = add(head, new THREE.SphereGeometry(0.05, 14, 10), lipM, 0, -0.2, 0.312, false); up.scale.set(1.45, 0.38, 0.55);
+    const lo = add(head, new THREE.SphereGeometry(0.045, 14, 10), lipM, 0, -0.235, 0.305, false); lo.scale.set(1.3, 0.48, 0.55);
+    add(head, new THREE.SphereGeometry(0.016, 10, 8), lineM, 0, 0.165, 0.315, false);
+    // vầng hào quang tròn sau lưng: đĩa vàng có vòng hoa văn
     const haloMat = new THREE.MeshBasicMaterial({ map: glowTex, color: '#FFD9A0', transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.4), haloMat); halo.position.set(0, 2.36, -0.46); B.add(halo);
-    const ring = add(B, new THREE.TorusGeometry(0.62, 0.035, 10, 64), gold, 0, 2.36, -0.42); ring.castShadow = false;
-    const ring2 = add(B, new THREE.TorusGeometry(0.52, 0.015, 8, 64), goldDark, 0, 2.36, -0.42, false);
-    const sh = new THREE.Shape(); sh.moveTo(0, 3.6); sh.bezierCurveTo(0.5, 3.0, 1.35, 2.4, 1.25, 1.3); sh.bezierCurveTo(1.2, 0.6, 0.8, 0.3, 0, 0.3); sh.bezierCurveTo(-0.8, 0.3, -1.2, 0.6, -1.25, 1.3); sh.bezierCurveTo(-1.35, 2.4, -0.5, 3.0, 0, 3.6);
-    const mand = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: true, bevelSize: 0.03, bevelThickness: 0.02, bevelSegments: 2, curveSegments: 32 }), goldDark);
-    mand.position.set(0, 0.2, -0.62); mand.receiveShadow = true; B.add(mand);
-    const inner = new THREE.Mesh(new THREE.ShapeGeometry(sh, 32), new THREE.MeshBasicMaterial({ color: '#3A1712', fog: false })); inner.scale.set(0.9, 0.92, 1); inner.position.set(0, 0.32, -0.5); B.add(inner);
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 3.4), haloMat); glow.position.set(0, 2.1, -0.58); B.add(glow);
+    const dc = document.createElement('canvas'); dc.width = dc.height = 512; const dg = dc.getContext('2d');
+    const rg = dg.createRadialGradient(256, 256, 20, 256, 256, 256); rg.addColorStop(0, '#FFF0B8'); rg.addColorStop(0.55, '#F2C24E'); rg.addColorStop(0.9, '#D99A26'); rg.addColorStop(1, '#B07818'); dg.fillStyle = rg; dg.fillRect(0, 0, 512, 512);
+    dg.strokeStyle = 'rgba(150,95,20,0.55)'; for (const r of [250, 236, 160, 150]) { dg.lineWidth = r > 200 ? 6 : 3; dg.beginPath(); dg.arc(256, 256, r, 0, Math.PI * 2); dg.stroke(); }
+    for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2; dg.save(); dg.translate(256 + Math.cos(a) * 196, 256 + Math.sin(a) * 196); dg.rotate(a); dg.fillStyle = 'rgba(160,100,20,0.45)'; dg.beginPath(); dg.ellipse(0, 0, 26, 10, 0, 0, Math.PI * 2); dg.fill(); dg.restore(); }
+    for (let i = 0; i < 48; i++) { const a = i / 48 * Math.PI * 2; dg.strokeStyle = 'rgba(255,240,190,0.35)'; dg.lineWidth = 2; dg.beginPath(); dg.moveTo(256 + Math.cos(a) * 40, 256 + Math.sin(a) * 40); dg.lineTo(256 + Math.cos(a) * 140, 256 + Math.sin(a) * 140); dg.stroke(); }
+    const dtex = new THREE.CanvasTexture(dc); dtex.colorSpace = THREE.SRGBColorSpace;
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(1.15, 64), new THREE.MeshStandardMaterial({ map: dtex, metalness: 0.5, roughness: 0.4, envMap: gold.envMap, envMapIntensity: 0.7 })); disc.position.set(0, 2.15, -0.52); B.add(disc);
+    const rim = add(B, new THREE.TorusGeometry(1.15, 0.045, 10, 72), gold, 0, 2.15, -0.5, false);
     B.userData.halo = haloMat;
     return B;
   }
