@@ -1,0 +1,104 @@
+[
+ {
+  "productId": "com.beemob.quietpagoda.incense",
+  "locales": {
+   "zh-Hans": {
+    "name": "沉香",
+    "desc": "在寺中燃一炷沉香，供奉 24 小时"
+   },
+   "ko": {
+    "name": "침향",
+    "desc": "절 안에 침향을 피워 24시간 공양"
+   },
+   "ja": {
+    "name": "沈香",
+    "desc": "お寺で沈香を焚き24時間お供え"
+   }
+  }
+ },
+ {
+  "productId": "com.beemob.quietpagoda.lantern",
+  "locales": {
+   "zh-Hans": {
+    "name": "莲花灯",
+    "desc": "在莲花池放一盏莲花灯，24 小时"
+   },
+   "ko": {
+    "name": "연등",
+    "desc": "연못에 연등을 띄워 24시간"
+   },
+   "ja": {
+    "name": "灯籠",
+    "desc": "蓮池に灯籠を浮かべて24時間"
+   }
+  }
+ },
+ {
+  "productId": "com.beemob.quietpagoda.fruit",
+  "locales": {
+   "zh-Hans": {
+    "name": "五果盘",
+    "desc": "佛前供奉五果盘，24 小时"
+   },
+   "ko": {
+    "name": "과일 공양",
+    "desc": "부처님 앞에 과일을 올려 24시간"
+   },
+   "ja": {
+    "name": "果物のお供え",
+    "desc": "仏前に果物を供えて24時間"
+   }
+  }
+ },
+ {
+  "productId": "com.beemob.quietpagoda.robes",
+  "locales": {
+   "zh-Hans": {
+    "name": "海青三色",
+    "desc": "永久解锁褐、黄、白三色海青"
+   },
+   "ko": {
+    "name": "법복 3색",
+    "desc": "갈색, 황색, 흰색 법복 영구 소장"
+   },
+   "ja": {
+    "name": "法衣3色",
+    "desc": "茶・黄・白の法衣をずっと使える"
+   }
+  }
+ },
+ {
+  "productId": "com.beemob.quietpagoda.beads",
+  "locales": {
+   "zh-Hans": {
+    "name": "檀香念珠",
+    "desc": "永久使用檀香念珠，声音更温润"
+   },
+   "ko": {
+    "name": "백단 염주",
+    "desc": "따뜻한 소리의 백단 염주 영구 소장"
+   },
+   "ja": {
+    "name": "白檀の数珠",
+    "desc": "あたたかな音の白檀の数珠をずっと"
+   }
+  }
+ },
+ {
+  "productId": "com.beemob.quietpagoda.tet",
+  "locales": {
+   "zh-Hans": {
+    "name": "新春布置",
+    "desc": "永久解锁桃花、梅花与红灯笼"
+   },
+   "ko": {
+    "name": "설날 장식",
+    "desc": "복숭아꽃, 매화, 붉은 등 영구 소장"
+   },
+   "ja": {
+    "name": "旧正月の飾り",
+    "desc": "桃の花・梅・赤い提灯をずっと"
+   }
+  }
+ }
+]

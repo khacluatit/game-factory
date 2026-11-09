@@ -14,6 +14,7 @@ case "$LANE" in
   all)      fastlane beta && fastlane metadata && (fastlane testers || echo "⚠️ testers lỗi") ;;
   submit)   fastlane submit ;;
   resubmit) fastlane resubmit ;;
+  iaploc)   fastlane iaploc ;;
   store)    fastlane store ;;
   testers)  fastlane testers ;;
   *) echo "lane không hợp lệ: $LANE"; exit 1 ;;

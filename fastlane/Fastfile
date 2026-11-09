@@ -426,4 +426,27 @@ platform :ios do
     end
     UI.success("🚀 #{@game} đã Resubmit to App Review")
   end
+
+  desc "Thêm tên/mô tả IAP cho các ngôn ngữ mới từ Games/<game>/iap_locales.json (bỏ qua ngôn ngữ đã có)"
+  lane :iaploc do
+    api = Spaceship::ConnectAPI
+    app = api::App.find(@bid) or UI.user_error!("Không thấy app #{@bid}")
+    rc = api.client.tunes_request_client
+    existing = rc.get("v1/apps/#{app.id}/inAppPurchasesV2", { limit: 50 }).body["data"] || []
+    JSON.parse(File.read("#{@dir}/iap_locales.json")).each do |p|
+      iap = existing.find { |i| i["attributes"]["productId"] == p["productId"] } or (UI.important("Không thấy #{p['productId']}"); next)
+      locs = (rc.get("v2/inAppPurchases/#{iap['id']}/inAppPurchaseLocalizations").body["data"] || []).map { |l| l["attributes"]["locale"] }
+      p["locales"].each do |locale, t|
+        next if locs.include?(locale)
+        begin
+          rc.post("v1/inAppPurchaseLocalizations", { data: { type: "inAppPurchaseLocalizations",
+            attributes: { locale: locale, name: t["name"], description: t["desc"] },
+            relationships: { inAppPurchaseV2: { data: { type: "inAppPurchases", id: iap["id"] } } } } })
+          UI.success("#{p['productId']} #{locale}")
+        rescue StandardError => e
+          UI.important("#{p['productId']} #{locale}: #{e.message[0, 300]}")
+        end
+      end
+    end
+  end
 end
