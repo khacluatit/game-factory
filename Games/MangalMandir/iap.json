@@ -1,12 +1,52 @@
 [
- {"productId": "com.beemob.mangalmandir.deepmala", "ref": "Deepmala Lights", "type": "NON_CONSUMABLE", "price": 2.99,
-  "en": {"name": "Deepmala Lights", "desc": "Hundreds of diyas light up the temple at night"}, "vi": {"name": "Deepmala Lights", "desc": "Hundreds of diyas light up the temple at night"}},
- {"productId": "com.beemob.mangalmandir.flowers", "ref": "Marigold Decor", "type": "NON_CONSUMABLE", "price": 0.99,
-  "en": {"name": "Marigold Decor", "desc": "Marigold garlands and torans across the temple"}, "vi": {"name": "Marigold Decor", "desc": "Marigold garlands and torans across the temple"}},
- {"productId": "com.beemob.mangalmandir.sphatik", "ref": "Sphatik Mala", "type": "NON_CONSUMABLE", "price": 0.99,
-  "en": {"name": "Sphatik Mala", "desc": "A clear crystal mala for japa"}, "vi": {"name": "Sphatik Mala", "desc": "A clear crystal mala for japa"}},
- {"productId": "com.beemob.mangalmandir.chandan", "ref": "Red Sandalwood Mala", "type": "NON_CONSUMABLE", "price": 0.99,
-  "en": {"name": "Red Sandalwood Mala", "desc": "A red sandalwood mala for japa"}, "vi": {"name": "Red Sandalwood Mala", "desc": "A red sandalwood mala for japa"}},
- {"productId": "com.beemob.mangalmandir.goldmala", "ref": "Gold Rudraksha Mala", "type": "NON_CONSUMABLE", "price": 0.99,
-  "en": {"name": "Gold Rudraksha Mala", "desc": "A rudraksha mala with gold caps"}, "vi": {"name": "Gold Rudraksha Mala", "desc": "A rudraksha mala with gold caps"}}
+ {
+  "productId": "com.beemob.mangalmandir.deepmala",
+  "ref": "Deepmala Lights",
+  "type": "NON_CONSUMABLE",
+  "price": 2.99,
+  "en": {
+   "name": "Deepmala Lights",
+   "desc": "Hundreds of diyas light up the temple at night"
+  }
+ },
+ {
+  "productId": "com.beemob.mangalmandir.flowers",
+  "ref": "Marigold Decor",
+  "type": "NON_CONSUMABLE",
+  "price": 0.99,
+  "en": {
+   "name": "Marigold Decor",
+   "desc": "Marigold garlands and torans across the temple"
+  }
+ },
+ {
+  "productId": "com.beemob.mangalmandir.sphatik",
+  "ref": "Sphatik Mala",
+  "type": "NON_CONSUMABLE",
+  "price": 0.99,
+  "en": {
+   "name": "Sphatik Mala",
+   "desc": "A clear crystal mala for japa"
+  }
+ },
+ {
+  "productId": "com.beemob.mangalmandir.chandan",
+  "ref": "Red Sandalwood Mala",
+  "type": "NON_CONSUMABLE",
+  "price": 0.99,
+  "en": {
+   "name": "Red Sandalwood Mala",
+   "desc": "A red sandalwood mala for japa"
+  }
+ },
+ {
+  "productId": "com.beemob.mangalmandir.goldmala",
+  "ref": "Gold Rudraksha Mala",
+  "type": "NON_CONSUMABLE",
+  "price": 0.99,
+  "en": {
+   "name": "Gold Rudraksha Mala",
+   "desc": "A rudraksha mala with gold caps"
+  }
+ }
 ]

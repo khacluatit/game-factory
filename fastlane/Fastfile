@@ -388,7 +388,7 @@ platform :ios do
       end
       id = iap["id"]
       locs = rc.get("v2/inAppPurchases/#{id}/inAppPurchaseLocalizations").body["data"] || []
-      { "en-US" => p["en"], "vi" => p["vi"] }.each do |locale, t|
+      { "en-US" => p["en"], "vi" => p["vi"] }.compact.each do |locale, t|
         next if locs.any? { |l| l["attributes"]["locale"] == locale }
         step.call("IAP #{pid}: tên/mô tả #{locale}") do
           rc.post("v1/inAppPurchaseLocalizations", { data: { type: "inAppPurchaseLocalizations",
