@@ -9,7 +9,7 @@
   const post = m => { if (native) { try { window.webkit.messageHandlers.qp.postMessage(m); } catch (e) { /* ignore */ } } };
   const TZ = (LANG === 'zh' || LANG === 'zhs') ? 8 : (LANG === 'ko' || LANG === 'ja') ? 9 : 7;
   const H24 = 24 * 3600 * 1000;
-  const OUT = ['pond', 'gate', 'yard', 'bell'];
+  const OUT = ['pond', 'gate', 'yard', 'bell', 'qa'];
   const LANGS = [['auto', ''], ['vi', 'Tiếng Việt'], ['en', 'English'], ['zh', '繁體中文'], ['zhs', '简体中文'], ['ko', '한국어'], ['ja', '日本語']];
 
   // ---------------- products ----------------
@@ -319,7 +319,6 @@
 
   // ---------------- cảnh quan ngoài: cổng tam quan, sân, gác chuông (1.2) ----------------
   const TP = window.Temple.build(scene, { lacquer, darkWood, porcelain, gold, glowTex, flameTex, env: envTex }, { label: T.plaque });
-  const bellSwing2 = { v: 0 };
 
   // ---------------- cushions & avatars ----------------
   const cushions = [], cushMat = std('#8A2B1F', { roughness: 0.9 });
@@ -357,6 +356,212 @@
   player.position.copy(HALL_SPOT); player.userData.setPose('stand');
   function applyRobe() { player.userData.body.material.color.set(S.robe); }
   let mode = 'hall', walk = null, playerCushion = null;
+
+  // ---------------- thỉnh đại hồng chung: chày lấy đà → chạm → chuông lắc, sóng âm lan, bụi rơi, chim vỡ tổ ----------------
+  const BELL_LEAD = 0.65;
+  const bellFx = { anim: null, th: 0, sway: 0, swayT: 99, shake: 0, flash: 0, birdCD: 0 };
+  const bellBronze = TP.bell.children[0].material; bellBronze.emissive = new THREE.Color('#9A6420'); bellBronze.emissiveIntensity = 0;
+  const BELL_C = new THREE.Vector3(TP.bellTower.position.x, 3.6, TP.bellTower.position.z);
+  const waves = [];
+  for (let i = 0; i < 6; i++) {
+    const flat = i >= 4;
+    const m = new THREE.Mesh(new THREE.RingGeometry(flat ? 0.96 : 0.9, 1, 96), new THREE.MeshBasicMaterial({ color: flat ? '#F2DCA8' : '#FFE6AE', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+    m.visible = false; if (flat) { m.rotation.x = -Math.PI / 2; m.position.set(BELL_C.x, 0.56, BELL_C.z); } else m.position.copy(BELL_C);
+    scene.add(m); waves.push({ m, t: 99, flat });
+  }
+  const DUST = 48, dustPos = new Float32Array(DUST * 3), dustVel = new Float32Array(DUST * 3);
+  const dustGeo = new THREE.BufferGeometry(); dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+  const dustMat = new THREE.PointsMaterial({ color: '#D9C9A6', size: 0.045, transparent: true, opacity: 0, depthWrite: false });
+  const dust = new THREE.Points(dustGeo, dustMat); dust.frustumCulled = false; scene.add(dust); let dustT = 99;
+  const birdMat = new THREE.MeshStandardMaterial({ color: '#2E2722', roughness: 0.9, side: THREE.DoubleSide });
+  const birds = [];
+  for (let i = 0; i < 7; i++) {
+    const b = new THREE.Group(); b.visible = false; scene.add(b);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), birdMat); body.scale.set(0.8, 0.7, 1.9); b.add(body);
+    const wings = [-1, 1].map(s => { const w = new THREE.Group(); b.add(w); const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.11), birdMat); pl.rotation.x = -Math.PI / 2; pl.position.x = s * 0.13; w.add(pl); return w; });
+    birds.push({ g: b, wings, vel: new THREE.Vector3(), life: 0, seed: Math.random() * 6 });
+  }
+  const birdNests = [[-9.2, 6.5, 27.5], [-12, 5.2, 35], [-12.6, 6, 31], [-11.5, 5, 13], [9.4, 6.2, 29.5]];
+  function strikeBell(o) {
+    o = o || {};
+    if (bellFx.anim && !bellFx.anim.hit) return false;
+    bellFx.anim = { t: 0, from: bellFx.th, silent: !!o.silent, amp: o.amp || 0.8, user: !!o.user }; return true;
+  }
+  function bellImpact(A) {
+    if (!A.silent) Audio.bigBell(A.amp);
+    if (A.user) haptic('medium');
+    bellFx.sway = 0.045 * A.amp / 0.8; bellFx.swayT = 0; bellFx.flash = 1;
+    if (mode === 'bell' || mode === 'yard') bellFx.shake = mode === 'bell' ? 1 : 0.5;
+    waves.forEach((w, i) => { w.t = w.flat ? -(i - 4) * 0.5 : -i * 0.32; });
+    dustT = 0; const tp = TP.bellTower.position;
+    for (let i = 0; i < DUST; i++) { dustPos[i * 3] = tp.x + (Math.random() * 2 - 1) * 1.6; dustPos[i * 3 + 1] = 4.6 + Math.random() * 0.1; dustPos[i * 3 + 2] = tp.z + (Math.random() * 2 - 1) * 1.6; dustVel[i * 3] = (Math.random() - 0.5) * 0.15; dustVel[i * 3 + 1] = -Math.random() * 0.2; dustVel[i * 3 + 2] = (Math.random() - 0.5) * 0.15; }
+    dustGeo.attributes.position.needsUpdate = true;
+    if (bellFx.birdCD <= 0 && phase() !== 'night') {
+      bellFx.birdCD = 25;
+      birds.forEach((b, i) => {
+        const n = birdNests[i % birdNests.length]; b.g.position.set(n[0] + (Math.random() - 0.5) * 1.2, n[1] + Math.random() * 0.4, n[2] + (Math.random() - 0.5) * 1.2);
+        b.vel.set(-0.4 - Math.random() * 0.6 + (n[0] > 0 ? 0.9 : 0), 0.55 + Math.random() * 0.35, (Math.random() - 0.5) * 1.2).normalize().multiplyScalar(3.2 + Math.random() * 2);
+        b.life = -(Math.random() * 0.5); b.g.visible = false;
+      });
+    }
+  }
+  function tickBell(dt, t) {
+    const A = bellFx.anim;
+    if (A) {
+      A.t += dt; const P = 0.45, S2 = BELL_LEAD;
+      if (A.t < P) { const e = 1 - Math.pow(1 - A.t / P, 2); bellFx.th = A.from + (0.55 - A.from) * e; }
+      else if (A.t < S2) { const e = Math.pow((A.t - P) / (S2 - P), 2); bellFx.th = 0.55 - 0.59 * e; }
+      else { if (!A.hit) { A.hit = true; bellImpact(A); } const u = A.t - S2; bellFx.th = Math.max(-0.03, 0.2 * Math.exp(-1.5 * u) * Math.sin(3.1 * u)); if (u > 4) { bellFx.anim = null; bellFx.th = 0; } }
+    }
+    TP.bellLog.rotation.z = bellFx.th;
+    bellFx.swayT += dt;
+    if (bellFx.swayT < 14) { const d = Math.exp(-bellFx.swayT * 0.35); TP.bell.rotation.z = -bellFx.sway * Math.sin(bellFx.swayT * 2.6) * d; TP.bell.rotation.x = bellFx.sway * 0.25 * Math.sin(bellFx.swayT * 2.1 + 0.6) * d; }
+    bellFx.flash = Math.max(0, bellFx.flash - dt * 0.9); bellBronze.emissiveIntensity = bellFx.flash * 0.55;
+    bellFx.shake = Math.max(0, bellFx.shake - dt * 2.2); bellFx.birdCD -= dt;
+    for (const w of waves) {
+      if (w.t > 6) { w.m.visible = false; continue; }
+      w.t += dt; if (w.t < 0) { w.m.visible = false; continue; }
+      const dur = w.flat ? 3.4 : 2.6, p = w.t / dur; if (p >= 1) { w.m.visible = false; w.t = 99; continue; }
+      w.m.visible = true; const sc = w.flat ? 1.5 + p * 16 : 0.9 + p * 9; w.m.scale.set(sc, sc, sc);
+      w.m.material.opacity = (w.flat ? 0.22 : 0.34) * Math.pow(1 - p, 1.6) * (curPhase === 'day' ? 0.8 : 1.2);
+      if (!w.flat) w.m.quaternion.copy(camera.quaternion);
+    }
+    if (dustT < 3) {
+      dustT += dt; for (let i = 0; i < DUST; i++) { dustVel[i * 3 + 1] -= dt * 0.9; dustPos[i * 3] += dustVel[i * 3] * dt + Math.sin(t * 2 + i) * 0.002; dustPos[i * 3 + 1] += dustVel[i * 3 + 1] * dt; dustPos[i * 3 + 2] += dustVel[i * 3 + 2] * dt; }
+      dustGeo.attributes.position.needsUpdate = true; dustMat.opacity = 0.7 * Math.min(1, dustT * 6) * Math.max(0, 1 - dustT / 3);
+    } else dustMat.opacity = 0;
+    for (const b of birds) {
+      if (b.life > 7 || (b.life === 0 && !b.g.visible)) continue;
+      b.life += dt; if (b.life < 0) continue; if (b.life > 7) { b.g.visible = false; continue; }
+      b.g.visible = true; b.vel.y -= dt * 0.15; b.vel.x += Math.sin(t * 0.8 + b.seed) * dt * 0.6;
+      b.g.position.addScaledVector(b.vel, dt); b.g.lookAt(tmp2.copy(b.g.position).add(b.vel));
+      const fl = Math.sin(t * 19 + b.seed * 3) * 0.85; b.wings[0].rotation.z = -fl; b.wings[1].rotation.z = fl;
+    }
+  }
+
+  // ---------------- sân chùa có người: khách vãn cảnh, người lạy Quan Âm ----------------
+  const yardLife = [];
+  const rP = (th, r) => [Math.sin(th) * (r || 5.95), 18 + Math.cos(th) * (r || 5.95)];
+  const QA_R = TP.quanAm.rotation.y, QA_P = TP.quanAm.position;
+  const qaLocal = (lx, lz) => [QA_P.x + lx * Math.cos(QA_R) + lz * Math.sin(QA_R), QA_P.z - lx * Math.sin(QA_R) + lz * Math.cos(QA_R)];
+  const ROUTES = {
+    // gia đình: vào cổng → vòng hồ theo chiều kim đồng hồ → vái Quan Âm → ngắm chính điện → ra cổng
+    family: [[0.7, 36.8], [0.7, 27.2], [1.9, 25.3], rP(0.4), rP(0.8), rP(1.15), [...rP(1.42, 6.05), 5, ...qaLocal(0, 0), 'bow'], rP(1.85), rP(2.3), rP(2.7), [...rP(3.0, 6.1), 4, 0, 4], rP(3.5), rP(4.0), [...rP(4.6), 4, 0, 18], rP(5.1), rP(5.6), rP(6.0), [-1.9, 25.3], [-0.7, 27.2], [-0.7, 36.8, 3, 0, 46]],
+    // người ghé gác chuông và cây bồ đề
+    bell: [[-0.7, 37.2], [-0.7, 27.4], [-1.9, 25.2], [-6.0, 25.2], [-6.6, 27.7, 5, -9.2, 27.5], [-6.0, 25.0], rP(5.5), rP(5.95), rP(0.25), rP(0.65), [6.0, 25.0], [7.0, 27.4, 5, 9.4, 29.5, 'bow'], [6.0, 25.2], [1.9, 25.4], [0.7, 27.2], [0.7, 37.2, 2, 0, 46]],
+    // cụ già đi chậm quanh hồ, dừng ngắm sen
+    elder: [rP(3.6), rP(3.1), [...rP(2.6), 6, 0, 18], rP(2.1), rP(1.65), rP(0.9), rP(0.4), [...rP(6.0), 5, 0, 18], rP(5.4), rP(4.9), rP(4.3)],
+    // sư thầy kinh hành chậm rãi
+    monk: [rP(1.0, 6.4), rP(1.6, 6.4), rP(2.2, 6.4), rP(2.8, 6.4), [...rP(3.14, 6.4), 3, 0, 4, 'bow'], rP(3.6, 6.4), rP(4.2, 6.4), rP(4.8, 6.4), rP(5.4, 6.4), rP(6.0, 6.4), rP(0.4, 6.4)]
+  };
+  const turnTo = (av, ang, k, dt) => { let d = ang - av.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); av.rotation.y += d * Math.min(1, k * dt); };
+  function addWalker(route, kind, robe, start, speed) {
+    const av = makeAvatar(robe, kind); av.userData.setPose('stand');
+    const r = ROUTES[route].map(w => ({ x: w[0], z: w[1], pause: w[2] || 0, lx: w[3], lz: w[4], act: w[5] }));
+    const p = r[start % r.length]; av.position.set(p.x, 0, p.z);
+    Object.assign(av.userData, { yard: true, route: r, i: (start + 1) % r.length, sp: speed, wait: 0 });
+    yardLife.push(av); return av;
+  }
+  function addFollower(leader, kind, robe, side) {
+    const av = makeAvatar(robe, kind); av.userData.setPose('stand');
+    av.position.copy(leader.position).add(new THREE.Vector3(side * 0.7, 0, 0.6));
+    Object.assign(av.userData, { yard: true, follow: leader, side }); yardLife.push(av); return av;
+  }
+  const mom = addWalker('family', 'adult', '#8C6A5A', 5, 0.85);
+  addFollower(mom, 'child', '#C95A4A', 1);
+  addFollower(mom, 'adult', '#5E6E7E', -1);
+  addWalker('bell', 'adult', '#6F7F8F', 3, 0.95);
+  addWalker('elder', 'elder', '#D9D3C6', 1, 0.45);
+  addWalker('monk', 'monk', null, 2, 0.5);
+  // trước tượng Quan Âm lộ thiên: một người quỳ lạy, một người đứng chắp tay vái
+  const kneeler = makeAvatar('#9A7A5A', 'elder'); { const [x, z] = qaLocal(-0.42, 2.45); kneeler.position.set(x, 0.05, z); kneeler.rotation.y = QA_R; kneeler.userData.setPose('sit'); Object.assign(kneeler.userData, { yard: true, pray: 'kneel', next: 1.5 }); yardLife.push(kneeler); }
+  const stander = makeAvatar('#B9A27C', 'adult'); { const [x, z] = qaLocal(0.6, 2.7); stander.position.set(x, 0, z); stander.rotation.y = QA_R; stander.userData.setPose('stand'); stander.userData.setArms('gassho'); Object.assign(stander.userData, { yard: true, pray: 'stand', next: 3.5 }); yardLife.push(stander); }
+  // hương trên lư trước Quan Âm
+  const qaSmoke = [];
+  { const [ux, uz] = qaLocal(0, 1.6); const tipM = new THREE.MeshBasicMaterial({ color: '#FF7A3A' });
+    for (const dx of [-0.07, 0, 0.07]) { const st = mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.42, 4), std('#B8462E'), ux + dx, 1.42, uz, false); st.rotation.z = dx * 1.5; mesh(new THREE.SphereGeometry(0.014, 6, 4), tipM, ux + dx * 1.4, 1.63, uz, false); }
+    const sm = new THREE.SpriteMaterial({ map: smokeTex, color: '#E8E2D8', transparent: true, opacity: 0.25, depthWrite: false });
+    for (let i = 0; i < 7; i++) { const s = new THREE.Sprite(sm.clone()); scene.add(s); qaSmoke.push({ s, a: i / 7 * 3.5, x: ux, z: uz }); } }
+  function tickYard(dt, t) {
+    const show = OUT.includes(mode) || mode === 'tour' || !!SHOT && OUT.includes(SHOT);
+    for (const av of yardLife) av.visible = show;
+    for (const q of qaSmoke) q.s.visible = show;
+    if (!show) return;
+    for (const q of qaSmoke) { q.a += dt * 0.55; if (q.a > 3.5) q.a = 0; const a = q.a; q.s.position.set(q.x + Math.sin(a * 1.6 + t * 0.3) * 0.1 * a, 1.68 + a * 0.6, q.z + Math.cos(a * 1.2) * 0.07 * a); const sc = 0.12 + a * 0.18; q.s.scale.set(sc, sc, 1); q.s.material.opacity = 0.32 * Math.min(1, a * 3) * (1 - a / 3.5); }
+    for (const av of yardLife) {
+      const u = av.userData;
+      if (u.pray) {
+        u.next -= dt;
+        if (u.next <= 0 && u.bowT <= 0) { if (u.pray === 'kneel') { u.bowT = 2.2; u.small = false; u.next = 3.2 + Math.random() * 1.5; } else { u.bowT = 1.2; u.small = true; u.smallAmp = 0.55; u.next = 5 + Math.random() * 4; } }
+      } else if (u.follow) {
+        const L = u.follow; tmp.set(Math.cos(L.rotation.y) * u.side * 0.65 + Math.sin(L.rotation.y) * 0.55, 0, -Math.sin(L.rotation.y) * u.side * 0.65 + Math.cos(L.rotation.y) * 0.55).add(L.position).sub(av.position); tmp.y = 0;
+        const d = tmp.length();
+        if (d > 0.18) { tmp.normalize(); av.position.addScaledVector(tmp, Math.min(d, dt * Math.min(1.6, 0.6 + d))); turnTo(av, Math.atan2(-tmp.x, -tmp.z), 8, dt); u.walkCycle(t * (u.kind === 'child' ? 1.25 : 1)); av.position.y = Math.abs(Math.sin(t * 8)) * 0.025; }
+        else { turnTo(av, L.rotation.y, 3, dt); u.walkCycle(0); av.position.y = 0; }
+        if (L.userData.bowT > 0.9 && u.bowT <= 0 && L.userData.small) { u.bowT = 1.2; u.small = true; u.smallAmp = 0.45; u.setArms('gassho'); u.unbow = 1.3; }
+        if (u.unbow > 0) { u.unbow -= dt; if (u.unbow <= 0) u.setArms('hang'); }
+      } else if (u.wait > 0) {
+        u.wait -= dt; const w = u.route[(u.i + u.route.length - 1) % u.route.length];
+        if (w.lx !== undefined) turnTo(av, Math.atan2(-(w.lx - av.position.x), -(w.lz - av.position.z)), 3, dt);
+        if (w.act === 'bow' && !u.bowed && u.wait < w.pause - 1) { u.bowed = true; u.setArms('gassho'); u.bowT = 1.2; u.small = true; u.smallAmp = 0.55; }
+        if (u.wait <= 0) { u.setArms('hang'); u.bowed = false; }
+      } else {
+        const w = u.route[u.i]; tmp.set(w.x - av.position.x, 0, w.z - av.position.z); const d = tmp.length();
+        if (d < 0.06) { u.i = (u.i + 1) % u.route.length; if (w.pause) { u.wait = w.pause; u.walkCycle(0); av.position.y = 0; } }
+        else { tmp.normalize(); av.position.addScaledVector(tmp, Math.min(d, dt * u.sp)); turnTo(av, Math.atan2(-tmp.x, -tmp.z), 5, dt); u.walkCycle(t * (0.55 + u.sp * 0.5)); av.position.y = Math.abs(Math.sin(t * 8 * (0.55 + u.sp * 0.5))) * 0.025; }
+      }
+      tickAvatar(av, dt);
+    }
+  }
+
+  // ---------------- cá chép vàng bơi trong hồ sen ----------------
+  const koiTex = (base, spots, seed) => canvasTex(128, 64, (c, w, h) => {
+    const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, base[0]); gr.addColorStop(0.5, base[1]); gr.addColorStop(1, base[1]); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+    let r = seed; const rnd2 = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; };
+    for (let i = 0; i < (spots ? 7 : 0); i++) { c.fillStyle = spots; c.beginPath(); c.ellipse(rnd2() * w, rnd2() * h * 0.5, 8 + rnd2() * 18, 5 + rnd2() * 10, rnd2() * 3, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = 'rgba(255,255,255,0.18)'; for (let i = 0; i < 60; i++) c.fillRect(rnd2() * w, rnd2() * h * 0.5, 2, 1);
+  });
+  const KOI_LOOK = [
+    [['#F6C64A', '#E39A22'], null, 0.55], [['#F2B83A', '#D98A1C'], '#F6E6B0', 0.5], [['#FFD566', '#E8A830'], null, 0.6], [['#F0B030', '#C9781A'], '#FFF2CC', 0.5],
+    [['#FFF4E6', '#F2E8DA'], '#D8381E', 0.1], [['#F07A2A', '#D8561E'], '#FFF0E0', 0.15], [['#F4D27A', '#E2B048'], null, 0.65], [['#E8682A', '#C8481A'], null, 0.2]
+  ];
+  const kois = [];
+  KOI_LOOK.forEach(([base, spots, metal], i) => {
+    const g = new THREE.Group(); scene.add(g);
+    const m = new THREE.MeshStandardMaterial({ map: koiTex(base, spots, 17 + i * 31), roughness: 0.35, metalness: metal, envMap: envTex, envMapIntensity: 0.8, transparent: true, opacity: 0.88 });
+    const finM = new THREE.MeshStandardMaterial({ color: base[1], roughness: 0.4, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false });
+    const sc = 1.05 + (i % 3) * 0.14;
+    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 12), m); body.scale.set(0.075, 0.03, 0.22); g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), m); head.scale.set(0.062, 0.026, 0.07); head.position.z = 0.17; g.add(head);
+    const tail = new THREE.Group(); tail.position.z = -0.17; g.add(tail);
+    const tb = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), m); tb.scale.set(0.04, 0.02, 0.1); tb.position.z = -0.06; tail.add(tb);
+    const fin = new THREE.Shape(); fin.moveTo(0, 0); fin.quadraticCurveTo(0.12, -0.08, 0.1, -0.2); fin.quadraticCurveTo(0, -0.14, -0.1, -0.2); fin.quadraticCurveTo(-0.12, -0.08, 0, 0);
+    const fm = new THREE.Mesh(new THREE.ShapeGeometry(fin), finM); fm.rotation.x = -Math.PI / 2; fm.position.z = -0.12; tail.add(fm);
+    const pecs = [-1, 1].map(s => { const p = new THREE.Mesh(new THREE.CircleGeometry(0.045, 10, 0, Math.PI), finM); p.rotation.x = -Math.PI / 2; p.rotation.z = s * 0.9; p.position.set(s * 0.06, -0.005, 0.1); g.add(p); return p; });
+    g.scale.setScalar(sc); g.renderOrder = -1;
+    g.traverse(o => { o.castShadow = false; o.receiveShadow = false; });
+    kois.push({ g, tail, pecs, a: 1.6 + (i * 0.37) % 1.4, b: 1.4 + (i * 0.53) % 1.6, w: 0.09 + (i % 4) * 0.025, p: i * 0.8, q: i * 1.9, k: i % 3 === 0 ? 2 : 1, dir: i % 2 ? 1 : -1, T: Math.random() * 50 });
+  });
+  const koiPos = (f, T, out) => out.set(Math.sin(f.w * T * f.dir + f.p) * f.a, 0.036, 18 + Math.sin(f.w * T * f.k * f.dir + f.q) * f.b);
+  const ripples = [];
+  for (let i = 0; i < 6; i++) { const r = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 40), new THREE.MeshBasicMaterial({ color: '#E8F0F2', transparent: true, opacity: 0, depthWrite: false })); r.rotation.x = -Math.PI / 2; r.visible = false; scene.add(r); ripples.push({ r, t: 9 }); }
+  function ripple(x, z) { const rp = ripples.find(r => r.t > 2.2); if (!rp) return; rp.t = 0; rp.r.position.set(x, 0.045, z); rp.r.visible = true; }
+  let rippleT = 2;
+  const kp = new THREE.Vector3(), kn = new THREE.Vector3();
+  function tickKoi(dt, t) {
+    const show = mode === 'pond' || mode === 'yard' || mode === 'bell' || mode === 'tour' || mode === 'gate' || SHOT === 'pond' || SHOT === 'yard';
+    for (const f of kois) f.g.visible = show;
+    if (!show) return;
+    for (const f of kois) {
+      const spd = 1 + 0.45 * Math.sin(t * 0.21 + f.p); f.T += dt * spd;
+      koiPos(f, f.T, kp); koiPos(f, f.T + 0.4, kn);
+      f.g.position.copy(kp); f.g.rotation.y = Math.atan2(kn.x - kp.x, kn.z - kp.z);
+      const wf = 5 + spd * 4; f.tail.rotation.y = Math.sin(t * wf + f.p) * 0.45; f.g.children[0].rotation.y = Math.sin(t * wf + f.p - 1) * 0.06;
+      f.pecs.forEach((p, s) => { p.rotation.y = Math.sin(t * 3 + s * Math.PI) * 0.3; });
+    }
+    rippleT -= dt; if (rippleT <= 0) { rippleT = 1.5 + Math.random() * 3; const f = kois[Math.floor(Math.random() * kois.length)]; tmp.set(0, 0, 0.2 * f.g.scale.x).applyQuaternion(f.g.quaternion).add(f.g.position); ripple(tmp.x, tmp.z); }
+    for (const rp of ripples) { if (rp.t > 2.2) { rp.r.visible = false; continue; } rp.t += dt; const p = rp.t / 2.2, s = 0.06 + p * 0.7; rp.r.scale.set(s, s, s); rp.r.material.opacity = 0.35 * (1 - p); }
+  }
 
   // ---------------- lighting & phases ----------------
   const ambient = new THREE.AmbientLight('#FFE2C0', 0.2); scene.add(ambient);
@@ -413,11 +618,11 @@
     const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     if (mode === 'gate' || mode === 'tour') { if (mode === 'tour' && tour) tour.t0 = Math.min(tour.t0, performance.now() - 7500 * 0.93); return; }
-    if (mode === 'yard' || mode === 'bell') {
+    if (mode === 'yard' || mode === 'bell' || mode === 'qa') {
       const hb = ray.intersectObject(TP.bellTower, true)[0], hq = ray.intersectObject(TP.quanAm, true)[0], ho = ray.intersectObject(TP.bodhi, true)[0];
       const hits = [hb, hq, ho].filter(Boolean).sort((a, b) => a.distance - b.distance); const h = hits[0]; if (!h) return;
-      if (h === hb) { if (mode === 'yard') goOut('bell'); else { Audio.unlock(); Audio.bigBell(); bellSwing2.v = 1; haptic('soft'); } }
-      else if (h === hq) showTag(TP.quanAm, T.qaOut); else showTag(TP.bodhi, T.bodhiTag);
+      if (h === hb) { if (mode === 'yard') goOut('bell'); else { Audio.unlock(); strikeBell({ user: true }); } }
+      else if (h === hq) { if (mode === 'yard') goOut('qa'); else showTag(TP.quanAm, T.qaOut); } else showTag(TP.bodhi, T.bodhiTag);
       return;
     }
     if (mode === 'pond') {
@@ -440,8 +645,8 @@
   function showTag(obj, text) { tagFor = obj; tagText = text; tagUntil = clock.elapsedTime + 3.5; $('tag').textContent = text; }
 
   // ---------------- UI ----------------
-  const hallUI = $('hallUI'), sitUI = $('sitUI'), pondUI = $('pondUI'), gateUI = $('gateUI'), yardUI = $('yardUI'), bellUI = $('bellUI');
-  function showUI(m) { hallUI.hidden = m !== 'hall'; sitUI.hidden = m !== 'sit'; pondUI.hidden = m !== 'pond'; gateUI.hidden = m !== 'gate'; yardUI.hidden = m !== 'yard'; bellUI.hidden = m !== 'bell'; }
+  const hallUI = $('hallUI'), sitUI = $('sitUI'), pondUI = $('pondUI'), gateUI = $('gateUI'), yardUI = $('yardUI'), bellUI = $('bellUI'), qaUI = $('qaUI');
+  function showUI(m) { hallUI.hidden = m !== 'hall'; sitUI.hidden = m !== 'sit'; pondUI.hidden = m !== 'pond'; gateUI.hidden = m !== 'gate'; yardUI.hidden = m !== 'yard'; bellUI.hidden = m !== 'bell'; qaUI.hidden = m !== 'qa'; }
   function renderTop() {
     const l = lunarToday(); $('lunar').firstChild.nodeValue = T.lunar(l.day, l.month);
     $('lunar2').textContent = l.day === 1 ? T.newMoon : T.toFull(daysToFull());
@@ -452,8 +657,8 @@
     $('npcNote').textContent = T.npcNote; $('hint').textContent = T.tapCushion;
     $('bLantern').textContent = T.items.lantern + ' · ' + price.lantern;
     $('bPond').textContent = T.toYard; $('bEnter').textContent = T.back; $('bGo').textContent = T.enterTemple; $('gateHint').textContent = T.gateHint;
-    $('yHall').textContent = T.toHall; $('yBell').textContent = T.bellTower; $('yPond').textContent = T.pondBtn; $('yGate').textContent = T.toGate;
-    $('bRoll').textContent = T.ringRoll; $('bBack').textContent = T.back; $('bellHint').textContent = T.bellHint; $('cVoice').setAttribute('aria-label', T.voice);
+    $('yHall').textContent = T.toHall; $('yBell').textContent = T.bellTower; $('yPond').textContent = T.pondBtn; $('yGate').textContent = T.toGate; $('yQa').textContent = T.qaBtn;
+    $('bRoll').textContent = T.ringRoll; $('bBack').textContent = T.back; $('bellHint').textContent = T.bellHint; $('qaHint').textContent = T.qaHint; $('qBack').textContent = T.back; $('cVoice').setAttribute('aria-label', T.voice);
     ['gassho', 'bow', 'beads', 'moktak', 'chant'].forEach(k => { $('r-' + k).querySelector('span').textContent = T[k]; });
     $('cStop').textContent = T.cStop; [...$('cSpeed').children].forEach((b, i) => { b.textContent = T.speeds[i]; });
     $('bJournal').setAttribute('aria-label', T.journal); $('bSettings').setAttribute('aria-label', T.settings);
@@ -500,7 +705,7 @@
   }
   function practiced() { rollDay(); markVisit(); }
   function complete108() {
-    S.lotus++; renderLotus(); renderStatic(); Audio.bell(2.2); setTimeout(() => Audio.bellRoll(), 2500); haptic('success');
+    S.lotus++; renderLotus(); renderStatic(); Audio.bell(2.2); setTimeout(() => Audio.bellRoll(() => strikeBell({ silent: true }), BELL_LEAD), 2500); haptic('success');
     toast(T.lotusBloom);
     if (!S.today.prompted) { S.today.prompted = true; setTimeout(() => toast(T.offerToast, [[T.items.lantern + ' · ' + price.lantern, () => buy('lantern', 0), 'gold'], [T.later, null]]), 2800); }
     save();
@@ -553,9 +758,9 @@
   }
   $('bPond').addEventListener('click', () => { Audio.unlock(); goOut('yard'); });
   $('bEnter').addEventListener('click', () => goOut('yard'));
-  $('yHall').addEventListener('click', goHall); $('yBell').addEventListener('click', () => goOut('bell')); $('yPond').addEventListener('click', goPond); $('yGate').addEventListener('click', () => goOut('gate'));
-  $('bBack').addEventListener('click', () => goOut('yard'));
-  $('bRoll').addEventListener('click', () => { Audio.unlock(); Audio.bellRoll(); bellSwing2.v = 1; haptic('soft'); });
+  $('yHall').addEventListener('click', goHall); $('yBell').addEventListener('click', () => goOut('bell')); $('yPond').addEventListener('click', goPond); $('yGate').addEventListener('click', () => goOut('gate')); $('yQa').addEventListener('click', () => goOut('qa'));
+  $('bBack').addEventListener('click', () => goOut('yard')); $('qBack').addEventListener('click', () => goOut('yard'));
+  $('bRoll').addEventListener('click', () => { Audio.unlock(); if (!Audio.bellRoll(() => strikeBell({ silent: true }), BELL_LEAD) && !Audio.rolling()) strikeBell({ silent: true }); haptic('soft'); });
   $('bGo').addEventListener('click', () => { Audio.unlock(); startTour(); });
   $('banner').addEventListener('click', () => { if (!inRitual() || chant) return; Audio.unlock(); if (mode === 'sit') startKhoaLe(); else if (mode === 'hall') { const c = freeCushions().sort((a, b) => Math.abs(a.userData.x) - Math.abs(b.userData.x))[0]; if (c) { pendingKhoaLe = true; goSit(c); } } });
   let pendingKhoaLe = false;
@@ -843,7 +1048,7 @@
 
   // ---------------- audio ----------------
   const Audio = (() => {
-    let ac = null, amb = null, unlocked = false, master = null, wet = null, roll = null;
+    let ac = null, amb = null, unlocked = false, master = null, wet = null, far = null, roll = null;
     const on = () => S.settings.effects && ac;
     function ctx() {
       if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
@@ -855,6 +1060,16 @@
         const conv = ac.createConvolver(); conv.buffer = ir;
         const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200;
         wet = ac.createGain(); wet.gain.value = 0.32; wet.connect(conv); conv.connect(lp); lp.connect(master);
+        // không gian ngoài trời cho đại hồng chung: vang dài ~7 s + 2 lớp vọng xa (núi, rừng) tắt dần, mất dần âm cao
+        const len2 = Math.floor(ac.sampleRate * 7), ir2 = ac.createBuffer(2, len2, ac.sampleRate);
+        for (let c = 0; c < 2; c++) { const d = ir2.getChannelData(c); for (let i = 0; i < len2; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len2, 2.4) * (i < ac.sampleRate * 0.04 ? i / (ac.sampleRate * 0.04) : 1); }
+        const conv2 = ac.createConvolver(); conv2.buffer = ir2;
+        const lp2 = ac.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 1500;
+        far = ac.createGain(); far.gain.value = 0.55; far.connect(conv2); conv2.connect(lp2); lp2.connect(master);
+        for (const [dl, fb, cut, lvl] of [[0.47, 0.42, 1300, 0.34], [1.15, 0.3, 800, 0.24]]) {
+          const dn = ac.createDelay(3); dn.delayTime.value = dl; const fg = ac.createGain(); fg.gain.value = fb; const lpf = ac.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = cut; const og = ac.createGain(); og.gain.value = lvl;
+          far.connect(dn); dn.connect(lpf); lpf.connect(fg); fg.connect(dn); lpf.connect(og); og.connect(master); og.connect(conv2);
+        }
       }
       return ac;
     }
@@ -888,23 +1103,29 @@
     }
     // Đại hồng chung: trầm, nhiều bội âm không điều hoà, tiếng đánh gỗ vào đồng, ngân dài
     function bigBell(t, amp) {
-      const bus = ac.createGain(); bus.gain.value = amp || 0.7; out(bus, 0.75);
+      const bus = ac.createGain(); bus.gain.value = amp || 0.7; out(bus, 0.35);
+      const fg = ac.createGain(); fg.gain.value = 0.9; bus.connect(fg); fg.connect(far);
       const f0 = 98;
-      for (const [r, a, d, dt] of [[0.5, 0.55, 14, 0], [1, 0.5, 11, 0], [1, 0.3, 11, 2.5], [1.19, 0.26, 8, 0], [1.5, 0.2, 7, -3], [2, 0.16, 6, 0], [2.74, 0.1, 4.5, 2], [3.3, 0.06, 3, 0], [5.4, 0.04, 1.8, 0]]) partial(f0 * r, a, d, t, bus, dt);
-      strike(t, 260, 0.6, 0.12, bus); strike(t, 900, 0.18, 0.05, bus);
+      // cặp bội âm lệch vài cent tạo nhịp "ong… ong…" ngân dài; âm cao tắt sớm, âm trầm còn lại rất lâu
+      for (const [r, a, d, dt] of [[0.5, 0.5, 26, 0], [0.5, 0.3, 26, -12], [1, 0.42, 20, 0], [1, 0.3, 20, 8], [1.19, 0.24, 12, 0], [1.5, 0.18, 9, -3], [2, 0.15, 8, 0], [2, 0.08, 8, 6], [2.74, 0.09, 5, 2], [3.3, 0.06, 3.4, 0], [4.2, 0.04, 2.2, 0], [5.4, 0.035, 1.6, 0]]) partial(f0 * r, a, d, t, bus, dt);
+      // chày gỗ đập vào đồng: tiếng "bùng" trầm + tiếng gỗ
+      const o = ac.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.25); env(o, 0.5, 0.35, t, 0.002).connect(bus); o.start(t); o.stop(t + 0.4);
+      strike(t, 240, 0.65, 0.16, bus); strike(t, 900, 0.2, 0.06, bus); strike(t, 2600, 0.06, 0.03, bus);
     }
     const api = {
       unlock() { if (SHOT) return; ctx(); if (!ac) return; if (ac.state === 'suspended') ac.resume(); if (!unlocked) { unlocked = true; api.ambient(S.settings.ambient); } },
       bell(s) { if (!on()) return; bowl(ac.currentTime + 0.01, s || 1); },
-      bigBell() { if (!on()) return; bigBell(ac.currentTime + 0.01, 0.75); },
+      bigBell(a) { if (!on()) return; bigBell(ac.currentTime + 0.01, a || 0.75); },
       moktak(accent) { if (!on()) return; mok(ac.currentTime + 0.005, accent); },
       // Hồi chuông: 3 tiếng khoan thai · dồn dần 7 tiếng · 3 tiếng ngân dứt
-      bellRoll() {
-        if (!on() || (roll && ac.currentTime < roll)) return;
-        const gaps = [6, 6, 5, 4, 3.2, 2.5, 1.9, 1.5, 1.3, 1.2, 4.5, 6, 6];
-        let t = ac.currentTime + 0.05; bigBell(t, 0.75);
-        gaps.forEach((g, i) => { t += g; bigBell(t, i >= 9 ? 0.7 : 0.45 + i * 0.03); });
-        roll = t + 8;
+      // onHit(lead): gọi trước mỗi tiếng chuông `lead` giây để chày kịp lấy đà
+      bellRoll(onHit, lead) {
+        if (!on() || (roll && ac.currentTime < roll)) return false;
+        const gaps = [6, 6, 5, 4, 3.2, 2.5, 1.9, 1.5, 1.3, 1.2, 4.5, 6, 6], L = lead || 0;
+        let t = ac.currentTime + 0.05 + L; const hits = [[t, 0.75]];
+        gaps.forEach((g, i) => { t += g; hits.push([t, i >= 9 ? 0.7 : 0.45 + i * 0.03]); });
+        hits.forEach(([ht, a]) => { bigBell(ht, a); if (onHit) setTimeout(onHit, Math.max(0, (ht - ac.currentTime - L) * 1000)); });
+        roll = t + 10; return true;
       },
       rolling() { return !!(ac && roll && ac.currentTime < roll); },
       // Khánh: chuông đá/đồng mỏng, tiếng trong, ngân ~3 s — mở và kết mỗi đoạn kinh
@@ -997,12 +1218,12 @@
     tickAvatar(player, dt);
     player.visible = mode === 'hall' || mode === 'sit' || mode === 'walking';
 
-    if (bellSwing2.v > 0) { bellSwing2.v = Math.max(0, bellSwing2.v - dt * 0.25); TP.bell.rotation.z = Math.sin(t * 2.4) * 0.05 * bellSwing2.v; TP.bellLog.rotation.z = Math.sin(t * 2.4 + 1) * 0.12 * bellSwing2.v; }
+    tickBell(dt, t); tickYard(dt, t); tickKoi(dt, t);
     TP.bodhi.userData.crown.rotation.y = Math.sin(t * 0.3) * 0.02;
     if (OUT.includes(mode) || mode === 'tour') TP.flags.forEach(f => { const pos = f.userData.cloth.geometry.attributes.position, b = f.userData.base; for (let i = 0; i < pos.count; i++) { const x = b[i * 3]; pos.setZ(i, Math.sin(x * 3.2 - t * 3.4) * 0.09 * x + Math.sin(t * 1.3) * 0.05 * x); } pos.needsUpdate = true; });
     if (bellSwing > 0) { bellSwing = Math.max(0, bellSwing - dt * 0.35); bellBody.rotation.z = Math.sin(t * 5) * 0.06 * bellSwing; }
     // ritual ambience
-    if (inRitual() && S.settings.effects && !chant) { if (!ritualRolled) { ritualRolled = true; Audio.bellRoll(); } if (!Audio.rolling()) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(ritualN % 4 === 0); ritualN++; ritualBeat = 1.05; } } } else ritualRolled = false;
+    if (inRitual() && S.settings.effects && !chant) { if (!ritualRolled) { ritualRolled = true; Audio.bellRoll(() => strikeBell({ silent: true }), BELL_LEAD); } if (!Audio.rolling()) { ritualBeat -= dt; if (ritualBeat <= 0) { Audio.moktak(ritualN % 4 === 0); ritualN++; ritualBeat = 1.05; } } } else ritualRolled = false;
     ambT -= dt; if (ambT <= 0) { ambT = 2 + Math.random() * 5; if (phase() === 'night') { if (Math.random() < 0.3) Audio.frog(); else Audio.cricket(); } else if (phase() !== 'dusk' || Math.random() < 0.4) Audio.chirp(); }
 
     // camera
@@ -1011,6 +1232,7 @@
     else if (mode === 'gate') { camPos.set(0, 2.3, 55); camTarget.set(0, 3.6, 34); }
     else if (mode === 'yard') { camPos.set(0, 6.4, 37.5); camTarget.set(0, 2.4, 12); }
     else if (mode === 'bell') { camPos.set(-1.2, 3.4, 36.8); camTarget.set(-9.2, 3.6, 27.5); }
+    else if (mode === 'qa') { const [cx, cz] = qaLocal(-3.2, 9.4), [tx, tz] = qaLocal(0.3, 0.8); camPos.set(cx, 3.1, cz); camTarget.set(tx, 2.0, tz); }
     else if (mode === 'tour' && tour) {
       tour.t = Math.min(1, Math.max(tour.t, (performance.now() - tour.t0) / 7500)); const e = tour.t < 0.5 ? 2 * tour.t * tour.t : 1 - Math.pow(-2 * tour.t + 2, 2) / 2;
       TOUR.getPointAt(e, camPos); TOUR.getPointAt(Math.min(1, e + 0.06), camTarget); camTarget.y = 2.4; if (e > 0.94) camTarget.set(0, 1.7, -6);
@@ -1021,6 +1243,7 @@
     const k = (SHOT || snapCam || mode === 'tour') ? 1 : 1 - Math.pow(0.03, dt); snapCam = false;
     camAt.lerp(camPos, k); camLook.lerp(camTarget, k);
     camera.position.copy(camAt).add(tmp2.set(Math.sin(t * 0.15) * 0.12, Math.sin(t * 0.2) * 0.04, 0));
+    if (bellFx.shake > 0) { const k2 = bellFx.shake * bellFx.shake * 0.05; camera.position.x += Math.sin(t * 61) * k2; camera.position.y += Math.sin(t * 47 + 1) * k2 * 0.7; }
     const look = camLook.clone().sub(camera.position), sph = new THREE.Spherical().setFromVector3(look);
     sph.theta += yaw; sph.phi = THREE.MathUtils.clamp(sph.phi - pitch, 0.5, 2.5);
     camera.lookAt(camera.position.clone().add(new THREE.Vector3().setFromSpherical(sph)));
@@ -1036,11 +1259,12 @@
   }
 
   // ---------------- boot ----------------
+  if (SHOT && params.get('fx')) setTimeout(() => strikeBell({ silent: true }), +params.get('fx'));
   for (let i = 0; i < npcTarget(); i++) spawnSeated();
   renderTop(); renderStatic(); updateBanner(); applyRobe();
   if (SHOT === 'sit') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); player.userData.bowT = 1.1; }
   else if (SHOT === 'pond') { mode = 'pond'; applyFog(); showUI('pond'); renderStatic(); }
-  else if (['gate', 'yard', 'bell'].includes(SHOT)) { mode = SHOT; applyFog(); showUI(SHOT); renderStatic(); }
+  else if (['gate', 'yard', 'bell', 'qa'].includes(SHOT)) { mode = SHOT; applyFog(); showUI(SHOT); renderStatic(); }
   else if (SHOT === 'journal') openJournal();
   else if (SHOT === 'chant') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); startChant('heart'); chant.line = 4; chant.ch = 3; chant.done = 24; chant.wait = 999; renderChant(); }
   else if (!S.onboarded) onboarding(0);

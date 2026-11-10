@@ -33,7 +33,7 @@
       chantDone: 'Tròn một biến kinh', totChant: 'biến kinh', chantToday: 'biến kinh hôm nay', chantTap: 'chạm để tụng', meaning: 'Nghĩa',
       sutraSub: { heart: 'Tụng mỗi ngày', 'pho-mon': 'Cầu an cho mình và người thân', 'sam-hoi': 'Sám hối, làm mới tâm', 'hoi-huong': 'Kết thúc buổi tụng' },
       tut1t: 'Chạm vào bồ đoàn', tut1b: 'Chạm một bồ đoàn trống để ngồi trước Phật.', tut2t: 'Chọn nghi thức', tut2b: 'Lạy, chắp tay, lần chuỗi, gõ mõ hoặc tụng kinh. Đủ 108 lạy hay 108 hạt, ngoài hồ nở một bông sen.',
-      tut3t: 'Thắp hương', tut3b: 'Chạm Thắp hương để dâng 3 nén hương miễn phí mỗi ngày.', skip: 'Bỏ qua', tutAgain: 'Xem lại hướng dẫn', gotIt: 'Đã hiểu', language: 'Ngôn ngữ', langAuto: 'Theo máy', toYard: 'Ra sân chùa', yardName: 'Sân chùa', toHall: 'Vào chính điện', bellTower: 'Gác chuông', pondBtn: 'Hồ sen', toGate: 'Cổng tam quan', enterTemple: 'Vào chùa', ringRoll: 'Thỉnh một hồi chuông', back: 'Sân chùa', gateHint: 'Cổng tam quan · chạm Vào chùa để bước vào', bellHint: 'Chạm vào quả chuông để thỉnh một tiếng', tapSkip: 'Chạm để đi nhanh', qaOut: 'Quan Thế Âm Bồ Tát', bodhiTag: 'Cây bồ đề', khoaLe: 'Khoá lễ', khoaLeSub: 'Chuông, niệm hương, Tâm Kinh, Sám hối, Hồi hướng', voice: 'Giọng đọc', ritualTap: 'chạm để vào khoá lễ', plaque: 'CHÙA TĨNH TÂM'
+      tut3t: 'Thắp hương', tut3b: 'Chạm Thắp hương để dâng 3 nén hương miễn phí mỗi ngày.', skip: 'Bỏ qua', tutAgain: 'Xem lại hướng dẫn', gotIt: 'Đã hiểu', language: 'Ngôn ngữ', langAuto: 'Theo máy', toYard: 'Ra sân chùa', yardName: 'Sân chùa', toHall: 'Vào chính điện', bellTower: 'Gác chuông', pondBtn: 'Hồ sen', toGate: 'Cổng tam quan', enterTemple: 'Vào chùa', ringRoll: 'Thỉnh một hồi chuông', back: 'Sân chùa', gateHint: 'Cổng tam quan · chạm Vào chùa để bước vào', bellHint: 'Chạm vào quả chuông để thỉnh một tiếng', tapSkip: 'Chạm để đi nhanh', qaOut: 'Quan Thế Âm Bồ Tát', qaHint: 'Khách thập phương dâng hương, lễ Bồ Tát cầu bình an', qaBtn: 'Tượng Quan Âm', bodhiTag: 'Cây bồ đề', khoaLe: 'Khoá lễ', khoaLeSub: 'Chuông, niệm hương, Tâm Kinh, Sám hối, Hồi hướng', voice: 'Giọng đọc', ritualTap: 'chạm để vào khoá lễ', plaque: 'CHÙA TĨNH TÂM'
     },
     zh: {
       title: '靜心寺', tapCushion: '輕觸空的蒲團坐下', seatTaken: '這個位子已有人', walking: '正在走向座位', seated: '正在佛前靜坐',
@@ -64,7 +64,7 @@
       chantDone: '圓滿一遍', totChant: '遍經', chantToday: '今日誦經', chantTap: '輕觸誦經', meaning: '釋義',
       sutraSub: { heart: '每日持誦', 'pho-mon': '為自己與家人祈求平安', 'sam-hoi': '懺悔，清淨身心', 'hoi-huong': '誦經圓滿' },
       tut1t: '輕觸蒲團', tut1b: '輕觸空的蒲團，在佛前坐下。', tut2t: '選擇儀式', tut2b: '禮拜、合掌、撥念珠、敲木魚或誦經。滿 108 拜或 108 顆念珠，池中便開一朵蓮花。',
-      tut3t: '上香', tut3b: '輕觸「上香」，每天可免費供三炷香。', skip: '略過', tutAgain: '重看教學', gotIt: '知道了', language: '語言', langAuto: '跟隨系統', toYard: '到寺院庭院', yardName: '寺院庭院', toHall: '進入大殿', bellTower: '鐘樓', pondBtn: '蓮花池', toGate: '三關門', enterTemple: '進寺', ringRoll: '敲一回鐘', back: '庭院', gateHint: '三關門 · 輕觸「進寺」入內', bellHint: '輕觸大鐘敲一聲', tapSkip: '輕觸快速前往', qaOut: '觀世音菩薩', bodhiTag: '菩提樹', khoaLe: '課誦', khoaLeSub: '鐘聲、上香、心經、懺悔、迴向', voice: '誦讀聲', ritualTap: '輕觸開始課誦', plaque: ''
+      tut3t: '上香', tut3b: '輕觸「上香」，每天可免費供三炷香。', skip: '略過', tutAgain: '重看教學', gotIt: '知道了', language: '語言', langAuto: '跟隨系統', toYard: '到寺院庭院', yardName: '寺院庭院', toHall: '進入大殿', bellTower: '鐘樓', pondBtn: '蓮花池', toGate: '三關門', enterTemple: '進寺', ringRoll: '敲一回鐘', back: '庭院', gateHint: '三關門 · 輕觸「進寺」入內', bellHint: '輕觸大鐘敲一聲', tapSkip: '輕觸快速前往', qaOut: '觀世音菩薩', qaHint: '善信上香禮拜菩薩，祈求平安', qaBtn: '觀音像', bodhiTag: '菩提樹', khoaLe: '課誦', khoaLeSub: '鐘聲、上香、心經、懺悔、迴向', voice: '誦讀聲', ritualTap: '輕觸開始課誦', plaque: ''
     },
     /*ZHS*/zhs: {
       title: '静心寺', tapCushion: '轻触空的蒲团坐下', seatTaken: '这个位子已有人', walking: '正在走向座位', seated: '正在佛前静坐',
@@ -95,7 +95,7 @@
       chantDone: '圆满一遍', totChant: '遍经', chantToday: '今日诵经', chantTap: '轻触诵经', meaning: '释义',
       sutraSub: { heart: '每日持诵', 'pho-mon': '为自己与家人祈求平安', 'sam-hoi': '忏悔，清净身心', 'hoi-huong': '诵经圆满' },
       tut1t: '轻触蒲团', tut1b: '轻触空的蒲团，在佛前坐下。', tut2t: '选择仪式', tut2b: '礼拜、合掌、拨念珠、敲木鱼或诵经。满 108 拜或 108 颗念珠，池中便开一朵莲花。',
-      tut3t: '上香', tut3b: '轻触「上香」，每天可免费供三炷香。', skip: '略过', tutAgain: '重看教学', gotIt: '知道了', language: '语言', langAuto: '跟随系统', toYard: '到寺院庭院', yardName: '寺院庭院', toHall: '进入大殿', bellTower: '钟楼', pondBtn: '莲花池', toGate: '三关门', enterTemple: '进寺', ringRoll: '敲一回钟', back: '庭院', gateHint: '三关门 · 轻触「进寺」入内', bellHint: '轻触大钟敲一声', tapSkip: '轻触快速前往', qaOut: '观世音菩萨', bodhiTag: '菩提树', khoaLe: '课诵', khoaLeSub: '钟声、上香、心经、忏悔、回向', voice: '诵读声', ritualTap: '轻触开始课诵', plaque: ''
+      tut3t: '上香', tut3b: '轻触「上香」，每天可免费供三炷香。', skip: '略过', tutAgain: '重看教学', gotIt: '知道了', language: '语言', langAuto: '跟随系统', toYard: '到寺院庭院', yardName: '寺院庭院', toHall: '进入大殿', bellTower: '钟楼', pondBtn: '莲花池', toGate: '三关门', enterTemple: '进寺', ringRoll: '敲一回钟', back: '庭院', gateHint: '三关门 · 轻触「进寺」入内', bellHint: '轻触大钟敲一声', tapSkip: '轻触快速前往', qaOut: '观世音菩萨', qaHint: '善信上香礼拜菩萨，祈求平安', qaBtn: '观音像', bodhiTag: '菩提树', khoaLe: '课诵', khoaLeSub: '钟声、上香、心经、忏悔、回向', voice: '诵读声', ritualTap: '轻触开始课诵', plaque: ''
     },/*END*/
     ko: {
       title: '고요한 절', tapCushion: '빈 방석을 눌러 앉으세요', seatTaken: '이미 누가 앉아 있어요', walking: '자리로 가는 중', seated: '부처님 앞에 앉아 있어요',
@@ -126,7 +126,7 @@
       chantDone: '한 번 독송을 마쳤어요', totChant: '독송', chantToday: '오늘 독송', chantTap: '눌러서 독경', meaning: '뜻',
       sutraSub: { heart: '매일 독송', 'pho-mon': '나와 가족의 평안을 비는 기도', 'sam-hoi': '참회로 마음을 새롭게', 'hoi-huong': '독경을 마치며' },
       tut1t: '방석 누르기', tut1b: '빈 방석을 눌러 부처님 앞에 앉으세요.', tut2t: '수행 고르기', tut2b: '절, 합장, 염주, 목탁, 독경 중에서 고르세요. 108번을 채우면 연못에 연꽃이 피어요.',
-      tut3t: '향 올리기', tut3b: '향 올리기를 누르면 매일 향 세 대를 무료로 올릴 수 있어요.', skip: '건너뛰기', tutAgain: '안내 다시 보기', gotIt: '알겠어요', language: '언어', langAuto: '기기 설정', toYard: '절 마당으로', yardName: '절 마당', toHall: '법당으로', bellTower: '범종각', pondBtn: '연못', toGate: '일주문', enterTemple: '절에 들어가기', ringRoll: '범종 치기', back: '절 마당', gateHint: '일주문 · 들어가려면 누르세요', bellHint: '종을 눌러 한 번 치기', tapSkip: '누르면 빨리 가기', qaOut: '관세음보살', bodhiTag: '보리수', khoaLe: '예불', khoaLeSub: '종, 향, 반야심경, 참회, 회향', voice: '독송 소리', ritualTap: '눌러서 예불 시작', plaque: '고요한 절'
+      tut3t: '향 올리기', tut3b: '향 올리기를 누르면 매일 향 세 대를 무료로 올릴 수 있어요.', skip: '건너뛰기', tutAgain: '안내 다시 보기', gotIt: '알겠어요', language: '언어', langAuto: '기기 설정', toYard: '절 마당으로', yardName: '절 마당', toHall: '법당으로', bellTower: '범종각', pondBtn: '연못', toGate: '일주문', enterTemple: '절에 들어가기', ringRoll: '범종 치기', back: '절 마당', gateHint: '일주문 · 들어가려면 누르세요', bellHint: '종을 눌러 한 번 치기', tapSkip: '누르면 빨리 가기', qaOut: '관세음보살', qaHint: '참배객들이 향을 올리고 보살님께 평안을 빕니다', qaBtn: '관음상', bodhiTag: '보리수', khoaLe: '예불', khoaLeSub: '종, 향, 반야심경, 참회, 회향', voice: '독송 소리', ritualTap: '눌러서 예불 시작', plaque: '고요한 절'
     },
     ja: {
       title: '静心寺', tapCushion: '空いている座布団をタップして座る', seatTaken: 'この席は使われています', walking: '席へ向かっています', seated: '仏前に座っています',
@@ -157,7 +157,7 @@
       chantDone: '一巻読み終えました', totChant: '読経', chantToday: '今日の読経', chantTap: 'タップして読経', meaning: '意味',
       sutraSub: { heart: '毎日のお勤めに', 'pho-mon': '自分と家族の平安を祈る', 'sam-hoi': '懺悔して心を新たに', 'hoi-huong': '読経の結び' },
       tut1t: '座布団をタップ', tut1b: '空いている座布団をタップして仏前に座ります。', tut2t: '行を選ぶ', tut2b: '礼拝、合掌、数珠、木魚、読経から選びます。108回で池に蓮が咲きます。',
-      tut3t: 'お線香', tut3b: '「お線香をあげる」で毎日3本を無料で供えられます。', skip: 'スキップ', tutAgain: '案内をもう一度見る', gotIt: 'わかりました', language: '言語', langAuto: '端末に合わせる', toYard: '境内へ', yardName: '境内', toHall: '本堂へ', bellTower: '鐘楼', pondBtn: '蓮池', toGate: '山門', enterTemple: 'お寺に入る', ringRoll: '鐘を撞く', back: '境内', gateHint: '山門 · タップしてお寺に入る', bellHint: '鐘をタップして一打', tapSkip: 'タップで早送り', qaOut: '観世音菩薩', bodhiTag: '菩提樹', khoaLe: '勤行', khoaLeSub: '鐘、焼香、般若心経、懺悔、回向', voice: '読み上げ', ritualTap: 'タップして勤行へ', plaque: ''
+      tut3t: 'お線香', tut3b: '「お線香をあげる」で毎日3本を無料で供えられます。', skip: 'スキップ', tutAgain: '案内をもう一度見る', gotIt: 'わかりました', language: '言語', langAuto: '端末に合わせる', toYard: '境内へ', yardName: '境内', toHall: '本堂へ', bellTower: '鐘楼', pondBtn: '蓮池', toGate: '山門', enterTemple: 'お寺に入る', ringRoll: '鐘を撞く', back: '境内', gateHint: '山門 · タップしてお寺に入る', bellHint: '鐘をタップして一打', tapSkip: 'タップで早送り', qaOut: '観世音菩薩', qaHint: '参拝者が線香を供え、菩薩さまに平安を祈ります', qaBtn: '観音像', bodhiTag: '菩提樹', khoaLe: '勤行', khoaLeSub: '鐘、焼香、般若心経、懺悔、回向', voice: '読み上げ', ritualTap: 'タップして勤行へ', plaque: ''
     },
     en: {
       title: 'Quiet Pagoda', tapCushion: 'Tap an empty cushion to sit', seatTaken: 'Someone is sitting here', walking: 'Walking to your seat', seated: 'Sitting before the Buddha',
@@ -188,7 +188,7 @@
       chantDone: 'One full recitation', totChant: 'recitations', chantToday: 'recitations today', chantTap: 'tap to chant', meaning: 'Meaning',
       sutraSub: { heart: 'For daily practice', 'pho-mon': 'Prayers for peace for you and your family', 'sam-hoi': 'Repentance, a fresh start', 'hoi-huong': 'Closing dedication' },
       tut1t: 'Tap a cushion', tut1b: 'Tap an empty cushion to sit before the Buddha.', tut2t: 'Pick a practice', tut2b: 'Bow, join palms, count beads, strike the moktak or chant. Reach 108 and a lotus blooms in the pond.',
-      tut3t: 'Light incense', tut3b: 'Tap Light incense to offer 3 free sticks every day.', skip: 'Skip', tutAgain: 'Replay the tour', gotIt: 'Got it', language: 'Language', langAuto: 'Device', toYard: 'Courtyard', yardName: 'Courtyard', toHall: 'Main hall', bellTower: 'Bell tower', pondBtn: 'Lotus pond', toGate: 'Temple gate', enterTemple: 'Enter the temple', ringRoll: 'Ring the bell', back: 'Courtyard', gateHint: 'The three-door gate · tap Enter to walk in', bellHint: 'Tap the bell to strike it once', tapSkip: 'Tap to skip ahead', qaOut: 'Guanyin Bodhisattva', bodhiTag: 'Bodhi tree', khoaLe: 'Daily service', khoaLeSub: 'Bell, incense, Heart Sutra, repentance, dedication', voice: 'Voice', ritualTap: 'tap to join the service', plaque: 'QUIET PAGODA'
+      tut3t: 'Light incense', tut3b: 'Tap Light incense to offer 3 free sticks every day.', skip: 'Skip', tutAgain: 'Replay the tour', gotIt: 'Got it', language: 'Language', langAuto: 'Device', toYard: 'Courtyard', yardName: 'Courtyard', toHall: 'Main hall', bellTower: 'Bell tower', pondBtn: 'Lotus pond', toGate: 'Temple gate', enterTemple: 'Enter the temple', ringRoll: 'Ring the bell', back: 'Courtyard', gateHint: 'The three-door gate · tap Enter to walk in', bellHint: 'Tap the bell to strike it once', tapSkip: 'Tap to skip ahead', qaOut: 'Guanyin Bodhisattva', qaHint: 'Visitors offer incense and bow to the Bodhisattva for peace', qaBtn: 'Guanyin statue', bodhiTag: 'Bodhi tree', khoaLe: 'Daily service', khoaLeSub: 'Bell, incense, Heart Sutra, repentance, dedication', voice: 'Voice', ritualTap: 'tap to join the service', plaque: 'QUIET PAGODA'
     }
   };
   // Ngôn ngữ người dùng tự chọn trong Cài đặt (ưu tiên: ?lang= khi vừa đổi → trạng thái đã lưu → ngôn ngữ máy)

@@ -103,9 +103,12 @@
     for (const y of [-0.45, -0.95, -1.45]) put(bell, new THREE.TorusGeometry(0.6 + (y < -1 ? 0.06 : 0) - (y > -0.5 ? 0.07 : 0), 0.025, 6, 36), bronze, 0, y, 0, false).rotation.x = Math.PI / 2;
     put(bell, new THREE.TorusGeometry(0.16, 0.05, 8, 16), bronze, 0, 0.08, 0);
     // chày gỗ treo ngang
-    const log = new THREE.Group(); log.position.set(1.05, 3.4, 0); g.add(log);
-    put(log, new THREE.CylinderGeometry(0.12, 0.12, 1.3, 12), std('#7A5636', { roughness: 0.85 }), 0, 0, 0).rotation.z = Math.PI / 2;
-    for (const sx of [-0.45, 0.45]) put(log, new THREE.CylinderGeometry(0.012, 0.012, 1.25, 4), std('#C9B48A'), sx, 0.62, 0, false);
+    // chày treo bằng 2 dây từ xà (4.65) → xoay quanh xà như con lắc
+    const log = new THREE.Group(); log.position.set(1.34, 4.65, 0); g.add(log);
+    const logM = std('#7A5636', { roughness: 0.85 });
+    put(log, new THREE.CylinderGeometry(0.12, 0.12, 1.3, 12), logM, 0, -1.25, 0).rotation.z = Math.PI / 2;
+    put(log, new THREE.CylinderGeometry(0.125, 0.125, 0.05, 12), std('#4A3222'), -0.64, -1.25, 0).rotation.z = Math.PI / 2;
+    for (const sx of [-0.45, 0.45]) put(log, new THREE.CylinderGeometry(0.012, 0.012, 1.25, 4), std('#C9B48A'), sx, -0.62, 0, false);
     return { g, bell, log };
   }
 
