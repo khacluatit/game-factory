@@ -151,9 +151,31 @@
     // rắn naga cuộn quanh, mũ xoè che phía sau
     const naga = M.gold;
     const coil = []; for (let i = 0; i <= 40; i++) { const a = i / 40 * Math.PI * 4.2, y = 0.3 + i / 40 * 0.42; coil.push(V3(Math.cos(a) * 0.2, y, Math.sin(a) * 0.2)); }
-    coil.push(V3(0, 0.82, -0.2), V3(0, 0.98, -0.16)); tube(G, coil, 0.022, naga);
-    const hood = sph(G, 0.12, naga, 0, 0.98, -0.16, 1.15, 0.9, 0.22); hood.rotation.x = -0.35;
-    for (let i = -2; i <= 2; i++) sph(G, 0.026, naga, i * 0.05, 1.03 - Math.abs(i) * 0.03, -0.1, 1, 0.9, 1.5);
+    coil.push(V3(0, 0.8, -0.22), V3(0, 0.92, -0.2)); tube(G, coil, 0.026, naga);
+    // Panchamukha naga: thân dựng sau linga, mũ phồng xoè, 5 đầu cúi về phía trước che trên đỉnh linga
+    const hoodG = new THREE.Group(); hoodG.position.set(0, 0.92, -0.2); hoodG.rotation.x = 0.35; G.add(hoodG);
+    const hoodIn = std('#E8C66A', { roughness: 0.4, metalness: 0.6 });
+    const hs = new THREE.Shape(); hs.moveTo(0, 0); hs.bezierCurveTo(-0.08, 0.04, -0.22, 0.1, -0.21, 0.22); hs.bezierCurveTo(-0.2, 0.3, -0.1, 0.33, 0, 0.3); hs.bezierCurveTo(0.1, 0.33, 0.2, 0.3, 0.21, 0.22); hs.bezierCurveTo(0.22, 0.1, 0.08, 0.04, 0, 0);
+    const hood = add(hoodG, new THREE.ExtrudeGeometry(hs, { depth: 0.03, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 2, curveSegments: 16 }), naga, 0, 0, -0.02);
+    for (let i = 0; i < 3; i++) { const b = add(hoodG, new THREE.TorusGeometry(0.05 + i * 0.045, 0.006, 6, 24, Math.PI), hoodIn, 0, 0.06, 0.03, false); }
+    for (let i = -2; i <= 2; i++) {
+      const a = i * 0.36, nx = Math.sin(a) * 0.17, ny = 0.2 + Math.cos(a) * 0.1;
+      tube(hoodG, [V3(nx * 0.4, 0.1, 0.02), V3(nx * 0.85, ny - 0.02, 0.04), V3(nx, ny + 0.03, 0.08)], 0.022, naga);
+      const hd = sph(hoodG, 0.034, naga, nx, ny + 0.05, 0.11, 0.9, 0.6, 1.5); hd.rotation.x = 0.5; hd.rotation.y = -a * 0.4;
+      for (const e of [-1, 1]) sph(hoodG, 0.007, std('#B81E2A', { roughness: 0.2 }), nx + e * 0.018, ny + 0.065, 0.135);
+    }
+    // trishul (đinh ba) của Shiva cắm sau linga, buộc trống damru và dải vải
+    const TR = new THREE.Group(); TR.position.set(0.42, 0.0, -0.32); G.add(TR); const steel = std('#5E5C66', { metalness: 0.85, roughness: 0.3, envMap: M.env });
+    cyl(TR, 0.022, 0.022, 1.75, steel, 0, 0.875, 0, 10);
+    add(TR, new THREE.TorusGeometry(0.11, 0.02, 8, 24, Math.PI), steel, 0, 1.78, 0).rotation.z = Math.PI;
+    add(TR, new THREE.ConeGeometry(0.035, 0.26, 8), steel, 0, 1.92, 0);
+    for (const s of [-1, 1]) add(TR, new THREE.ConeGeometry(0.028, 0.16, 8), steel, s * 0.11, 1.84, 0);
+    add(TR, new THREE.BoxGeometry(0.06, 0.03, 0.06), M.gold, 0, 1.68, 0);
+    const dm = new THREE.Group(); dm.position.set(0.0, 1.5, 0.04); dm.rotation.z = Math.PI / 2; TR.add(dm);
+    const dmw = std('#8A5A2A', { roughness: 0.6 }), skinH = std('#E8D8B8', { roughness: 0.7 });
+    for (const s of [-1, 1]) { const c = add(dm, new THREE.CylinderGeometry(0.02, 0.06, 0.08, 16), dmw, 0, s * 0.04, 0); if (s < 0) c.rotation.x = Math.PI; add(dm, new THREE.CircleGeometry(0.06, 16), skinH, 0, s * 0.081, 0, false).rotation.x = -s * Math.PI / 2; }
+    add(dm, new THREE.TorusGeometry(0.022, 0.006, 6, 12), std('#B81E2A'), 0, 0, 0).rotation.x = Math.PI / 2;
+    tube(TR, [V3(0, 1.48, 0.02), V3(0.04, 1.36, 0.06), V3(0.02, 1.22, 0.05)], 0.01, std('#E8641A', { roughness: 0.8 }));
     // bình đồng jaladhari treo phía trên
     const pot = new THREE.Group(); pot.position.set(0, 1.55, 0); G.add(pot);
     const copper = std('#B8693A', { metalness: 0.75, roughness: 0.35, envMap: M.env });
@@ -224,7 +246,14 @@
       const grey = std('#8C8784', { roughness: 0.7 });
       sph(E, 0.2, grey, 0, 0.3, -0.05, 0.9, 0.85, 1.2); sph(E, 0.13, grey, 0, 0.5, 0.17);
       for (const t of [-1, 1]) sph(E, 0.11, grey, t * 0.12, 0.5, 0.14, 0.25, 1, 0.8);
-      tube(E, [V3(0, 0.45, 0.28), V3(0, 0.6, 0.36), V3(-s * 0.05, 0.85, 0.32), V3(-s * 0.12, 0.95, 0.2)], 0.04, grey, false, 0.015);
+      tube(E, [V3(0, 0.46, 0.26), V3(0, 0.36, 0.36), V3(0, 0.38, 0.46), V3(-s * 0.02, 0.56, 0.5), V3(-s * 0.06, 0.74, 0.44), V3(-s * 0.12, 0.84, 0.36)], 0.045, grey, false, 0.022);
+      for (const t of [-1, 1]) { const tk = add(E, new THREE.ConeGeometry(0.014, 0.1, 8), std('#F4EEDC'), t * 0.05, 0.4, 0.3); tk.rotation.x = 2.2; }
+      for (const t of [-1, 1]) sph(E, 0.012, dark, t * 0.07, 0.54, 0.25);
+      add(E, new THREE.BoxGeometry(0.12, 0.03, 0.02), std('#C8162C'), 0, 0.6, 0.26); // trang sức trán
+      const pot = new THREE.Group(); pot.position.set(-s * 0.13, 0.9, 0.33); pot.rotation.z = -s * 1.1; E.add(pot);
+      add(pot, new THREE.LatheGeometry([[0, -0.06], [0.05, -0.05], [0.065, 0.0], [0.045, 0.05], [0.03, 0.065], [0.04, 0.08]].map(([x, y]) => new THREE.Vector2(x, y)), 20), gold);
+      E.updateMatrixWorld(true); const mouth = pot.localToWorld(V3(0, 0.085, 0)); const tip = V3(s * 0.2, 1.3, 0.06);
+      tube(G, [mouth, V3((mouth.x + tip.x) / 2, mouth.y + 0.12, (mouth.z + tip.z) / 2), tip, V3(s * 0.12, 1.2, 0.07)], 0.012, std('#9ED2F2', { transparent: true, opacity: 0.6, roughness: 0.1 }));
       for (const [x, z] of [[-0.1, 0.1], [0.1, 0.1], [-0.1, -0.18], [0.1, -0.18]]) cyl(E, 0.05, 0.055, 0.2, grey, x, 0.08, z);
       add(E, new THREE.BoxGeometry(0.3, 0.02, 0.3), std('#B81E2A'), 0, 0.47, -0.05);
     }
@@ -262,7 +291,9 @@
     add(gada, lathe([[0, 0], [0.08, 0.03], [0.13, 0.12], [0.12, 0.22], [0.06, 0.28], [0.02, 0.3], [0, 0.32]], 24), gold, 0, 0.52, 0);
     for (const s of [-1, 1]) for (const [x, y, z] of [[s * 0.31, 0.95, 0.09]]) add(G, new THREE.TorusGeometry(0.06, 0.012, 6, 16), gold, x, y, z).rotation.x = Math.PI / 2;
     // đuôi cong lên sau lưng
-    tube(G, [V3(0, 0.62, -0.15), V3(0.1, 0.5, -0.32), V3(0.28, 0.7, -0.38), V3(0.38, 1.1, -0.3), V3(0.32, 1.45, -0.22), V3(0.22, 1.58, -0.18)], 0.035, skin, false, 0.015);
+    { const tp = [V3(0, 0.62, -0.15), V3(0.1, 0.5, -0.32), V3(0.28, 0.7, -0.38), V3(0.38, 1.1, -0.3), V3(0.38, 1.42, -0.24)];
+      const c = V3(0.28, 1.56, -0.2); for (let i = 0; i <= 16; i++) { const a = -0.3 + i / 16 * Math.PI * 1.7, r = 0.11 * (1 - i / 16 * 0.55); tp.push(V3(c.x + Math.cos(a) * r, c.y + Math.sin(a) * r, c.z)); }
+      tube(G, tp, 0.035, skin, false, 0.014); }
     garland(G, [V3(-0.16, 1.24, 0.08), V3(-0.12, 0.92, 0.22), V3(0.12, 0.92, 0.22), V3(0.16, 1.24, 0.08)], 34, 0.024);
     prabhavali(G, 1.15, 1.95, -0.02, -0.42, gold);
     return G;
@@ -278,11 +309,11 @@
     limb(G, V3(0.09, 0.62, 0), V3(0.0, 0.32, 0.06), 0.07, skin, 0.055); limb(G, V3(0.0, 0.32, 0.06), V3(-0.18, 0.06, 0.08), 0.055, skin, 0.045);
     sph(G, 0.05, skin, -0.1, 0.02, 0.07, 0.9, 0.5, 1.6); sph(G, 0.05, skin, -0.2, 0.04, 0.13, 0.9, 0.5, 1.6);
     // dhoti vàng (pitambar)
-    add(G, lathe([[0.0, 0], [0.2, 0.0], [0.22, 0.1], [0.19, 0.3], [0.17, 0.42], [0, 0.44]], 32), pit, 0.02, 0.36, 0).rotation.z = 0.06;
+    add(G, lathe([[0.0, 0], [0.19, 0.0], [0.2, 0.1], [0.17, 0.3], [0.13, 0.42], [0, 0.44]], 32), pit, 0.02, 0.36, 0).rotation.z = 0.06;
     
     // thân
-    sph(G, 0.17, skin, 0.03, 0.92, 0.0, 0.85, 1.15, 0.7);
-    sph(G, 0.15, skin, 0.03, 1.12, 0.0, 1.2, 0.7, 0.75);
+    sph(G, 0.13, skin, 0.03, 0.93, 0.0, 0.9, 1.35, 0.62);
+    sph(G, 0.15, skin, 0.03, 1.13, 0.0, 1.15, 0.65, 0.66);
     tube(G, [V3(-0.18, 0.9, 0.1), V3(-0.1, 0.8, 0.18), V3(0.16, 0.95, 0.12), V3(0.2, 1.15, 0.05)], 0.03, pit); // khăn vắt
     // đầu
     const H = new THREE.Group(); H.position.set(0.05, 1.36, 0.0); H.rotation.z = -0.12; G.add(H);

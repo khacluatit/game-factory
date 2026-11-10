@@ -146,7 +146,7 @@
   const shrineLights = {};
   for (const k of ORDER) { const s = MT.shrines[k]; const l = new THREE.PointLight('#FFC27A', 4.2, 6.5, 1.8); l.position.copy(s.plate).lerp(s.cam, 0.25); l.position.y = 2.1; scene.add(l); shrineLights[k] = { l, base: 4.2, seed: Math.random() * 9 }; }
   const deepaFlames = MT.deepa.map(p => flame(p, 0.16, 0));
-  const deepaLight = new THREE.PointLight('#FFB060', 0, 12, 1.6); deepaLight.position.set(0, 3.0, 15.6); scene.add(deepaLight);
+  const deepaLight = new THREE.PointLight('#FFB060', 0, 12, 1.6); deepaLight.position.set(-4.4, 3.0, 16.6); scene.add(deepaLight);
 
   // Deepmala (IAP): hàng trăm diya dọc mái, bậc, tường sân
   const DMP = [];
@@ -948,6 +948,7 @@
     else if (mode === 'aarti') { camPos.copy(s.cam).lerp(s.look, 0.22); camTarget.copy(s.look); }
     else if (mode === 'abhishek') { camPos.copy(s.cam).lerp(s.look, 0.2); camPos.y = 2.0; camTarget.copy(lingaTop).add(new THREE.Vector3(0, 0.15, 0)); }
     else { camPos.copy(s.cam); camTarget.copy(s.look); }
+    if (SHOT && params.get('cam')) { const c = params.get('cam').split(',').map(Number); camPos.set(c[0], c[1], c[2]); camTarget.set(c[3], c[4], c[5]); }
     const k = (SHOT || snapCam || mode === 'tour') ? 1 : 1 - Math.pow(0.02, dt); snapCam = false;
     camAt.lerp(camPos, k); camLook.lerp(camTarget, k);
     camera.position.copy(camAt).add(tmp2.set(Math.sin(t * 0.17) * 0.04, Math.sin(t * 0.23) * 0.025, 0));
