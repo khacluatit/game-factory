@@ -17,7 +17,7 @@ on:
         required: true
         default: check
         type: choice
-        options: [check, screenshots, beta, metadata, all, submit, resubmit, iaploc, store, testers]
+        options: [check, screenshots, beta, metadata, all, submit, resubmit, iaploc, store, testers, register]
 
 permissions:
   contents: write
@@ -44,7 +44,7 @@ jobs:
           [ -n "$GT" ] && G="$GT"
           [ -n "$G" ] && echo "GAME=$G" >> "$GITHUB_ENV"
           L=$(printf '%s' "$MSG" | sed -n 's/.*\[ship:\([a-z]*\)\].*/\1/p' | head -1)
-          case "$L" in check|screenshots|beta|metadata|all|submit|resubmit|store|testers|iaploc) echo "LANE=$L" >> "$GITHUB_ENV" ;; esac
+          case "$L" in check|screenshots|beta|metadata|all|submit|resubmit|store|testers|iaploc|register) echo "LANE=$L" >> "$GITHUB_ENV" ;; esac
           echo "game=${G:-$GAME} lane=${L:-$LANE}"
 
       - name: Chọn Xcode 26 mới nhất
@@ -96,7 +96,7 @@ jobs:
         run: scripts/screenshots.sh "${{ env.GAME }}"
 
       - name: TestFlight (+ metadata)
-        if: env.LANE == 'beta' || env.LANE == 'metadata' || env.LANE == 'all' || env.LANE == 'submit' || env.LANE == 'resubmit' || env.LANE == 'store' || env.LANE == 'testers' || env.LANE == 'iaploc'
+        if: env.LANE == 'beta' || env.LANE == 'metadata' || env.LANE == 'all' || env.LANE == 'submit' || env.LANE == 'resubmit' || env.LANE == 'store' || env.LANE == 'testers' || env.LANE == 'iaploc' || env.LANE == 'register'
         run: |
           set -o pipefail
           if ! scripts/ship.sh "${{ env.GAME }}" "${{ env.LANE }}" 2>&1 | tee ship.log; then

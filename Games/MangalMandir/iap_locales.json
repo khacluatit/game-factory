@@ -1,0 +1,7 @@
+[
+ {"productId": "com.beemob.mangalmandir.deepmala", "locales": {"hi": {"name": "दीपमाला", "desc": "रात में पूरे मंदिर में सैकड़ों दीये"}}},
+ {"productId": "com.beemob.mangalmandir.flowers", "locales": {"hi": {"name": "गेंदा सजावट", "desc": "पूरे मंदिर में गेंदे की माला और तोरण"}}},
+ {"productId": "com.beemob.mangalmandir.sphatik", "locales": {"hi": {"name": "स्फटिक माला", "desc": "जप के लिए स्फटिक की माला"}}},
+ {"productId": "com.beemob.mangalmandir.chandan", "locales": {"hi": {"name": "रक्त चंदन माला", "desc": "जप के लिए लाल चंदन की माला"}}},
+ {"productId": "com.beemob.mangalmandir.goldmala", "locales": {"hi": {"name": "स्वर्ण रुद्राक्ष", "desc": "सोने की टोपी वाली रुद्राक्ष माला"}}}
+]

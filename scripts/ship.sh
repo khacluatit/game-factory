@@ -16,6 +16,7 @@ case "$LANE" in
   resubmit) fastlane resubmit ;;
   iaploc)   fastlane iaploc ;;
   store)    fastlane store ;;
+  register) fastlane register ;;
   testers)  fastlane testers ;;
   *) echo "lane không hợp lệ: $LANE"; exit 1 ;;
 esac

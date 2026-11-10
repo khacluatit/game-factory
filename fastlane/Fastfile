@@ -32,6 +32,19 @@ platform :ios do
     )
   end
 
+  desc "Đăng ký Bundle ID (qua API key, không cần Apple ID) — chạy 1 lần/game trước khi tạo app trên App Store Connect"
+  lane :register do
+    api = Spaceship::ConnectAPI
+    if api::BundleId.find(@bid)
+      UI.message("Bundle ID #{@bid} đã có")
+    else
+      api::BundleId.create(name: ENV.fetch("APP_DISPLAY_NAME"), identifier: @bid, platform: "IOS")
+      UI.success("✅ Đã đăng ký Bundle ID #{@bid}")
+    end
+    app = api::App.find(@bid)
+    UI.message(app ? "App record: #{app.id}" : "Chưa có app record trên App Store Connect")
+  end
+
   desc "Build Release + upload TestFlight"
   # Mỗi lần CI build (ký tự động) tạo 1 chứng chỉ "Apple Development: Created via API" trên máy ảo rồi bỏ đó.
   # Thu hồi các chứng chỉ loại này đã tạo hơn 2 giờ (không đụng chứng chỉ Distribution, không ảnh hưởng app đã phát hành).

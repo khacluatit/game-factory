@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Mangal Mandir</title>
+<style>
+:root {
+  --ink: #FFF6E8; --ink-soft: #F2D9A8; --saffron: #E46A1E; --saffron-hi: #F2963A; --maroon: #5A2A16; --maroon-deep: #3A1C10; --night: #2A140C;
+  --gold: #C9A24A; --gold-hi: #F2B33D; --marble: #F4ECDF; --marble-2: #E9DFD0; --brown: #2A140C; --brown-soft: #6B4A30; --line: rgba(201, 162, 74, 0.85);
+  --font: -apple-system, system-ui, "Kohinoor Devanagari", "Devanagari Sangam MN", sans-serif;
+  --deva: "Kohinoor Devanagari", "Devanagari Sangam MN", "Noto Serif Devanagari", "Noto Sans Devanagari", serif;
+  --serif: "New York", Georgia, "Kohinoor Devanagari", serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+html, body { margin: 0; height: 100%; background: #1C0E09; color: var(--ink); font-family: var(--font); overflow: hidden; }
+[hidden] { display: none !important; }
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+button { font-family: var(--font); cursor: pointer; }
+button:active { transform: scale(0.97); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.deva { font-family: var(--deva); }
+.glass { background: rgba(42, 20, 12, 0.84); border: 1.5px solid var(--line); box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
+.top { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; pointer-events: none; }
+.top > * { pointer-events: auto; }
+.chip { border-radius: 14px; padding: 7px 13px; font-size: 15px; font-weight: 600; color: var(--ink); text-align: left; }
+.chip b { display: block; font-family: var(--deva); font-size: 16px; }
+.chip small { display: block; font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+.icons { display: flex; gap: 8px; align-items: center; }
+.round { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--ink); padding: 0; }
+.round svg { width: 21px; height: 21px; }
+.banner { position: fixed; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 72px); color: var(--ink); border-radius: 12px; padding: 7px 14px; font-size: 13px; font-weight: 600; white-space: nowrap; max-width: 92%; overflow: hidden; text-overflow: ellipsis; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); top: 40%; background: var(--marble); border: 2px solid var(--gold); color: var(--brown); border-radius: 18px; padding: 16px 20px; font-size: 15px; font-weight: 700; text-align: center; max-width: 86%; display: flex; flex-direction: column; gap: 10px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.45); z-index: 5; }
+.toast svg { width: 64px; height: 64px; }
+.toast .row { width: auto; }
+.toast button { height: 42px; padding: 0 16px; border-radius: 12px; border: 0; font-weight: 700; font-size: 14px; }
+.bottom { position: fixed; left: 0; right: 0; bottom: 0; padding: 0 14px calc(env(safe-area-inset-bottom, 0px) + 14px); display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
+.bottom > * { pointer-events: auto; }
+.hint { font-size: 13px; color: var(--ink-soft); text-align: center; text-shadow: 0 1px 6px rgba(0,0,0,0.85); pointer-events: none !important; }
+.row { display: flex; gap: 10px; width: 100%; max-width: 480px; align-items: center; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 480px; }
+.act { height: 58px; border-radius: 14px; background: var(--maroon); border: 1.5px solid var(--gold); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; }
+.act b { font-family: var(--deva); font-size: 17px; font-weight: 700; line-height: 1.15; }
+.act span { font-size: 12px; color: var(--ink-soft); }
+.act.primary { background: var(--saffron); border-color: var(--gold-hi); }
+.act.primary span { color: var(--ink); }
+.act.done::after { content: "✓"; position: absolute; }
+.pill { height: 44px; padding: 0 16px; border-radius: 22px; border: 1.5px solid var(--gold); background: var(--marble); color: var(--brown); font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.pill.dark { background: rgba(42,20,12,0.82); color: var(--ink); }
+.pill.gold { background: var(--saffron); color: var(--ink); border-color: var(--gold-hi); }
+.pill svg { width: 22px; height: 22px; }
+.name { text-align: center; text-shadow: 0 2px 12px rgba(0,0,0,0.85); pointer-events: none !important; }
+.name b { display: block; font-family: var(--deva); font-size: 28px; font-weight: 700; }
+.name span { font-size: 13px; color: var(--ink-soft); }
+.big { width: 100%; max-width: 480px; height: 56px; border-radius: 14px; border: 1.5px solid var(--gold-hi); background: var(--saffron); color: var(--ink); font-weight: 700; font-size: 16px; }
+.big.alt { background: var(--maroon); border-color: var(--gold); }
+.tag { position: fixed; transform: translate(-50%, -100%); background: var(--marble); border: 1px solid var(--gold); color: var(--brown); font-size: 12px; padding: 4px 9px; border-radius: 8px; pointer-events: none; white-space: nowrap; }
+.head { position: fixed; left: 0; right: 0; top: 0; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.head .t { text-align: center; flex: 1; text-shadow: 0 1px 8px rgba(0,0,0,0.85); }
+.head .t b { display: block; font-family: var(--deva); font-size: 18px; }
+.head .t span { font-size: 12px; color: var(--ink-soft); }
+.count { min-width: 64px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; padding: 0 12px; }
+.card { width: 100%; max-width: 480px; padding: 14px 16px; border-radius: 16px; background: rgba(42,20,12,0.86); border: 1px solid var(--maroon); display: flex; flex-direction: column; gap: 5px; }
+.card .d { font-family: var(--deva); font-size: 20px; font-weight: 700; color: #FFD875; line-height: 1.35; }
+.card .r { font-size: 13.5px; color: var(--ink-soft); font-style: italic; }
+.card .m { font-size: 13px; color: #D9C4A0; line-height: 1.4; }
+#ring { position: fixed; width: 260px; height: 260px; transform: translate(-50%, -50%); pointer-events: none; }
+#glow { position: fixed; inset: 0; background: radial-gradient(circle at 50% 60%, rgba(255,190,90,0.55), rgba(255,140,40,0) 65%); opacity: 0; transition: opacity 0.6s; pointer-events: none; }
+#malaC { position: fixed; left: 50%; top: 52%; transform: translate(-50%, -50%); width: min(92vw, 420px); height: min(92vw, 420px); touch-action: none; }
+.jnum { position: fixed; left: 50%; top: 52%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; text-shadow: 0 2px 12px rgba(0,0,0,0.8); }
+.jnum b { display: block; font-size: 56px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.jnum span { font-size: 14px; color: var(--ink-soft); }
+.malas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; max-width: 480px; }
+.malas button { height: 56px; border-radius: 12px; border: 1.5px solid #6B4A30; background: rgba(58,28,16,0.9); color: var(--ink); font-size: 12px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.malas button.sel { border: 2px solid var(--gold-hi); background: var(--maroon); }
+.malas button i { font-style: normal; color: var(--ink-soft); font-size: 11px; }
+/* reader */
+.reader { position: fixed; inset: 0; display: flex; flex-direction: column; pointer-events: none; }
+.reader > * { pointer-events: auto; }
+.reader .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,8,5,0.1) 0%, rgba(20,8,5,0.55) 40%, rgba(20,8,5,0.88) 100%); pointer-events: none; }
+.scroll { position: relative; margin: auto 14px 0; background: var(--marble); color: var(--brown); border: 2px solid var(--gold); border-radius: 18px; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 12px; min-height: 280px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
+.scroll .ln { display: flex; flex-direction: column; gap: 3px; transition: opacity 0.3s; }
+.scroll .ln.dim { opacity: 0.4; }
+.scroll .d { font-family: var(--deva); font-size: 19px; line-height: 1.45; }
+.scroll .ln.cur .d { font-size: 25px; color: #8A2412; font-weight: 700; }
+.scroll .r { font-size: 13px; color: var(--brown-soft); font-style: italic; }
+.scroll .ln.cur .r { font-size: 15px; }
+.scroll .m { font-size: 13.5px; line-height: 1.45; color: var(--brown-soft); border-top: 1px solid #E2D2B6; padding-top: 9px; }
+.prog { position: relative; height: 5px; margin: 14px 16px 0; border-radius: 3px; background: rgba(255,246,232,0.2); }
+.prog i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--gold-hi); width: 0; transition: width 0.4s; }
+.ctrl { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 16px); gap: 10px; }
+.seg { display: flex; gap: 4px; padding: 4px; border-radius: 12px; border: 1.5px solid var(--line); background: rgba(20,8,5,0.45); }
+.seg button { height: 40px; padding: 0 12px; border-radius: 8px; border: 0; background: transparent; color: var(--ink); font-size: 14px; }
+.seg button.sel { background: var(--gold-hi); color: var(--brown); font-weight: 700; }
+/* sheets */
+.sheetwrap { position: fixed; inset: 0; z-index: 4; }
+.scrim { position: absolute; inset: 0; background: rgba(10,4,2,0.55); }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 86%; overflow-y: auto; background: var(--marble); color: var(--brown); border-radius: 22px 22px 0 0; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 22px); display: flex; flex-direction: column; gap: 12px; -webkit-user-select: text; }
+.sheet.full { top: calc(env(safe-area-inset-top, 0px) + 30px); max-height: none; }
+.grab { width: 40px; height: 5px; border-radius: 3px; background: #CDBB9C; margin: 0 auto 2px; }
+.shead { display: flex; justify-content: space-between; align-items: center; }
+.shead h2 { margin: 0; font-size: 20px; font-family: var(--serif); }
+.label { font-size: 13px; font-weight: 700; color: var(--brown-soft); margin-top: 4px; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.item { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #FFFBF4; border: 1px solid #E2D2B6; border-radius: 14px; padding: 12px 14px; }
+.item .t { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.item .t b { font-size: 15px; }
+.item .t span { font-size: 12.5px; color: var(--brown-soft); }
+.item .p { font-weight: 700; }
+.tray { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tray button { height: 116px; border-radius: 14px; border: 1.5px solid #C9A47A; background: #FFFBF4; color: var(--brown); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 4px; }
+.tray button.off { opacity: 0.45; }
+.tray svg { width: 46px; height: 46px; }
+.tray b { font-family: var(--deva); font-size: 15px; }
+.tray span { font-size: 11.5px; color: var(--brown-soft); }
+.note { font-size: 12px; color: var(--brown-soft); line-height: 1.4; }
+.sw { width: 52px; height: 32px; border-radius: 16px; border: 0; background: #CDBB9C; position: relative; flex-shrink: 0; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 26px; height: 26px; border-radius: 13px; background: #fff; transition: left 0.2s; }
+.sw[aria-checked="true"] { background: var(--saffron); }
+.sw[aria-checked="true"]::after { left: 23px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { height: 40px; padding: 0 14px; border-radius: 20px; border: 1.5px solid #C9A47A; background: #FFFBF4; color: var(--brown); font-size: 14px; }
+.chips button.sel { background: var(--saffron); color: var(--ink); border-color: var(--saffron); font-weight: 700; }
+select { height: 44px; border-radius: 12px; border: 1.5px solid #C9A47A; background: #FFFBF4; color: var(--brown); font-size: 15px; padding: 0 10px; font-family: var(--font); }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; }
+.cal .h { font-size: 11.5px; font-weight: 700; color: var(--brown-soft); }
+.cal .c { min-height: 50px; border-radius: 10px; background: #FFFBF4; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; gap: 1px; }
+.cal .c small { font-size: 9px; font-weight: 600; color: var(--brown-soft); line-height: 1.1; }
+.cal .c.today { background: var(--saffron); color: var(--ink); }
+.cal .c.today small { color: var(--ink); }
+.cal .c.fest { background: #F2D9A8; }
+.cal .c.e { background: transparent; }
+.cal .c i { width: 6px; height: 6px; border-radius: 3px; background: #B8321F; display: block; }
+.link { background: none; border: 0; color: #8A2412; font-weight: 700; font-size: 14px; padding: 8px 0; text-align: left; }
+.pick { display: flex; flex-direction: column; gap: 8px; }
+.pick button { text-align: left; background: #FFFBF4; border: 1.5px solid #E2D2B6; border-radius: 14px; padding: 13px 16px; color: var(--brown); display: flex; flex-direction: column; gap: 3px; }
+.pick b { font-size: 16px; }
+.pick b .deva { font-size: 17px; }
+.pick span { font-size: 12.5px; color: var(--brown-soft); }
+/* onboarding & coach */
+.ob { position: fixed; inset: 0; background: linear-gradient(180deg, #3A1C10 0%, #1C0E09 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 30px 26px calc(env(safe-area-inset-bottom, 0px) + 30px); text-align: center; z-index: 6; }
+.ob h1 { margin: 0; font-family: var(--serif); font-size: 26px; }
+.ob p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink-soft); max-width: 420px; }
+.ob .dots { display: flex; gap: 6px; }
+.ob .dots i { width: 8px; height: 8px; border-radius: 4px; background: rgba(255,246,232,0.3); }
+.ob .dots i.on { background: var(--gold-hi); }
+.ob .item { width: 100%; max-width: 420px; color: var(--brown); text-align: left; }
+.coach { position: fixed; left: 50%; transform: translateX(-50%); width: min(88%, 380px); background: var(--marble); color: var(--brown); border: 2px solid var(--gold); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; z-index: 3; box-shadow: 0 10px 30px rgba(0,0,0,0.45); }
+.coach b { font-size: 16px; }
+.coach p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--brown-soft); }
+.coach .row { justify-content: space-between; }
+#fade { position: fixed; inset: 0; background: #000; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 7; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="glow"></div>
+
+<div class="top" id="topBar">
+  <button class="chip glass" id="tithiChip"><b id="wday"></b><small id="tithi"></small></button>
+  <div class="icons">
+    <div class="chip glass" id="streak" aria-live="polite"></div>
+    <button class="round glass" id="bStore" aria-label="Decorations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c2 3 4 4 4 7a4 4 0 0 1-8 0c0-3 2-4 4-7z"/><path d="M5 20h14"/><path d="M8 20l1-4h6l1 4"/></svg></button>
+    <button class="round glass" id="bSettings" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+</div>
+<div class="banner glass" id="banner" hidden></div>
+
+<!-- darshan -->
+<div class="bottom" id="darshanUI" hidden>
+  <div class="name"><b id="dName"></b><span id="dSub"></span></div>
+  <div class="row" style="justify-content:space-between">
+    <button class="pill" id="bPrev"></button>
+    <button class="pill dark" id="bPari" aria-label="Parikrama"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-3-6.2"/><path d="M17 2v4h-4"/></svg></button>
+    <button class="pill" id="bNext"></button>
+  </div>
+  <div class="grid2">
+    <button class="act primary" id="aAarti"><b>आरती</b><span></span></button>
+    <button class="act" id="aArpan"><b>अर्पण</b><span></span></button>
+    <button class="act" id="aJapa"><b>जप</b><span></span></button>
+    <button class="act" id="aPath"><b>पाठ</b><span></span></button>
+  </div>
+  <div class="row" style="justify-content:center">
+    <button class="pill dark" id="bAbhi" hidden></button>
+    <button class="pill dark" id="bYard"></button>
+  </div>
+</div>
+
+<!-- aarti -->
+<div id="aartiUI" hidden>
+  <div class="head"><button class="pill dark" id="aDone"></button><div class="t"><b id="aTitle"></b><span id="aSub"></span></div><div class="count glass" id="aCount"></div></div>
+  <svg id="ring" viewBox="0 0 260 260" aria-hidden="true"><circle cx="130" cy="130" r="118" fill="none" stroke="#F2D9A8" stroke-width="2.5" stroke-dasharray="7 11" opacity="0.85"/><path d="M226 66 L238 86 L216 86 Z" fill="#F2D9A8"/></svg>
+  <div class="bottom">
+    <div class="hint" id="aHint"></div>
+    <div class="card" id="lyr"></div>
+    <div class="row"><button class="act" id="bShankh" style="flex:1"><b>शंख</b><span></span></button><button class="act" id="bGhanta" style="flex:1"><b>घंटी</b><span></span></button></div>
+  </div>
+</div>
+
+<!-- japa -->
+<div id="japaUI" hidden>
+  <div class="head"><button class="pill dark" id="jDone"></button><div class="t"><b id="jTitle"></b><span id="jSub"></span></div><div class="count glass" id="jRound"></div></div>
+  <div class="bottom" style="top:calc(env(safe-area-inset-top,0px) + 66px);bottom:auto;padding-bottom:0"><div class="card" id="jMantra" style="text-align:center;align-items:center"></div></div>
+  <canvas id="malaC"></canvas>
+  <div class="jnum"><b id="jCount">0</b><span id="jOf"></span></div>
+  <div class="bottom"><div class="hint" id="jHint"></div><div class="malas" id="jMalas"></div></div>
+</div>
+
+<!-- path (reader) -->
+<div class="reader" id="pathUI" hidden>
+  <div class="shade"></div>
+  <div class="head" style="position:relative"><button class="pill dark" id="pStop"></button><div class="t"><b id="pTitle"></b><span id="pSub"></span></div><button class="pill dark" id="pNext" aria-label="Next">›</button></div>
+  <div class="scroll" id="pScroll"></div>
+  <div class="prog"><i id="pProg"></i></div>
+  <div class="ctrl"><div class="seg" id="pSpeed"><button data-v="0"></button><button data-v="1"></button><button data-v="2"></button></div><button class="act" id="pBell" style="width:64px;height:58px"><b>घंटी</b></button></div>
+</div>
+
+<!-- parikrama -->
+<div class="bottom" id="pariUI" hidden><div class="hint" id="pariHint"></div><div class="row" style="justify-content:center"><div class="count glass" id="pariCount"></div><button class="pill" id="pariStop"></button></div></div>
+
+<!-- abhishek -->
+<div id="abhiUI" hidden>
+  <div class="head"><button class="pill dark" id="abDone"></button><div class="t"><b>अभिषेक</b><span id="abSub"></span></div><div class="count glass" id="abCount"></div></div>
+  <div class="bottom"><div class="card" id="abText" style="text-align:center;align-items:center"></div><div class="hint" id="abHint"></div><div class="chips" id="abKind" style="justify-content:center"></div><button class="big" id="abPour"></button></div>
+</div>
+
+<!-- yard -->
+<div class="bottom" id="yardUI" hidden>
+  <div class="hint" id="yHint"></div>
+  <button class="big" id="yTemple"></button>
+  <div class="grid2"><button class="act" id="yTulsi"><b>तुलसी</b><span></span></button><button class="act" id="yArghya"><b>सूर्य अर्घ्य</b><span></span></button></div>
+  <button class="pill dark" id="yGate"></button>
+</div>
+
+<!-- arghya -->
+<div id="arghyaUI" hidden>
+  <div class="head"><button class="pill dark" id="agDone"></button><div class="t"><b>सूर्य अर्घ्य</b><span id="agSub"></span></div><div class="count glass" id="agCount"></div></div>
+  <div class="bottom"><div class="card" id="agText" style="text-align:center;align-items:center"></div><div class="hint" id="agHint"></div><button class="big" id="agPour"></button></div>
+</div>
+
+<!-- gate -->
+<div class="bottom" id="gateUI" hidden>
+  <div class="hint" id="gHint"></div>
+  <button class="big" id="gGo"></button>
+</div>
+<div class="bottom" id="tourUI" hidden><div class="hint" id="tHint"></div></div>
+
+<div class="tag" id="tag" hidden></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<div class="coach" id="coach" hidden><b id="coachT"></b><p id="coachB"></p><div class="row"><button class="link" id="coachSkip"></button><button class="pill gold" id="coachOk"></button></div></div>
+<div class="sheetwrap" id="sheetWrap" hidden><div class="scrim" id="scrim"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="ob" id="ob" hidden></div>
+<div id="fade"></div>
+
+<script src="three.min.js"></script>
+<script src="panchang.js"></script>
+<script src="i18n.js"></script>
+<script src="texts.js"></script>
+<script src="figures.js"></script>
+<script src="deities.js"></script>
+<script src="mandir.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
