@@ -101,7 +101,7 @@
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#1C0E09');
   scene.fog = new THREE.FogExp2('#2A1810', 0.03);
-  const camera = new THREE.PerspectiveCamera(55, 1, 0.08, 400);
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.15, 260);
   const std = (color, o) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.75, metalness: 0 }, o || {}));
   function mesh(geo, mat, x, y, z, shadow, parent) { const m = new THREE.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (shadow !== false) { m.castShadow = true; m.receiveShadow = true; } (parent || scene).add(m); return m; }
   function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }

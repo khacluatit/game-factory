@@ -67,8 +67,8 @@
     // ================= SẢNH MANDAPA (bên trong) =================
     marbleTex.repeat.set(3, 5);
     const floor = put(scene, new THREE.PlaneGeometry(12, 19.2), marble, 0, 0, 0); floor.rotation.x = -Math.PI / 2; floor.castShadow = false; R.floor = floor;
-    const runner = put(scene, new THREE.PlaneGeometry(1.5, 14.5), std('#9A1E1A', { roughness: 0.95 }), 0, 0.004, 2.1); runner.rotation.x = -Math.PI / 2; runner.castShadow = false;
-    const rb = put(scene, new THREE.PlaneGeometry(1.62, 14.6), std('#D49A3A', { roughness: 0.9 }), 0, 0.002, 2.1); rb.rotation.x = -Math.PI / 2; rb.castShadow = false;
+    const runner = put(scene, new THREE.PlaneGeometry(1.5, 14.5), std('#9A1E1A', { roughness: 0.95 }), 0, 0.014, 2.1); runner.rotation.x = -Math.PI / 2; runner.castShadow = false;
+    const rb = put(scene, new THREE.PlaneGeometry(1.62, 14.6), std('#D49A3A', { roughness: 0.9 }), 0, 0.007, 2.1); rb.rotation.x = -Math.PI / 2; rb.castShadow = false;
     // tường
     put(scene, new THREE.BoxGeometry(12, 6.5, 0.3), plaster, 0, 3.25, -9.6);
     put(scene, new THREE.BoxGeometry(4.6, 6.5, 0.3), plaster, -3.7, 3.25, 9.6);
@@ -230,17 +230,17 @@
     for (const s of [-1, 1]) put(scene, new THREE.BoxGeometry(4.9, 6.6, 0.1), ext, s * 3.85, 3.3, 9.82);
     put(scene, new THREE.BoxGeometry(2.8, 2.95, 0.1), ext, 0, 5.12, 9.82);
     // chân nền (jagati) bậc cao + dải voi
-    put(scene, new THREE.BoxGeometry(13.6, 0.6, 23.2), redstone, 0, -0.29, 1.0);
-    put(scene, new THREE.BoxGeometry(13.8, 0.08, 23.4), redDark, 0, -0.02, 1.0, false);
+    put(scene, new THREE.BoxGeometry(13.6, 0.58, 23.2), redstone, 0, -0.32, 1.0);
+    put(scene, new THREE.BoxGeometry(13.8, 0.08, 23.4), redDark, 0, -0.14, 1.0, false);
     const gm = std('#FFFFFF', { map: gajaTex, roughness: 0.85 });
     { const t = gajaTex.clone(); t.needsUpdate = true; t.repeat.set(4, 1); const gmF = std('#FFFFFF', { map: t, roughness: 0.85 });
-      for (const s of [-1, 1]) { const f = put(scene, new THREE.PlaneGeometry(4.9, 0.55), gmF, s * 3.85, 0.33, 9.88, false); }
+      for (const s of [-1, 1]) { const f = put(scene, new THREE.PlaneGeometry(4.9, 0.55), gmF, s * 3.85, 0.33, 9.91, false); }
       const t2 = gajaTex.clone(); t2.needsUpdate = true; t2.repeat.set(16, 1); const gmS = std('#FFFFFF', { map: t2, roughness: 0.85 });
-      for (const s of [-1, 1]) { const f = put(scene, new THREE.PlaneGeometry(19.8, 0.55), gmS, s * 6.38, 0.33, 0, false); f.rotation.y = s * Math.PI / 2; } }
+      for (const s of [-1, 1]) { const f = put(scene, new THREE.PlaneGeometry(19.8, 0.55), gmS, s * 6.41, 0.33, 0, false); f.rotation.y = s * Math.PI / 2; } }
     // dải chạm dưới mái + hàng bình kalash trên mái hiên
     { const t = bandTex.clone(); t.needsUpdate = true; t.repeat.set(8, 1); const bm = std('#FFFFFF', { map: t, roughness: 0.8 });
-      put(scene, new THREE.PlaneGeometry(12.6, 0.6), bm, 0, 6.15, 9.88, false);
-      for (const s of [-1, 1]) { const b = put(scene, new THREE.PlaneGeometry(19.8, 0.6), bm, s * 6.38, 6.15, 0, false); b.rotation.y = s * Math.PI / 2; } }
+      put(scene, new THREE.PlaneGeometry(12.6, 0.6), bm, 0, 6.15, 9.91, false);
+      for (const s of [-1, 1]) { const b = put(scene, new THREE.PlaneGeometry(19.8, 0.6), bm, s * 6.41, 6.15, 0, false); b.rotation.y = s * Math.PI / 2; } }
     put(scene, new THREE.BoxGeometry(13.2, 0.18, 20.4), redstone, 0, 6.5, 0);
     // cột ốp (pilaster) mặt tiền và hai bên
     const pil = (x, z, ry) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
@@ -260,12 +260,12 @@
     // cửa sổ jali nhìn từ ngoài (ánh đèn bên trong hắt ra)
     for (const s of [-1, 1]) for (const z of [-7.6, -0.6, 8.2]) {
       const pm = new THREE.MeshBasicMaterial({ color: '#F2C890', alphaMap: jaliTex, transparent: true }); windowMats.push(pm);
-      const pn = put(scene, new THREE.PlaneGeometry(1.3, 2.0), pm, s * 6.39, 3.4, z, false); pn.rotation.y = s * Math.PI / 2;
-      const bk = put(scene, new THREE.PlaneGeometry(1.3, 2.0), std('#3A2418'), s * 6.385, 3.4, z, false); bk.rotation.y = s * Math.PI / 2;
+      const pn = put(scene, new THREE.PlaneGeometry(1.3, 2.0), pm, s * 6.42, 3.4, z, false); pn.rotation.y = s * Math.PI / 2;
+      const bk = put(scene, new THREE.PlaneGeometry(1.3, 2.0), std('#3A2418'), s * 6.39, 3.4, z, false); bk.rotation.y = s * Math.PI / 2;
       const fr = put(scene, new THREE.BoxGeometry(0.12, 2.3, 1.6), redstone, s * 6.36, 3.4, z); const top = put(scene, new THREE.BoxGeometry(0.4, 0.1, 1.9), redstone, s * 6.5, 4.62, z); top.rotation.z = -s * 0.3;
     }
     // biểu tượng Om trên cửa chính
-    put(scene, new THREE.CylinderGeometry(0.56, 0.56, 0.1, 32), redstone, 0, 7.05, 10.0).rotation.x = Math.PI / 2; put(scene, new THREE.CircleGeometry(0.48, 32), std('#FFFFFF', { map: omTex, roughness: 0.6 }), 0, 7.05, 10.06, false); put(scene, new THREE.BoxGeometry(0.5, 0.5, 0.3), redstone, 0, 6.55, 9.95);
+    put(scene, new THREE.CylinderGeometry(0.56, 0.56, 0.1, 32), redstone, 0, 7.05, 10.0).rotation.x = Math.PI / 2; put(scene, new THREE.CircleGeometry(0.48, 32), std('#FFFFFF', { map: omTex, roughness: 0.6 }), 0, 7.05, 10.09, false); put(scene, new THREE.BoxGeometry(0.5, 0.5, 0.3), redstone, 0, 6.55, 9.95);
     // hiên trước (ardha mandapa): 4 cột vuông bát giác + vòm nhiều múi (cusped arch) + vòm mái chhatri
     for (const x of [-2.2, -1.0, 1.0, 2.2]) {
       put(scene, new THREE.BoxGeometry(0.44, 0.5, 0.44), redstone, x, 0.25, 11.4);
@@ -294,7 +294,7 @@
       put(g, lathe([[0, 0], [0.06, 0], [0.09, 0.08], [0.04, 0.16], [0, 0.22]], 10), gold, 0, 1.25, 0); return g; };
     for (const s of [-1, 1]) chhatri(scene, s * 2.5, 3.96, 11.6, 0.9);
     for (let i = 0; i < 4; i++) { const top = -0.15 * (i + 1), h = top + 0.62; put(scene, new THREE.BoxGeometry(5.6 + i * 0.4, h, 0.42), i % 2 ? redstone : marble, 0, top - h / 2, 12.81 + i * 0.42); }
-    const porch = put(scene, new THREE.PlaneGeometry(5.8, 2.6), marble, 0, 0.02, 11.3); porch.rotation.x = -Math.PI / 2; porch.castShadow = false;
+    const porch = put(scene, new THREE.PlaneGeometry(5.8, 2.6), marble, 0, 0.0, 11.4); porch.rotation.x = -Math.PI / 2; porch.castShadow = false;
     put(scene, new THREE.BoxGeometry(2.3, 0.5, 0.06), std('#FFFFFF', { map: signTex('मंगल मंदिर', opts.label || ''), roughness: 0.5 }), 0, 4.32, 12.02, false);
     // chuông treo ở hiên
     for (const x of [-1.6, 1.6]) { put(scene, new THREE.CylinderGeometry(0.006, 0.006, 0.6, 4), brass, x, 3.3, 11.0, false); put(scene, lathe([[0, 0], [0.05, -0.02], [0.1, -0.14], [0.11, -0.2]], 16), brass, x, 3.0, 11.0); }
@@ -336,9 +336,9 @@
     flagMesh(SH, 0.27, 13.35, 0, 1.6, 0.9);
 
     // ================= SÂN =================
-    const grass = put(scene, new THREE.PlaneGeometry(60, 70), std('#FFFFFF', { map: grassTex, roughness: 0.95 }), 0, -0.6, 22); grass.rotation.x = -Math.PI / 2; grass.castShadow = false; grassTex.repeat.set(14, 16);
-    const yardS = put(scene, new THREE.PlaneGeometry(28, 26), std('#FFFFFF', { map: sandTex, roughness: 0.85 }), 0, -0.58, 25.4); yardS.rotation.x = -Math.PI / 2; yardS.castShadow = false; sandTex.repeat.set(9, 8);
-    const path = put(scene, new THREE.PlaneGeometry(2.6, 26), std('#FFFFFF', { map: marbleTex, roughness: 0.4 }), 0, -0.57, 25.4); path.rotation.x = -Math.PI / 2; path.castShadow = false;
+    const grass = put(scene, new THREE.PlaneGeometry(60, 70), std('#FFFFFF', { map: grassTex, roughness: 0.95 }), 0, -0.62, 22); grass.rotation.x = -Math.PI / 2; grass.castShadow = false; grassTex.repeat.set(14, 16);
+    const yardS = put(scene, new THREE.PlaneGeometry(28, 26), std('#FFFFFF', { map: sandTex, roughness: 0.85 }), 0, -0.595, 25.4); yardS.rotation.x = -Math.PI / 2; yardS.castShadow = false; sandTex.repeat.set(9, 8);
+    const path = put(scene, new THREE.PlaneGeometry(2.6, 26), std('#FFFFFF', { map: marbleTex, roughness: 0.4 }), 0, -0.575, 25.4); path.rotation.x = -Math.PI / 2; path.castShadow = false;
     // tường bao thấp quanh sân
     const wallM = std('#E9D3B0', { roughness: 0.9 });
     for (const s of [-1, 1]) { put(scene, new THREE.BoxGeometry(0.5, 2.2, 26), wallM, s * 14.2, 0.5, 25.4); put(scene, new THREE.BoxGeometry(11.6, 2.2, 0.5), wallM, s * 8.4, 0.5, 38.6); for (let z = 13; z <= 38; z += 3.2) put(scene, new THREE.BoxGeometry(0.7, 0.3, 0.7), saffron, s * 14.2, 1.75, z, false); }
@@ -380,7 +380,7 @@
       ring(215, 24, '#E2361E', 30); ring(215, 24, '#F2B416', 14); ring(170, 16, '#1E8A5A', 34); ring(170, 16, '#F6F0E6', 12); ring(120, 12, '#7A2A9A', 30); ring(120, 12, '#F28C1E', 12);
       g.fillStyle = '#C8162C'; g.beginPath(); g.arc(c, c, 70, 0, Math.PI * 2); g.fill(); ring(48, 8, '#F2B416', 18); g.fillStyle = '#F6F0E6'; g.beginPath(); g.arc(c, c, 20, 0, Math.PI * 2); g.fill();
     });
-    const rg = put(scene, new THREE.CircleGeometry(1.15, 48), std('#FFFFFF', { map: rangoliTex, roughness: 0.95, transparent: true }), 0, -0.565, 15.1, false); rg.rotation.x = -Math.PI / 2;
+    const rg = put(scene, new THREE.CircleGeometry(1.15, 48), std('#FFFFFF', { map: rangoliTex, roughness: 0.95, transparent: true }), 0, -0.55, 15.1, false); rg.rotation.x = -Math.PI / 2;
     for (const s of [-1, 1]) { const f = put(scene, new THREE.SphereGeometry(0.06, 8, 6), std('#FFC85A', { emissive: '#FF9A3A', emissiveIntensity: 0.6 }), s * 1.3, -0.52, 15.1, false); R.deepa.push(V3(s * 1.3, -0.45, 15.1)); }
     // kệ để dép ngay sau cổng
     const rack = new THREE.Group(); rack.position.set(2.9, -0.6, 35.6); rack.rotation.y = -Math.PI / 2; scene.add(rack); R.rack = rack;
