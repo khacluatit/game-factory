@@ -171,6 +171,11 @@ platform :ios do
     UI.user_error!("Build #{build.version} chưa xử lý xong (#{build.processing_state})") unless build.processing_state == "VALID"
     ver.select_build(build_id: build.id)
     UI.success("Đã gắn build #{build.version} vào #{ver.version_string}")
+    begin
+      ver.update(attributes: { release_type: "MANUAL" }) # Luật tự bấm Release sau khi duyệt
+    rescue StandardError => e
+      UI.important("Không đặt được phát hành thủ công: #{e.message}")
+    end
     end
 
     # IAP lần đầu phải nộp cùng phiên bản app
@@ -239,14 +244,27 @@ platform :ios do
     iap_fail = []
     iaps.each do |i|
       a = i["attributes"]; st = a["state"]
-      if st == "READY_TO_SUBMIT"
-        begin
+      next if st == "APPROVED"
+      begin
+        # API 4.4+: IAP nộp theo "inAppPurchaseVersion" như một item của review submission (cách cũ inAppPurchaseSubmissions bị chặn với IAP non-consumable đầu tiên)
+        vs = rc.get("v2/inAppPurchases/#{i['id']}/versions").body["data"] || []
+        v = vs.find { |x| x["attributes"]["state"] == "PREPARE_FOR_SUBMISSION" }
+        if v
+          rc.post("v1/reviewSubmissionItems", { data: { type: "reviewSubmissionItems", relationships: {
+            reviewSubmission: { data: { type: "reviewSubmissions", id: sub.id } },
+            inAppPurchaseVersion: { data: { type: "inAppPurchaseVersions", id: v["id"] } } } } })
+          UI.success("IAP #{a['productId']}: đã đưa vào lượt duyệt (version)")
+        elsif st == "READY_TO_SUBMIT"
           rc.post("v1/inAppPurchaseSubmissions", { data: { type: "inAppPurchaseSubmissions", relationships: { inAppPurchaseV2: { data: { type: "inAppPurchases", id: i["id"] } } } } })
           UI.success("IAP #{a['productId']}: đã đưa vào lượt duyệt")
-        rescue StandardError => e
-          iap_fail << a["productId"]
-          UI.important("IAP #{a['productId']}: không nộp được — #{e.message}")
+        else
+          UI.important("IAP #{a['productId']}: trạng thái #{st}, không có bản nháp để nộp")
         end
+      rescue StandardError => e
+        iap_fail << a["productId"]
+        UI.important("IAP #{a['productId']}: không nộp được — #{e.message}")
+      end
+      if false
       else
         UI.important("IAP #{a['productId']}: trạng thái #{st} (không nộp)")
       end
