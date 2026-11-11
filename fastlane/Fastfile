@@ -111,6 +111,33 @@ platform :ios do
     if Dir.exist?(shots)
       deliver(common.merge(screenshots_path: shots, overwrite_screenshots: true, skip_metadata: true))
     end
+    # 1b) Thông tin liên hệ App Review: app mới chưa có → chép từ app khác của tài khoản (REVIEW_CONTACT_FROM, mặc định Quiet Pagoda)
+    begin
+      api = Spaceship::ConnectAPI
+      app = api::App.find(@bid)
+      ver = app && app.get_edit_app_store_version(platform: api::Platform::IOS)
+      if ver
+        cur = (ver.fetch_app_store_review_detail rescue nil)
+        if cur.nil? || cur.contact_first_name.to_s.empty?
+          src_app = api::App.find(ENV["REVIEW_CONTACT_FROM"] || "com.beemob.quietpagoda")
+          src = nil
+          if src_app
+            vers = src_app.get_app_store_versions(includes: "appStoreReviewDetail") rescue []
+            vers.each { |v| d = (v.fetch_app_store_review_detail rescue nil); (src = d; break) if d && !d.contact_first_name.to_s.empty? }
+          end
+          if src
+            attrs = { contact_first_name: src.contact_first_name, contact_last_name: src.contact_last_name,
+                      contact_phone: src.contact_phone, contact_email: src.contact_email, demo_account_required: false }
+            if cur then cur.update(attributes: attrs) else ver.create_app_store_review_detail(attributes: attrs) end
+            UI.success("Đã chép thông tin liên hệ App Review từ #{src_app.name}")
+          else
+            UI.important("⚠️ Không tìm thấy thông tin liên hệ App Review để chép")
+          end
+        end
+      end
+    rescue StandardError => e
+      UI.important("⚠️ Liên hệ App Review lỗi (#{e.message})")
+    end
     # 2) Text metadata — app mới đôi khi bị lỗi "No data" của spaceship; không làm hỏng cả lane
     begin
       deliver(common.merge(skip_screenshots: true))
