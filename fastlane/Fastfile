@@ -117,6 +117,16 @@ platform :ios do
     rescue StandardError => e
       UI.important("⚠️ Metadata text lỗi (#{e.message}) — điền tay trên App Store Connect")
     end
+    # 3) Xếp hạng độ tuổi (metadata/age_rating.json) — tách riêng, lỗi thì báo để điền tay
+    rating = "#{@dir}/metadata/age_rating.json"
+    if File.exist?(rating)
+      begin
+        deliver(common.merge(skip_screenshots: true, skip_metadata: true, app_rating_config_path: rating))
+        UI.success("Đã đặt xếp hạng độ tuổi")
+      rescue StandardError => e
+        UI.important("⚠️ Age rating lỗi (#{e.message}) — điền tay trên App Store Connect")
+      end
+    end
   end
 
   desc "Gắn build (SUBMIT_BUILD hoặc build mới nhất) vào phiên bản, nộp kèm IAP, rồi Submit for Review"

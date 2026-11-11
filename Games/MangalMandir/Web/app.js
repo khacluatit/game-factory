@@ -71,7 +71,7 @@
     S.lastDay = k; S.visits++; save(); renderTop();
   }
   const practiced = () => { rollDay(); markVisit(); };
-  if (SHOT) Object.assign(S, { streak: 7, visits: 23, onboarded: true, tut: 9, japaN: 54, japaRound: 2, owned: { deepmala: true, flowers: true } });
+  if (SHOT) Object.assign(S, { streak: 7, visits: 23, onboarded: true, tut: 9, japaN: 54, japaRound: 2, owned: SHOT === 'store' ? {} : { deepmala: true, flowers: true } });
 
   // ---------------- time ----------------
   const hourNow = () => { const d = new Date(); return d.getHours() + d.getMinutes() / 60; };
@@ -972,6 +972,7 @@
     else if (SHOT === 'japa') { cur = params.get('d') || 'shiva'; startJapa(); }
     else if (SHOT === 'path') { cur = 'hanuman'; startPath(window.TEXTS.chalisa); reading.i = 6; renderPath(); }
     else if (SHOT === 'panchang') { setMode('darshan'); renderDarshan(); openPanchang(); }
+    else if (SHOT === 'store') { setMode('darshan'); renderDarshan(); openStore(); }
     else if (SHOT === 'arpan') { cur = params.get('d') || 'lakshmi'; setMode('darshan'); renderDarshan(); openArpan(); }
     else if (SHOT === 'abhishek') { cur = 'shiva'; startAbhi(); abhi.hold = true; }
     else if (SHOT === 'arghya') { argh = { poured: 1, hold: true, need: 6, done: false, line: 1, lt: 0 }; setMode('arghya'); lota.visible = true; renderArghya(); }
