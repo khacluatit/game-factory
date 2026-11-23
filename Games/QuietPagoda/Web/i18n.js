@@ -126,7 +126,7 @@
       chantDone: '한 번 독송을 마쳤어요', totChant: '독송', chantToday: '오늘 독송', chantTap: '눌러서 독경', meaning: '뜻',
       sutraSub: { heart: '매일 독송', 'pho-mon': '나와 가족의 평안을 비는 기도', 'sam-hoi': '참회로 마음을 새롭게', 'hoi-huong': '독경을 마치며' },
       tut1t: '방석 누르기', tut1b: '빈 방석을 눌러 부처님 앞에 앉으세요.', tut2t: '수행 고르기', tut2b: '절, 합장, 염주, 목탁, 독경 중에서 고르세요. 108번을 채우면 연못에 연꽃이 피어요.',
-      tut3t: '향 올리기', tut3b: '향 올리기를 누르면 매일 향 세 대를 무료로 올릴 수 있어요.', skip: '건너뛰기', tutAgain: '안내 다시 보기', gotIt: '알겠어요', language: '언어', langAuto: '기기 설정', toYard: '절 마당으로', yardName: '절 마당', toHall: '법당으로', bellTower: '범종각', pondBtn: '연못', toGate: '일주문', enterTemple: '절에 들어가기', ringRoll: '범종 치기', back: '절 마당', gateHint: '일주문 · 들어가려면 누르세요', bellHint: '종을 눌러 한 번 치기', tapSkip: '누르면 빨리 가기', qaOut: '관세음보살', qaHint: '참배객들이 향을 올리고 보살님께 평안을 빕니다', qaBtn: '관음상', bodhiTag: '보리수', khoaLe: '예불', khoaLeSub: '종, 향, 반야심경, 참회, 회향', voice: '독송 소리', ritualTap: '눌러서 예불 시작', plaque: '고요한 절'
+      tut3t: '향 올리기', tut3b: '향 올리기를 누르면 매일 향 세 대를 무료로 올릴 수 있어요.', skip: '건너뛰기', tutAgain: '안내 다시 보기', gotIt: '알겠어요', language: '언어', langAuto: '기기 설정', yardName: '절 마당', toHall: '법당으로', bellTower: '범종각', pondBtn: '연못', toGate: '일주문', enterTemple: '절에 들어가기', ringRoll: '범종 치기', back: '절 마당', gateHint: '일주문 · 들어가려면 누르세요', bellHint: '종을 눌러 한 번 치기', tapSkip: '누르면 빨리 가기', qaOut: '관세음보살', qaHint: '참배객들이 향을 올리고 보살님께 평안을 빕니다', qaBtn: '관음상', bodhiTag: '보리수', khoaLe: '예불', khoaLeSub: '종, 향, 반야심경, 참회, 회향', voice: '독송 소리', ritualTap: '눌러서 예불 시작', plaque: '고요한 절'
     },
     ja: {
       title: '静心寺', tapCushion: '空いている座布団をタップして座る', seatTaken: 'この席は使われています', walking: '席へ向かっています', seated: '仏前に座っています',
@@ -157,7 +157,7 @@
       chantDone: '一巻読み終えました', totChant: '読経', chantToday: '今日の読経', chantTap: 'タップして読経', meaning: '意味',
       sutraSub: { heart: '毎日のお勤めに', 'pho-mon': '自分と家族の平安を祈る', 'sam-hoi': '懺悔して心を新たに', 'hoi-huong': '読経の結び' },
       tut1t: '座布団をタップ', tut1b: '空いている座布団をタップして仏前に座ります。', tut2t: '行を選ぶ', tut2b: '礼拝、合掌、数珠、木魚、読経から選びます。108回で池に蓮が咲きます。',
-      tut3t: 'お線香', tut3b: '「お線香をあげる」で毎日3本を無料で供えられます。', skip: 'スキップ', tutAgain: '案内をもう一度見る', gotIt: 'わかりました', language: '言語', langAuto: '端末に合わせる', toYard: '境内へ', yardName: '境内', toHall: '本堂へ', bellTower: '鐘楼', pondBtn: '蓮池', toGate: '山門', enterTemple: 'お寺に入る', ringRoll: '鐘を撞く', back: '境内', gateHint: '山門 · タップしてお寺に入る', bellHint: '鐘をタップして一打', tapSkip: 'タップで早送り', qaOut: '観世音菩薩', qaHint: '参拝者が線香を供え、菩薩さまに平安を祈ります', qaBtn: '観音像', bodhiTag: '菩提樹', khoaLe: '勤行', khoaLeSub: '鐘、焼香、般若心経、懺悔、回向', voice: '読み上げ', ritualTap: 'タップして勤行へ', plaque: ''
+      tut3t: 'お線香', tut3b: '「お線香をあげる」で毎日3本を無料で供えられます。', skip: 'スキップ', tutAgain: '案内をもう一度見る', gotIt: 'わかりました', language: '言語', langAuto: '端末に合わせる', yardName: '境内', toHall: '本堂へ', bellTower: '鐘楼', pondBtn: '蓮池', toGate: '山門', enterTemple: 'お寺に入る', ringRoll: '鐘を撞く', back: '境内', gateHint: '山門 · タップしてお寺に入る', bellHint: '鐘をタップして一打', tapSkip: 'タップで早送り', qaOut: '観世音菩薩', qaHint: '参拝者が線香を供え、菩薩さまに平安を祈ります', qaBtn: '観音像', bodhiTag: '菩提樹', khoaLe: '勤行', khoaLeSub: '鐘、焼香、般若心経、懺悔、回向', voice: '読み上げ', ritualTap: 'タップして勤行へ', plaque: ''
     },
     en: {
       title: 'Quiet Pagoda', tapCushion: 'Tap an empty cushion to sit', seatTaken: 'Someone is sitting here', walking: 'Walking to your seat', seated: 'Sitting before the Buddha',
@@ -192,6 +192,94 @@
     }
   };
   // Ngôn ngữ người dùng tự chọn trong Cài đặt (ưu tiên: ?lang= khi vừa đổi → trạng thái đã lưu → ngôn ngữ máy)
+  // ---- bản 1.3: các điểm trong chùa, lộ trình, bản đồ, Tết ----
+  const X = {
+    vi: {
+      aerialHint: 'Toàn cảnh chùa · chọn cách tham quan', routeGo: 'Đi theo lộ trình', freeGo: 'Dạo tự do', mapBtn: 'Bản đồ chùa', mapTitle: 'Bản đồ chùa',
+      pathHint: 'Lối đá có lan can · hồ bên trái có đảo Quan Âm', backPath: 'Lối vào chùa', intoYard: 'Vào sân chùa', monHint: 'Cổng thứ hai, hai trụ biểu đá hai bên',
+      yardHint: 'Sân gạch đỏ · đỉnh đồng giữa sân, tòa Tam bảo phía trước', yardHintTet: 'Sân chùa ngày Tết · chạm cây lộc để hái lộc đầu xuân',
+      mauBtn: 'Điện Mẫu', toBtn: 'Nhà Tổ', thapBtn: 'Vườn tháp', pathBtn: 'Lối vào',
+      mauHint: 'Điện Mẫu · Tam tòa Thánh Mẫu', toHint: 'Nhà Tổ · thờ các vị sư tổ của chùa', thapHint: 'Vườn tháp · tháp Tổ nhiều tầng ở giữa',
+      gateHint: 'Cổng tam quan · lầu trên là gác chuông',
+      stopName: ['Cổng tam quan', 'Lối đá có lan can', 'Đảo Quan Âm', 'Cổng thứ hai', 'Sân gạch, đỉnh đồng', 'Tòa Tam bảo', 'Điện Mẫu', 'Nhà Tổ', 'Vườn tháp', 'Gác chuông'],
+      stopText: ['Cổng ba lối bằng gỗ, mái hai tầng ngói mũi hài. Lầu trên treo đại hồng chung, sớm chiều thỉnh chuông.', 'Lối lát đá xanh thẳng vào chùa, hai bên lan can đá chạm hoa văn và vườn cây.', 'Giữa hồ là đảo bát giác thờ Quan Thế Âm Bồ Tát bằng đá trắng; khách dừng ở đầu cầu vái lạy.', 'Cổng thứ hai mái hai tầng, hai trụ biểu đá chầu hai bên, ngăn lối vào với sân trong.', 'Sân lát gạch đỏ, giữa sân là đỉnh đồng để thắp hương, hai bên đèn đá và bồn cây.', 'Tòa Tam bảo mái thấp và rộng. Trong điện, Phật điện xếp nhiều tầng: Tam thế Phật trên cùng, Di Đà Tam Tôn, tòa Cửu Long.', 'Điện thờ Tam tòa Thánh Mẫu theo tín ngưỡng thờ Mẫu, phối thờ trong chùa như nhiều chùa Bắc Bộ.', 'Nơi thờ các vị sư tổ đã trụ trì chùa qua nhiều đời.', 'Vườn tháp phía sau chùa, tháp Tổ nhiều tầng ở giữa, hai tháp nhỏ hai bên.', 'Lên lầu cổng tam quan, chạm quả chuông để thỉnh một tiếng.'],
+      routeNext: 'Đi tiếp', routeDone: 'Vào lễ Phật', routeQuit: 'Dạo tự do',
+      shrineLit: { mau: 'Đã thắp hương ở điện Mẫu', to: 'Đã thắp hương ở nhà Tổ', thap: 'Đã thắp hương ở tháp Tổ' },
+      locBtn: 'Hái lộc đầu xuân', locTitle: 'Lộc đầu xuân', locNote: 'Mỗi ngày Tết hái được một cành lộc, từ mùng 1 tới rằm tháng Giêng.', locAgain: 'Hôm nay bạn đã hái lộc rồi, mai hái tiếp nhé.', locNotYet: 'Cây lộc chờ đến mùng 1 Tết mới hái được',
+      locWishes: ['Năm mới bình an, nhà cửa ấm êm.', 'Sức khỏe dồi dào, tâm luôn an nhiên.', 'Gieo việc lành, gặt quả ngọt.', 'Công việc hanh thông, gặp nhiều quý nhân.', 'Cả nhà sum vầy, đầy ắp tiếng cười.', 'Học hành tấn tới, hiểu biết rộng mở.', 'Lòng nhẹ như mây, sống chậm mà vui.', 'Mỗi ngày một việc tốt, cả năm đủ đầy.', 'Thương mình, thương người, an trong từng bước.', 'Xuân sang phúc đến, vạn sự cát tường.']
+    },
+    zh: {
+      aerialHint: '寺院全景 · 選擇參觀方式', routeGo: '依路線參觀', freeGo: '自由漫步', mapBtn: '寺院地圖', mapTitle: '寺院地圖',
+      pathHint: '石欄步道 · 左側池中有觀音島', backPath: '入寺步道', intoYard: '進入寺院庭院', monHint: '第二道門，兩旁石華表',
+      yardHint: '紅磚庭院 · 中央銅鼎，前方三寶殿', yardHintTet: '新春庭院 · 輕觸祿樹摘取新春祿枝',
+      mauBtn: '聖母殿', toBtn: '祖師堂', thapBtn: '塔園', pathBtn: '入寺步道',
+      mauHint: '聖母殿 · 三座聖母', toHint: '祖師堂 · 供奉歷代祖師', thapHint: '塔園 · 中央多層祖師塔',
+      gateHint: '三關門 · 樓上是鐘樓',
+      stopName: ['三關門', '石欄步道', '觀音島', '第二道門', '紅磚庭院與銅鼎', '三寶殿', '聖母殿', '祖師堂', '塔園', '鐘樓'],
+      stopText: ['三扇木門，兩層屋簷。樓上懸掛大鐘，晨昏敲鐘。', '青石步道直通寺內，兩旁雕花石欄與園林。', '池中八角島上供奉白石觀世音菩薩，香客在橋頭禮拜。', '兩層屋簷的第二道門，兩旁石華表，隔開內院。', '紅磚庭院，中央銅鼎供上香，兩旁石燈與花壇。', '三寶殿屋頂低而寬。殿內佛壇分層：最上為三世佛，其次彌陀三尊、九龍座。', '依母道信仰供奉三座聖母，如越南北部許多寺院一樣配祀於寺內。', '供奉歷代住持祖師之處。', '寺後塔園，中央多層祖師塔，兩旁小塔。', '登上三關門樓，輕觸大鐘敲一聲。'],
+      routeNext: '繼續', routeDone: '入殿禮佛', routeQuit: '自由漫步',
+      shrineLit: { mau: '已在聖母殿上香', to: '已在祖師堂上香', thap: '已在祖師塔上香' },
+      locBtn: '新春摘祿', locTitle: '新春祿枝', locNote: '新春每天可摘一枝祿，從初一到元宵。', locAgain: '今天已摘過祿枝，明天再來。', locNotYet: '祿樹要到正月初一才能摘',
+      locWishes: ['新年平安，家庭溫暖。', '身體健康，心常自在。', '種下善因，收穫甜果。', '事業順利，常遇貴人。', '闔家團圓，笑聲滿堂。', '學業進步，見識開闊。', '心輕如雲，慢活而喜。', '每天一件好事，全年圓滿。', '善待自己與他人，步步安穩。', '春來福至，萬事吉祥。']
+    },
+    zhs: {
+      aerialHint: '寺院全景 · 选择参观方式', routeGo: '依路线参观', freeGo: '自由漫步', mapBtn: '寺院地图', mapTitle: '寺院地图',
+      pathHint: '石栏步道 · 左侧池中有观音岛', backPath: '入寺步道', intoYard: '进入寺院庭院', monHint: '第二道门，两旁石华表',
+      yardHint: '红砖庭院 · 中央铜鼎，前方三宝殿', yardHintTet: '新春庭院 · 轻触禄树摘取新春禄枝',
+      mauBtn: '圣母殿', toBtn: '祖师堂', thapBtn: '塔园', pathBtn: '入寺步道',
+      mauHint: '圣母殿 · 三座圣母', toHint: '祖师堂 · 供奉历代祖师', thapHint: '塔园 · 中央多层祖师塔',
+      gateHint: '三关门 · 楼上是钟楼',
+      stopName: ['三关门', '石栏步道', '观音岛', '第二道门', '红砖庭院与铜鼎', '三宝殿', '圣母殿', '祖师堂', '塔园', '钟楼'],
+      stopText: ['三扇木门，两层屋檐。楼上悬挂大钟，晨昏敲钟。', '青石步道直通寺内，两旁雕花石栏与园林。', '池中八角岛上供奉白石观世音菩萨，香客在桥头礼拜。', '两层屋檐的第二道门，两旁石华表，隔开内院。', '红砖庭院，中央铜鼎供上香，两旁石灯与花坛。', '三宝殿屋顶低而宽。殿内佛坛分层：最上为三世佛，其次弥陀三尊、九龙座。', '依母道信仰供奉三座圣母，如越南北部许多寺院一样配祀于寺内。', '供奉历代住持祖师之处。', '寺后塔园，中央多层祖师塔，两旁小塔。', '登上三关门楼，轻触大钟敲一声。'],
+      routeNext: '继续', routeDone: '入殿礼佛', routeQuit: '自由漫步',
+      shrineLit: { mau: '已在圣母殿上香', to: '已在祖师堂上香', thap: '已在祖师塔上香' },
+      locBtn: '新春摘禄', locTitle: '新春禄枝', locNote: '新春每天可摘一枝禄，从初一到元宵。', locAgain: '今天已摘过禄枝，明天再来。', locNotYet: '禄树要到正月初一才能摘',
+      locWishes: ['新年平安，家庭温暖。', '身体健康，心常自在。', '种下善因，收获甜果。', '事业顺利，常遇贵人。', '阖家团圆，笑声满堂。', '学业进步，见识开阔。', '心轻如云，慢活而喜。', '每天一件好事，全年圆满。', '善待自己与他人，步步安稳。', '春来福至，万事吉祥。']
+    },
+    ko: {
+      aerialHint: '절 전경 · 둘러보는 방식을 고르세요', routeGo: '순서대로 둘러보기', freeGo: '자유롭게 걷기', mapBtn: '절 지도', mapTitle: '절 지도',
+      pathHint: '돌난간 길 · 왼쪽 연못에 관음섬', backPath: '절 입구 길', intoYard: '절 마당으로', monHint: '두 번째 문, 양옆에 돌기둥',
+      yardHint: '붉은 벽돌 마당 · 가운데 청동 향로, 앞에 삼보전', yardHintTet: '설날 마당 · 복나무를 눌러 새해 복 가지를 따세요',
+      mauBtn: '성모전', toBtn: '조사당', thapBtn: '탑원', pathBtn: '입구 길',
+      mauHint: '성모전 · 세 분의 성모', toHint: '조사당 · 역대 조사를 모신 곳', thapHint: '탑원 · 가운데 여러 층의 조사탑',
+      gateHint: '삼관문 · 위층은 종루',
+      stopName: ['삼관문', '돌난간 길', '관음섬', '두 번째 문', '벽돌 마당과 향로', '삼보전', '성모전', '조사당', '탑원', '종루'],
+      stopText: ['나무 문 세 칸, 이층 지붕. 위층에 범종이 걸려 아침저녁으로 칩니다.', '푸른 돌길이 절 안으로 곧게 이어지고, 양옆에 조각 돌난간과 정원이 있습니다.', '연못 가운데 팔각 섬에 흰 돌 관세음보살을 모셨고, 참배객은 다리 머리에서 절합니다.', '이층 지붕의 두 번째 문, 양옆 돌기둥이 안마당을 나눕니다.', '붉은 벽돌 마당, 가운데 청동 향로에 향을 올리고 양옆에 석등과 화단이 있습니다.', '지붕이 낮고 넓은 삼보전. 불단은 여러 층으로, 맨 위에 삼세불, 그 아래 미타삼존과 구룡좌.', '베트남 북부의 많은 절처럼 모신 신앙에 따라 세 성모를 함께 모십니다.', '역대 주지 조사들을 모신 곳.', '절 뒤 탑원, 가운데 여러 층의 조사탑과 양옆 작은 탑.', '삼관문 위층에 올라 종을 눌러 한 번 칩니다.'],
+      routeNext: '다음', routeDone: '법당에서 예불', routeQuit: '자유롭게 걷기',
+      shrineLit: { mau: '성모전에 향을 올렸어요', to: '조사당에 향을 올렸어요', thap: '조사탑에 향을 올렸어요' },
+      locBtn: '새해 복 따기', locTitle: '새해 복 가지', locNote: '설날부터 정월 보름까지 하루에 한 가지씩 딸 수 있어요.', locAgain: '오늘은 이미 복을 땄어요. 내일 또 오세요.', locNotYet: '복나무는 설날부터 딸 수 있어요',
+      locWishes: ['새해 평안하고 집안이 따뜻하길.', '몸은 건강하고 마음은 편안하길.', '좋은 씨앗을 뿌려 단 열매를 거두길.', '하는 일이 순조롭고 귀인을 만나길.', '온 가족이 모여 웃음이 가득하길.', '배움이 늘고 시야가 넓어지길.', '구름처럼 가벼운 마음으로 천천히 즐겁게.', '하루 한 가지 선행으로 한 해가 넉넉하길.', '나와 남을 아끼며 걸음마다 평안하길.', '봄이 오고 복이 와 모든 일이 길하길.']
+    },
+    ja: {
+      aerialHint: 'お寺の全景 · 巡り方を選んでください', routeGo: '順路で巡る', freeGo: '自由に歩く', mapBtn: '境内図', mapTitle: '境内図',
+      pathHint: '石の欄干の参道 · 左の池に観音島', backPath: '参道', intoYard: '境内へ', monHint: '二の門、両脇に石柱',
+      yardHint: '赤れんがの境内 · 中央に銅の香炉、正面に三宝殿', yardHintTet: '旧正月の境内 · 縁起の木をタップして新春の枝をいただく',
+      mauBtn: '聖母殿', toBtn: '祖師堂', thapBtn: '塔の庭', pathBtn: '参道',
+      mauHint: '聖母殿 · 三座の聖母', toHint: '祖師堂 · 歴代の祖師をまつる', thapHint: '塔の庭 · 中央に多層の祖師塔',
+      gateHint: '三関門 · 上の階は鐘楼',
+      stopName: ['三関門', '石欄干の参道', '観音島', '二の門', '赤れんがの境内と香炉', '三宝殿', '聖母殿', '祖師堂', '塔の庭', '鐘楼'],
+      stopText: ['三つの木の扉と二重の屋根。上の階に大鐘が掛かり、朝夕に撞かれます。', '青石の参道がまっすぐ寺へ続き、両側に彫刻の石欄干と庭があります。', '池の中の八角の島に白い石の観世音菩薩をまつり、参拝者は橋のたもとで礼拝します。', '二重屋根の二の門。両脇の石柱が内の境内を区切ります。', '赤れんがの境内。中央の銅の香炉に線香を供え、両側に石灯籠と花壇があります。', '低く広い屋根の三宝殿。仏壇は何段にも重なり、最上段に三世仏、その下に弥陀三尊と九龍座。', 'ベトナム北部の多くの寺と同じく、母神信仰の三座の聖母を寺内にまつります。', '歴代の住職である祖師をまつる堂。', '寺の裏の塔の庭。中央に多層の祖師塔、両側に小さな塔。', '三関門の上に上がり、鐘をタップして一打。'],
+      routeNext: '次へ', routeDone: '本堂でお参り', routeQuit: '自由に歩く',
+      shrineLit: { mau: '聖母殿にお線香を供えました', to: '祖師堂にお線香を供えました', thap: '祖師塔にお線香を供えました' },
+      locBtn: '新春の枝をいただく', locTitle: '新春の縁起の枝', locNote: '旧正月の元日から十五日まで、一日一枝いただけます。', locAgain: '今日はもういただきました。また明日どうぞ。', locNotYet: '縁起の木は旧正月の元日から',
+      locWishes: ['新しい年が穏やかで、家があたたかでありますように。', '体はすこやかに、心はいつも安らかに。', '善い種をまき、甘い実を結びますように。', '仕事が順調で、よい出会いに恵まれますように。', '家族がそろい、笑い声にあふれますように。', '学びが進み、見聞が広がりますように。', '雲のように軽い心で、ゆっくり楽しく。', '一日一善で、一年が満ち足りますように。', '自分と人をいたわり、一歩ずつ安らかに。', '春が来て福が来て、万事吉祥でありますように。']
+    },
+    en: {
+      aerialHint: 'The whole temple · choose how to visit', routeGo: 'Follow the route', freeGo: 'Wander freely', mapBtn: 'Temple map', mapTitle: 'Temple map',
+      pathHint: 'Stone path with railings · Guanyin island in the pond on the left', backPath: 'Entrance path', intoYard: 'Into the courtyard', monHint: 'The second gate, with stone pillars on each side',
+      yardHint: 'Red-brick courtyard · bronze urn in the middle, the main hall ahead', yardHintTet: 'Lunar New Year courtyard · tap the lucky tree to pick a spring sprig',
+      mauBtn: 'Mother Goddess shrine', toBtn: 'Patriarchs hall', thapBtn: 'Stupa garden', pathBtn: 'Entrance path',
+      mauHint: 'Mother Goddess shrine · the three Holy Mothers', toHint: 'Patriarchs hall · for the temple’s past abbots', thapHint: 'Stupa garden · the tall patriarch stupa in the middle',
+      gateHint: 'The three-door gate · the bell hangs upstairs',
+      stopName: ['Three-door gate', 'Stone path', 'Guanyin island', 'Second gate', 'Brick courtyard', 'Three Jewels hall', 'Mother Goddess shrine', 'Patriarchs hall', 'Stupa garden', 'Bell loft'],
+      stopText: ['Three wooden doors under a two-tier roof. The great bell hangs upstairs and is rung morning and evening.', 'A straight path of blue stone leads in, with carved stone railings and gardens on both sides.', 'On an octagonal island in the pond stands a white stone Guanyin; visitors bow at the head of the bridge.', 'A smaller two-tier gate between stone pillars marks the inner courtyard.', 'A red-brick courtyard with a bronze incense urn in the middle, stone lanterns and planters around it.', 'A low, wide-roofed hall. The altar rises in tiers: the Buddhas of the three times at the top, then the Amitabha triad and the nine-dragon shrine.', 'Like many temples in northern Vietnam, this one also honors the three Holy Mothers of the Mother Goddess tradition.', 'A hall honoring the abbots who led the temple over the generations.', 'Behind the temple: a tall patriarch stupa in the middle, two smaller ones beside it.', 'Climb into the gate’s upper floor and tap the bell to strike it once.'],
+      routeNext: 'Next', routeDone: 'Enter the hall', routeQuit: 'Wander freely',
+      shrineLit: { mau: 'Incense offered at the Mother Goddess shrine', to: 'Incense offered at the Patriarchs hall', thap: 'Incense offered at the stupa' },
+      locBtn: 'Pick a spring sprig', locTitle: 'Spring blessing', locNote: 'During Lunar New Year you can pick one sprig a day, from the first to the fifteenth day.', locAgain: 'You already picked today. Come back tomorrow.', locNotYet: 'The lucky tree opens on Lunar New Year’s Day',
+      locWishes: ['A peaceful new year and a warm home.', 'Good health and a calm heart.', 'Plant kindness, harvest sweetness.', 'Smooth work and helpful people along the way.', 'Family gathered and laughter all around.', 'Learning that grows and horizons that widen.', 'A heart as light as clouds, a slow and happy life.', 'One good deed a day, a full year ahead.', 'Kind to yourself and others, at ease with every step.', 'Spring arrives, blessings follow, all goes well.']
+    }
+  };
+  for (const k of Object.keys(X)) Object.assign(S[k], X[k]);
   let pick = null;
   try { pick = new URLSearchParams(location.search).get('lang'); } catch (e) { /* ignore */ }
   if (!pick) { try { const st = typeof window.QP_STATE === 'string' ? JSON.parse(window.QP_STATE) : window.QP_STATE; pick = st && st.settings && st.settings.lang; } catch (e) { /* ignore */ } }

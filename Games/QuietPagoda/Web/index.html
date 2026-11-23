@@ -139,6 +139,19 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
 .dots i.on { width: 22px; background: var(--red); }
 .ob .big { width: 100%; max-width: 420px; }
 @media (prefers-reduced-motion: reduce) { .sw::after { transition: none; } }
+
+.place { width: 100%; max-width: 480px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.place .btn.wide { grid-column: 1 / -1; }
+.route { position: fixed; left: 12px; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 64px); margin: 0 auto; max-width: 460px; background: var(--paper); color: var(--brown); border: 2px solid var(--gold); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.route b { font-family: var(--serif); font-size: 16px; }
+.route p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--brown-soft); }
+.route .row { justify-content: flex-end; }
+.map svg { width: 100%; height: auto; display: block; border-radius: 12px; }
+.mapnums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 10px; }
+.mapnums button { display: flex; align-items: center; gap: 8px; min-height: 44px; border: 0; border-radius: 10px; background: #FFFFFF; color: var(--brown); font-size: 14px; text-align: left; padding: 0 10px; }
+.mapnums i { flex: none; width: 26px; height: 26px; border-radius: 13px; background: var(--red); color: var(--paper); font-style: normal; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.loc { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.loc .slip { background: #C8241A; color: #F6E2A0; font-family: var(--serif); font-size: 20px; line-height: 1.5; padding: 18px 16px; border-radius: 10px; border: 2px solid #E4C273; max-width: 320px; }
 </style>
 </head>
 <body>
@@ -193,6 +206,8 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
   <div class="hint" id="qaHint"></div>
   <div class="row"><button class="btn plaque" id="qBack"></button></div>
 </div>
+<div class="bottom" id="placeUI" hidden><div class="hint" id="placeHint"></div><div class="place" id="placeBtns"></div></div>
+<div class="route" id="routeCard" hidden><b id="routeT"></b><p id="routeP"></p><div class="row"><button class="pill" id="routeQuit"></button><button class="pill gold" id="routeNext"></button></div></div>
 <div class="bottom" id="pondUI" hidden>
   <div class="chip plaque" id="lotusCount" style="pointer-events:none"></div>
   <div class="row"><button class="btn primary" id="bLantern"></button><button class="btn plaque" id="bEnter"></button></div>
@@ -216,6 +231,7 @@ input[type=text] { height: 40px; border: 0; border-radius: 12px; background: var
 <script src="sutras.js"></script>
 <script src="figures.js"></script>
 <script src="temple.js"></script>
+<script src="shrines.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

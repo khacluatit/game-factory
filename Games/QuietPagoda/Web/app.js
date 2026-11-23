@@ -5,11 +5,13 @@
   const $ = id => document.getElementById(id);
   const params = new URLSearchParams(location.search);
   const SHOT = params.get('shot') || window.QP_SHOT || null;
+  const forceTet = params.get('tet') === '1';
   const native = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.qp);
   const post = m => { if (native) { try { window.webkit.messageHandlers.qp.postMessage(m); } catch (e) { /* ignore */ } } };
   const TZ = (LANG === 'zh' || LANG === 'zhs') ? 8 : (LANG === 'ko' || LANG === 'ja') ? 9 : 7;
   const H24 = 24 * 3600 * 1000;
-  const OUT = ['pond', 'gate', 'yard', 'bell', 'qa'];
+  const OUT = ['pond', 'gate', 'yard', 'bell', 'qa', 'path', 'mon', 'mau', 'to', 'thap', 'aerial'];
+  const PLACES = ['gate', 'yard', 'bell', 'qa', 'path', 'mon', 'mau', 'to', 'thap', 'aerial'];
   const LANGS = [['auto', ''], ['vi', 'Tiếng Việt'], ['en', 'English'], ['zh', '繁體中文'], ['zhs', '简体中文'], ['ko', '한국어'], ['ja', '日本語']];
 
   // ---------------- products ----------------
@@ -181,7 +183,10 @@
   const B = window.Figures.makeBuddha(gold, goldDark, glowTex); B.position.set(0, 1.0, -8.4); scene.add(B);
   const haloMat = B.userData.halo;
   const QA = window.Figures.makeQuanAm(porcelain, gold, glowTex); QA.position.set(-2.95, 0.5, -7.9); QA.rotation.y = 0.3; scene.add(QA);
-  const DT = window.Figures.makeDiaTang(gold, goldDark, glowTex); DT.position.set(2.95, 0.5, -7.9); DT.rotation.y = -0.3; scene.add(DT);
+  // 1.3: Di Đà Tam Tôn — Quan Âm (trái), Đại Thế Chí (phải, thân vàng)
+  const theChiMat = new THREE.MeshPhysicalMaterial({ color: '#E2C27A', roughness: 0.3, metalness: 0.4, clearcoat: 0.6, envMap: envTex, envMapIntensity: 0.8 });
+  const DT = window.Figures.makeQuanAm(theChiMat, gold, glowTex); DT.position.set(2.95, 0.5, -7.9); DT.rotation.y = -0.3; scene.add(DT);
+  const SH = window.Shrines.hall(scene, { gold, goldDark });
   const sideLight = new THREE.PointLight('#FFD9A8', 1.6, 5, 2); sideLight.position.set(0, 3.0, -6.0); scene.add(sideLight);
   const glow = new THREE.PointLight('#FFC77A', 6, 7, 2); glow.position.set(0, 2.6, -7.2); scene.add(glow);
 
@@ -279,12 +284,13 @@
 
   // ---------------- courtyard & lotus pond (outside the front door) ----------------
   const waterMat = new THREE.MeshStandardMaterial({ color: '#24394A', roughness: 0.15, metalness: 0.3 });
-  const water = mesh(new THREE.CircleGeometry(5, 64), waterMat, 0, 0.03, 18); water.rotation.x = -Math.PI / 2; water.castShadow = false;
-  const rim = mesh(new THREE.TorusGeometry(5.05, 0.18, 8, 64), std('#8A8172', { roughness: 0.9 }), 0, 0.06, 18); rim.rotation.x = Math.PI / 2;
+  const PD = window.Temple.POND, PX = PD.x, PZ = PD.z;
+  const water = mesh(new THREE.PlaneGeometry(PD.w, PD.d), waterMat, PX, 0.03, PZ); water.rotation.x = -Math.PI / 2; water.castShadow = false;
+  const inPond = (x, z) => Math.abs(x - PX) < PD.w / 2 - 0.5 && Math.abs(z - PZ) < PD.d / 2 - 0.5 && Math.hypot(x - PX, z - PZ) > PD.island + 0.7 && !(x > PX && Math.abs(z - PZ) < 1.2);
   const padMat = std('#3F6B4E', { roughness: 0.8, side: THREE.DoubleSide }), petalMat = std('#E89AAE', { roughness: 0.6 }), petal2 = std('#F0B6C4', { roughness: 0.6 });
   const lotusMats = [[petalMat, petal2], [std('#F4F0E6', { roughness: 0.6 }), std('#FFFFFF', { roughness: 0.6 })], [std('#E9C25A', { roughness: 0.6 }), std('#F2D88A', { roughness: 0.6 })]];
   const lotusG = new THREE.Group(); scene.add(lotusG);
-  const pondSpot = i => { const a = i * 2.39996, r = 0.9 + Math.sqrt(i + 1) * 0.68; return [Math.cos(a) * Math.min(r, 4.4), 18 + Math.sin(a) * Math.min(r, 4.4)]; };
+  const pondSpot = i => { for (let k = 0; k < 40; k++) { const a = (i + k * 7) * 2.39996, r = 2.8 + ((i * 1.618 + k) % 1) * 3.6; const x = PX + Math.cos(a) * r * 0.75, z = PZ + Math.sin(a) * r * 1.25; if (inPond(x, z)) return [x, z]; } return [PX - 3, PZ + 4]; };
   for (let i = 0; i < 22; i++) { const [x, z] = pondSpot(i + 40); const p = mesh(new THREE.CircleGeometry(0.42 + Math.random() * 0.2, 16), padMat, x, 0.05, z, false); p.rotation.x = -Math.PI / 2; }
   function renderLotus() {
     while (lotusG.children.length) lotusG.remove(lotusG.children[0]);
@@ -304,7 +310,7 @@
     while (pondLanternG.children.length) pondLanternG.remove(pondLanternG.children[0]);
     pondLanterns.length = 0;
     S.offerings.filter(o => o.type === 'lantern').slice(-12).forEach((o, i) => {
-      const g = new THREE.Group(); const a = i * 1.7 + 0.6, r = 1.4 + (i % 4) * 0.8; g.position.set(Math.cos(a) * r, 0.06, 18 + Math.sin(a) * r); pondLanternG.add(g);
+      const g = new THREE.Group(); const a = i * 1.7 + 0.6, r = 2.9 + (i % 4) * 0.5; g.position.set(PX + Math.cos(a) * r * 0.9, 0.06, PZ + Math.sin(a) * r * 1.3); pondLanternG.add(g);
       const base = mesh(new THREE.CylinderGeometry(0.34, 0.26, 0.08, 16), petal2, 0, 0.02, 0, false, g);
       for (let k = 0; k < 8; k++) { const ang = k / 8 * Math.PI * 2; const pt = mesh(new THREE.SphereGeometry(0.13, 10, 8), petalMat, Math.cos(ang) * 0.17, 0.14, Math.sin(ang) * 0.17, false, g); pt.scale.set(0.6, 1.5, 0.45); pt.rotation.y = -ang; pt.rotation.z = 0.45; }
       const f = new THREE.Sprite(new THREE.SpriteMaterial({ map: flameTex, blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); f.position.y = 0.3; f.scale.set(0.3, 0.4, 1); g.add(f);
@@ -314,11 +320,12 @@
   renderPondLanterns();
   const moon = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), new THREE.MeshBasicMaterial({ color: '#F3E6C4', fog: false })); moon.position.set(-14, 14, 70); moon.lookAt(0, 4.6, 10.6); scene.add(moon);
   const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F3E6C4', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.5 })); moonGlow.position.copy(moon.position); moonGlow.scale.set(12, 12, 1); scene.add(moonGlow);
-  const moonRef = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F3E6C4', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.35 })); moonRef.position.set(-1.8, 0.08, 21.8); moonRef.scale.set(1.2, 0.35, 1); scene.add(moonRef);
+  const moonRef = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F3E6C4', blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.35 })); moonRef.position.set(PX + 1.6, 0.08, PZ - 4.2); moonRef.scale.set(1.2, 0.35, 1); scene.add(moonRef);
   const flies = []; for (let i = 0; i < 24; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#F6E27A', blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); s.scale.set(0.25, 0.25, 1); scene.add(s); flies.push({ s, a: Math.random() * 6.28, r: 1.5 + Math.random() * 3.5, h: 0.4 + Math.random() * 1.6, sp: 0.1 + Math.random() * 0.25 }); }
 
   // ---------------- cảnh quan ngoài: cổng tam quan, sân, gác chuông (1.2) ----------------
   const TP = window.Temple.build(scene, { lacquer, darkWood, porcelain, gold, glowTex, flameTex, env: envTex }, { label: T.plaque });
+  window.Shrines.mau(TP.mau, { gold }); window.Shrines.to(TP.to, { gold });
 
   // ---------------- cushions & avatars ----------------
   const cushions = [], cushMat = std('#8A2B1F', { roughness: 0.9 });
@@ -361,12 +368,12 @@
   const BELL_LEAD = 0.65;
   const bellFx = { anim: null, th: 0, sway: 0, swayT: 99, shake: 0, flash: 0, birdCD: 0 };
   const bellBronze = TP.bell.children[0].material; bellBronze.emissive = new THREE.Color('#9A6420'); bellBronze.emissiveIntensity = 0;
-  const BELL_C = new THREE.Vector3(TP.bellTower.position.x, 3.6, TP.bellTower.position.z);
+  const BELL_C = TP.bellPos.clone();
   const waves = [];
   for (let i = 0; i < 6; i++) {
     const flat = i >= 4;
     const m = new THREE.Mesh(new THREE.RingGeometry(flat ? 0.96 : 0.9, 1, 96), new THREE.MeshBasicMaterial({ color: flat ? '#F2DCA8' : '#FFE6AE', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
-    m.visible = false; if (flat) { m.rotation.x = -Math.PI / 2; m.position.set(BELL_C.x, 0.56, BELL_C.z); } else m.position.copy(BELL_C);
+    m.visible = false; if (flat) { m.rotation.x = -Math.PI / 2; m.position.set(BELL_C.x, 0.2, BELL_C.z); } else m.position.copy(BELL_C);
     scene.add(m); waves.push({ m, t: 99, flat });
   }
   const DUST = 48, dustPos = new Float32Array(DUST * 3), dustVel = new Float32Array(DUST * 3);
@@ -381,7 +388,7 @@
     const wings = [-1, 1].map(s => { const w = new THREE.Group(); b.add(w); const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.11), birdMat); pl.rotation.x = -Math.PI / 2; pl.position.x = s * 0.13; w.add(pl); return w; });
     birds.push({ g: b, wings, vel: new THREE.Vector3(), life: 0, seed: Math.random() * 6 });
   }
-  const birdNests = [[-9.2, 6.5, 27.5], [-12, 5.2, 35], [-12.6, 6, 31], [-11.5, 5, 13], [9.4, 6.2, 29.5]];
+  const birdNests = [[0, 8.6, 38.4], [-16.5, 5.8, 36], [16.5, 5.6, 36.5], [9.6, 6.2, 30.5], [-16.5, 5.8, 8]];
   function strikeBell(o) {
     o = o || {};
     if (bellFx.anim && !bellFx.anim.hit) return false;
@@ -393,8 +400,8 @@
     bellFx.sway = 0.045 * A.amp / 0.8; bellFx.swayT = 0; bellFx.flash = 1;
     if (mode === 'bell' || mode === 'yard') bellFx.shake = mode === 'bell' ? 1 : 0.5;
     waves.forEach((w, i) => { w.t = w.flat ? -(i - 4) * 0.5 : -i * 0.32; });
-    dustT = 0; const tp = TP.bellTower.position;
-    for (let i = 0; i < DUST; i++) { dustPos[i * 3] = tp.x + (Math.random() * 2 - 1) * 1.6; dustPos[i * 3 + 1] = 4.6 + Math.random() * 0.1; dustPos[i * 3 + 2] = tp.z + (Math.random() * 2 - 1) * 1.6; dustVel[i * 3] = (Math.random() - 0.5) * 0.15; dustVel[i * 3 + 1] = -Math.random() * 0.2; dustVel[i * 3 + 2] = (Math.random() - 0.5) * 0.15; }
+    dustT = 0; const tp = TP.bellPos;
+    for (let i = 0; i < DUST; i++) { dustPos[i * 3] = tp.x + (Math.random() * 2 - 1) * 1.6; dustPos[i * 3 + 1] = 6.5 + Math.random() * 0.1; dustPos[i * 3 + 2] = tp.z + (Math.random() * 2 - 1) * 1.6; dustVel[i * 3] = (Math.random() - 0.5) * 0.15; dustVel[i * 3 + 1] = -Math.random() * 0.2; dustVel[i * 3 + 2] = (Math.random() - 0.5) * 0.15; }
     dustGeo.attributes.position.needsUpdate = true;
     if (bellFx.birdCD <= 0 && phase() !== 'night') {
       bellFx.birdCD = 25;
@@ -441,18 +448,14 @@
 
   // ---------------- sân chùa có người: khách vãn cảnh, người lạy Quan Âm ----------------
   const yardLife = [];
-  const rP = (th, r) => [Math.sin(th) * (r || 5.95), 18 + Math.cos(th) * (r || 5.95)];
   const QA_R = TP.quanAm.rotation.y, QA_P = TP.quanAm.position;
   const qaLocal = (lx, lz) => [QA_P.x + lx * Math.cos(QA_R) + lz * Math.sin(QA_R), QA_P.z - lx * Math.sin(QA_R) + lz * Math.cos(QA_R)];
+  // 1.3: lối đá thẳng trục (x ±0.6), đầu cầu đảo Quan Âm ở z 28, nghi môn z 19.6, sân gạch z 10.5–19
   const ROUTES = {
-    // gia đình: vào cổng → vòng hồ theo chiều kim đồng hồ → vái Quan Âm → ngắm chính điện → ra cổng
-    family: [[0.7, 36.8], [0.7, 27.2], [1.9, 25.3], rP(0.4), rP(0.8), rP(1.15), [...rP(1.42, 6.05), 5, ...qaLocal(0, 0), 'bow'], rP(1.85), rP(2.3), rP(2.7), [...rP(3.0, 6.1), 4, 0, 4], rP(3.5), rP(4.0), [...rP(4.6), 4, 0, 18], rP(5.1), rP(5.6), rP(6.0), [-1.9, 25.3], [-0.7, 27.2], [-0.7, 36.8, 3, 0, 46]],
-    // người ghé gác chuông và cây bồ đề
-    bell: [[-0.7, 37.2], [-0.7, 27.4], [-1.9, 25.2], [-6.0, 25.2], [-6.6, 27.7, 5, -9.2, 27.5], [-6.0, 25.0], rP(5.5), rP(5.95), rP(0.25), rP(0.65), [6.0, 25.0], [7.0, 27.4, 5, 9.4, 29.5, 'bow'], [6.0, 25.2], [1.9, 25.4], [0.7, 27.2], [0.7, 37.2, 2, 0, 46]],
-    // cụ già đi chậm quanh hồ, dừng ngắm sen
-    elder: [rP(3.6), rP(3.1), [...rP(2.6), 6, 0, 18], rP(2.1), rP(1.65), rP(0.9), rP(0.4), [...rP(6.0), 5, 0, 18], rP(5.4), rP(4.9), rP(4.3)],
-    // sư thầy kinh hành chậm rãi
-    monk: [rP(1.0, 6.4), rP(1.6, 6.4), rP(2.2, 6.4), rP(2.8, 6.4), [...rP(3.14, 6.4), 3, 0, 4, 'bow'], rP(3.6, 6.4), rP(4.2, 6.4), rP(4.8, 6.4), rP(5.4, 6.4), rP(6.0, 6.4), rP(0.4, 6.4)]
+    family: [[0.6, 37.6], [0.6, 28.6], [-1.15, 28.2, 5, PX, PZ, 'bow'], [0.6, 27.4], [0.6, 21.5], [0.6, 18.4], [1.5, 16.2, 4, 0, 14.6, 'bow'], [0.7, 12.0, 4, 0, 0], [-0.7, 12.2], [-1.5, 16.2], [-0.6, 18.4], [-0.6, 21.5], [-0.6, 37.6, 3, 0, 46]],
+    bell: [[-0.6, 37.2], [-0.6, 33.6, 5, 0, 38.4], [-0.6, 22.0], [0.0, 17.6], [4.0, 13.4, 4, 8.6, 15.2], [6.0, 17.8], [0.7, 20.6], [0.7, 37.2, 2, 0, 46]],
+    elder: [[-3.3, 12.2], [-3.3, 18.2], [3.3, 18.2, 4, 0, 14.6], [3.3, 12.2], [0.0, 12.0, 5, 0, 0, 'bow']],
+    monk: [[-7.0, 12.4], [-7.0, 18.6], [-2.5, 18.8], [2.5, 18.8], [6.2, 18.6], [6.2, 12.4], [2.0, 11.8], [0.0, 11.8, 3, 0, 0, 'bow'], [-2.0, 11.8]]
   };
   const turnTo = (av, ang, k, dt) => { let d = ang - av.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); av.rotation.y += d * Math.min(1, k * dt); };
   function addWalker(route, kind, robe, start, speed) {
@@ -474,12 +477,12 @@
   addWalker('elder', 'elder', '#D9D3C6', 1, 0.45);
   addWalker('monk', 'monk', null, 2, 0.5);
   // trước tượng Quan Âm lộ thiên: một người quỳ lạy, một người đứng chắp tay vái
-  const kneeler = makeAvatar('#9A7A5A', 'elder'); { const [x, z] = qaLocal(-0.42, 2.45); kneeler.position.set(x, 0.05, z); kneeler.rotation.y = QA_R; kneeler.userData.setPose('sit'); Object.assign(kneeler.userData, { yard: true, pray: 'kneel', next: 1.5 }); yardLife.push(kneeler); }
-  const stander = makeAvatar('#B9A27C', 'adult'); { const [x, z] = qaLocal(0.6, 2.7); stander.position.set(x, 0, z); stander.rotation.y = QA_R; stander.userData.setPose('stand'); stander.userData.setArms('gassho'); Object.assign(stander.userData, { yard: true, pray: 'stand', next: 3.5 }); yardLife.push(stander); }
+  const kneeler = makeAvatar('#9A7A5A', 'elder'); { const [x, z] = qaLocal(-0.38, 1.78); kneeler.position.set(x, 0.45, z); kneeler.rotation.y = QA_R; kneeler.userData.setPose('sit'); Object.assign(kneeler.userData, { yard: true, pray: 'kneel', next: 1.5 }); yardLife.push(kneeler); }
+  const stander = makeAvatar('#B9A27C', 'adult'); { const [x, z] = qaLocal(0.48, 1.82); stander.position.set(x, 0.4, z); stander.rotation.y = QA_R; stander.userData.setPose('stand'); stander.userData.setArms('gassho'); Object.assign(stander.userData, { yard: true, pray: 'stand', next: 3.5 }); yardLife.push(stander); }
   // hương trên lư trước Quan Âm
   const qaSmoke = [];
-  { const [ux, uz] = qaLocal(0, 1.6); const tipM = new THREE.MeshBasicMaterial({ color: '#FF7A3A' });
-    for (const dx of [-0.07, 0, 0.07]) { const st = mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.42, 4), std('#B8462E'), ux + dx, 1.42, uz, false); st.rotation.z = dx * 1.5; mesh(new THREE.SphereGeometry(0.014, 6, 4), tipM, ux + dx * 1.4, 1.63, uz, false); }
+  { const [ux, uz] = qaLocal(0, 1.25); const tipM = new THREE.MeshBasicMaterial({ color: '#FF7A3A' });
+    for (const dx of [-0.07, 0, 0.07]) { const st = mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.42, 4), std('#B8462E'), ux, 1.46, uz + dx, false); st.rotation.x = dx * 1.5; mesh(new THREE.SphereGeometry(0.014, 6, 4), tipM, ux, 1.67, uz + dx * 1.4, false); }
     const sm = new THREE.SpriteMaterial({ map: smokeTex, color: '#E8E2D8', transparent: true, opacity: 0.25, depthWrite: false });
     for (let i = 0; i < 7; i++) { const s = new THREE.Sprite(sm.clone()); scene.add(s); qaSmoke.push({ s, a: i / 7 * 3.5, x: ux, z: uz }); } }
   function tickYard(dt, t) {
@@ -487,7 +490,7 @@
     for (const av of yardLife) av.visible = show;
     for (const q of qaSmoke) q.s.visible = show;
     if (!show) return;
-    for (const q of qaSmoke) { q.a += dt * 0.55; if (q.a > 3.5) q.a = 0; const a = q.a; q.s.position.set(q.x + Math.sin(a * 1.6 + t * 0.3) * 0.1 * a, 1.68 + a * 0.6, q.z + Math.cos(a * 1.2) * 0.07 * a); const sc = 0.12 + a * 0.18; q.s.scale.set(sc, sc, 1); q.s.material.opacity = 0.32 * Math.min(1, a * 3) * (1 - a / 3.5); }
+    for (const q of qaSmoke) { q.a += dt * 0.55; if (q.a > 3.5) q.a = 0; const a = q.a; q.s.position.set(q.x + Math.sin(a * 1.6 + t * 0.3) * 0.1 * a, 1.72 + a * 0.6, q.z + Math.cos(a * 1.2) * 0.07 * a); const sc = 0.12 + a * 0.18; q.s.scale.set(sc, sc, 1); q.s.material.opacity = 0.32 * Math.min(1, a * 3) * (1 - a / 3.5); }
     for (const av of yardLife) {
       const u = av.userData;
       if (u.pray) {
@@ -542,14 +545,14 @@
     g.traverse(o => { o.castShadow = false; o.receiveShadow = false; });
     kois.push({ g, tail, pecs, a: 1.6 + (i * 0.37) % 1.4, b: 1.4 + (i * 0.53) % 1.6, w: 0.09 + (i % 4) * 0.025, p: i * 0.8, q: i * 1.9, k: i % 3 === 0 ? 2 : 1, dir: i % 2 ? 1 : -1, T: Math.random() * 50 });
   });
-  const koiPos = (f, T, out) => out.set(Math.sin(f.w * T * f.dir + f.p) * f.a, 0.036, 18 + Math.sin(f.w * T * f.k * f.dir + f.q) * f.b);
+  const koiPos = (f, T, out) => { const u = f.w * T * f.dir + f.p; const r = PD.island + 0.9 + (Math.sin(f.w * T * f.k + f.q) * 0.5 + 0.5) * 1.3; return out.set(PX + Math.cos(u) * r * 0.95, 0.036, PZ + Math.sin(u) * r * 1.4); };
   const ripples = [];
   for (let i = 0; i < 6; i++) { const r = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 40), new THREE.MeshBasicMaterial({ color: '#E8F0F2', transparent: true, opacity: 0, depthWrite: false })); r.rotation.x = -Math.PI / 2; r.visible = false; scene.add(r); ripples.push({ r, t: 9 }); }
   function ripple(x, z) { const rp = ripples.find(r => r.t > 2.2); if (!rp) return; rp.t = 0; rp.r.position.set(x, 0.045, z); rp.r.visible = true; }
   let rippleT = 2;
   const kp = new THREE.Vector3(), kn = new THREE.Vector3();
   function tickKoi(dt, t) {
-    const show = mode === 'pond' || mode === 'yard' || mode === 'bell' || mode === 'tour' || mode === 'gate' || SHOT === 'pond' || SHOT === 'yard';
+    const show = OUT.includes(mode) || mode === 'tour';
     for (const f of kois) f.g.visible = show;
     if (!show) return;
     for (const f of kois) {
@@ -584,12 +587,15 @@
     sun.color.set(t.sun); sun.intensity = t.si; ambient.intensity = t.amb; fill.intensity = curPhase === 'night' ? 2.6 : 2.0; outLight.intensity = t.out; waterMat.color.set(t.water);
     flames.forEach(f => f.mult = t.lamp * (moonDay() && f !== flames[0] && f !== flames[1] ? 1.25 : 1));
     moon.visible = moonGlow.visible = moonRef.visible = k === 'night';
+    TP.tet.visible = tetSeason();
+    TP.bulbs.forEach(b => { b.visible = k === 'night' || k === 'dusk'; });
+    [TP.mau, TP.to].forEach(h => { h.lamp.intensity = k === 'night' ? 3.2 : k === 'dusk' ? 2.6 : 1.8; });
     const lampOn = k === 'night' || k === 'dusk'; TP.lanterns.forEach(l => { l.box.material.emissiveIntensity = lampOn ? 1.6 : 0; l.f.material.opacity = lampOn ? 0.75 : 0; }); flies.forEach(f => f.s.visible = k === 'night' || k === 'dusk');
     applyFog();
   }
   function applyFog() {
     const t = PH[curPhase];
-    if (OUT.includes(mode) || (mode === 'tour' && camera.position.z > 10)) { scene.fog.color.set(t.sky); scene.fog.density = 0.012; scene.background.set(t.sky); }
+    if (OUT.includes(mode) || (mode === 'tour' && camera.position.z > 10)) { scene.fog.color.set(t.sky); scene.fog.density = mode === 'aerial' ? 0.005 : 0.012; scene.background.set(t.sky); }
     else { scene.fog.color.set(t.fog); scene.fog.density = t.fd; scene.background.set(t.fog); }
   }
   applyPhase(true);
@@ -617,12 +623,14 @@
   function pick(e) {
     const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    if (mode === 'gate' || mode === 'tour') { if (mode === 'tour' && tour) tour.t0 = Math.min(tour.t0, performance.now() - 7500 * 0.93); return; }
-    if (mode === 'yard' || mode === 'bell' || mode === 'qa') {
-      const hb = ray.intersectObject(TP.bellTower, true)[0], hq = ray.intersectObject(TP.quanAm, true)[0], ho = ray.intersectObject(TP.bodhi, true)[0];
-      const hits = [hb, hq, ho].filter(Boolean).sort((a, b) => a.distance - b.distance); const h = hits[0]; if (!h) return;
-      if (h === hb) { if (mode === 'yard') goOut('bell'); else { Audio.unlock(); strikeBell({ user: true }); } }
-      else if (h === hq) { if (mode === 'yard') goOut('qa'); else showTag(TP.quanAm, T.qaOut); } else showTag(TP.bodhi, T.bodhiTag);
+    if (mode === 'gate' || mode === 'tour') { if (mode === 'tour' && tour) tour.t0 = Math.min(tour.t0, performance.now() - 11000 * 0.93); return; }
+    if (PLACES.includes(mode)) {
+      const hb = ray.intersectObject(TP.bellTower, true)[0], hq = ray.intersectObject(TP.quanAm, true)[0], ho = ray.intersectObject(TP.bodhi, true)[0], hl = TP.tet.visible ? ray.intersectObject(TP.loc, true)[0] : null;
+      const hits = [hb, hq, ho, hl].filter(Boolean).sort((a, b) => a.distance - b.distance); const h = hits[0]; if (!h) return;
+      if (h === hb) { if (mode !== 'bell') goOut('bell'); else { Audio.unlock(); strikeBell({ user: true }); } }
+      else if (h === hq) { if (mode !== 'qa') goOut('qa'); else showTag(TP.quanAm, T.qaOut); }
+      else if (h === hl) pickLoc();
+      else showTag(TP.bodhi, T.bodhiTag);
       return;
     }
     if (mode === 'pond') {
@@ -646,7 +654,7 @@
 
   // ---------------- UI ----------------
   const hallUI = $('hallUI'), sitUI = $('sitUI'), pondUI = $('pondUI'), gateUI = $('gateUI'), yardUI = $('yardUI'), bellUI = $('bellUI'), qaUI = $('qaUI');
-  function showUI(m) { hallUI.hidden = m !== 'hall'; sitUI.hidden = m !== 'sit'; pondUI.hidden = m !== 'pond'; gateUI.hidden = m !== 'gate'; yardUI.hidden = m !== 'yard'; bellUI.hidden = m !== 'bell'; qaUI.hidden = m !== 'qa'; }
+  function showUI(m) { hallUI.hidden = m !== 'hall'; sitUI.hidden = m !== 'sit'; pondUI.hidden = m !== 'pond'; gateUI.hidden = yardUI.hidden = bellUI.hidden = qaUI.hidden = true; const pl = PLACES.includes(m); $('placeUI').hidden = !pl; if (pl) renderPlace(m); renderRoute(); }
   function renderTop() {
     const l = lunarToday(); $('lunar').firstChild.nodeValue = T.lunar(l.day, l.month);
     $('lunar2').textContent = l.day === 1 ? T.newMoon : T.toFull(daysToFull());
@@ -656,7 +664,7 @@
     $('bIncense').textContent = T.incense; $('bPond').textContent = T.pond; $('bEnter').textContent = T.enter; $('bStand').textContent = T.stand;
     $('npcNote').textContent = T.npcNote; $('hint').textContent = T.tapCushion;
     $('bLantern').textContent = T.items.lantern + ' · ' + price.lantern;
-    $('bPond').textContent = T.toYard; $('bEnter').textContent = T.back; $('bGo').textContent = T.enterTemple; $('gateHint').textContent = T.gateHint;
+    $('bPond').textContent = T.toYard; $('bEnter').textContent = T.backPath; $('bGo').textContent = T.enterTemple; $('gateHint').textContent = T.gateHint;
     $('yHall').textContent = T.toHall; $('yBell').textContent = T.bellTower; $('yPond').textContent = T.pondBtn; $('yGate').textContent = T.toGate; $('yQa').textContent = T.qaBtn;
     $('bRoll').textContent = T.ringRoll; $('bBack').textContent = T.back; $('bellHint').textContent = T.bellHint; $('qaHint').textContent = T.qaHint; $('qBack').textContent = T.back; $('cVoice').setAttribute('aria-label', T.voice);
     ['gassho', 'bow', 'beads', 'moktak', 'chant'].forEach(k => { $('r-' + k).querySelector('span').textContent = T[k]; });
@@ -757,7 +765,7 @@
     S.today.litAt = Date.now(); practiced(); tipMat.color.set('#FF7A3A'); Audio.match(); setTimeout(() => Audio.bell(0.7), 900); haptic('soft'); toast(T.incenseLit); save();
   }
   $('bPond').addEventListener('click', () => { Audio.unlock(); goOut('yard'); });
-  $('bEnter').addEventListener('click', () => goOut('yard'));
+  $('bEnter').addEventListener('click', () => goOut('path'));
   $('yHall').addEventListener('click', goHall); $('yBell').addEventListener('click', () => goOut('bell')); $('yPond').addEventListener('click', goPond); $('yGate').addEventListener('click', () => goOut('gate')); $('yQa').addEventListener('click', () => goOut('qa'));
   $('bBack').addEventListener('click', () => goOut('yard')); $('qBack').addEventListener('click', () => goOut('yard'));
   $('bRoll').addEventListener('click', () => { Audio.unlock(); if (!Audio.bellRoll(() => strikeBell({ silent: true }), BELL_LEAD) && !Audio.rolling()) strikeBell({ silent: true }); haptic('soft'); });
@@ -767,13 +775,99 @@
   function goOut(m) { fadeTo(() => { if (mode === 'sit') stand(); mode = m; applyFog(); showUI(m); renderStatic(); }); }
   // đi bộ từ cổng tam quan vào chính điện
   let tour = null;
-  const TOUR = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 2.3, 55), new THREE.Vector3(0, 1.9, 39), new THREE.Vector3(0, 1.85, 31), new THREE.Vector3(-4.2, 1.85, 24.5), new THREE.Vector3(-6.4, 1.85, 18), new THREE.Vector3(-3.6, 1.85, 12.2), new THREE.Vector3(0, 2.2, 10.6), new THREE.Vector3(0, 2.9, 8.6)]);
-  function startTour() { tour = { t: 0, step: 0, t0: performance.now() }; mode = 'tour'; showUI('none'); $('hint').textContent = T.tapSkip; }
+  const TOUR = new THREE.CatmullRomCurve3([new THREE.Vector3(0, 2.2, 52), new THREE.Vector3(0, 1.9, 40.5), new THREE.Vector3(0, 1.85, 36.5), new THREE.Vector3(0, 1.85, 29), new THREE.Vector3(0, 1.85, 21.5), new THREE.Vector3(0, 1.9, 15.6), new THREE.Vector3(0.9, 2.1, 11.6), new THREE.Vector3(0, 2.2, 10.2), new THREE.Vector3(0, 2.9, 8.6)]);
+  function startTour() { routeIdx = -1; tour = { t: 0, step: 0, t0: performance.now() }; mode = 'tour'; showUI('none'); $('hint').textContent = T.tapSkip; }
   function endTour() { tour = null; S.gateDay = dayKey(new Date()); save(); mode = 'hall'; applyFog(); showUI('hall'); snapCam = true; renderStatic(); renderTop(); updateBanner(); }
   $('bLantern').addEventListener('click', () => openOffer('lantern'));
   function fadeTo(fn) { const f = $('fade'); f.style.opacity = '1'; setTimeout(() => { fn(); snapCam = true; setTimeout(() => { f.style.opacity = '0'; }, 120); }, 320); }
   function goPond() { goOut('pond'); }
   function goHall() { fadeTo(() => { mode = 'hall'; applyFog(); showUI('hall'); renderTop(); updateBanner(); }); }
+
+  // ---------------- 1.3: các điểm trong chùa, lộ trình 10 điểm, bản đồ, Tết ----------------
+  const CAMS = {
+    pond: [PX + 6.6, 5.4, PZ + 3.6, PX - 0.5, 0.3, PZ],
+    gate: [0, 2.2, 55, 0, 4.4, 38],
+    path: [2.6, 6.2, 36.8, -7.5, 0.8, 27.0],
+    qa: [-2.2, 3.2, 30.4, PX, 2.4, PZ],
+    mon: [0, 2.3, 25.5, 0, 3.0, 17],
+    yard: [0.8, 12.5, 22.0, 0, 1.6, 11.0],
+    bell: [0, 4.3, 32.4, 0, 5.7, 38.4],
+    mau: [-12.5, 2.3, 6.2, -12.5, 2.1, -3.2],
+    to: [12.5, 2.3, 6.2, 12.5, 2.1, -3.2],
+    thap: [12.0, 3.0, -5.4, 12.0, 2.6, -14.5]
+  };
+  const STOPS = ['gate', 'path', 'qa', 'mon', 'yard', 'hall', 'mau', 'to', 'thap', 'bell'];
+  let routeIdx = -1;
+  function goPlace(m) { if (m === 'hall') goHall(); else if (m === 'pond') goPond(); else goOut(m); }
+  function placeConf(m) {
+    const tet = locSeason();
+    const B = (label, fn, primary, wide) => ({ label, fn, primary, wide });
+    switch (m) {
+      case 'aerial': return [T.aerialHint, [B(T.routeGo, startRoute, true, true), B(T.freeGo, () => goOut('gate'), false, true)]];
+      case 'gate': return [T.gateHint, [B(T.enterTemple, () => { Audio.unlock(); startTour(); }, true, true), B(T.bellTower, () => goOut('bell')), B(T.mapBtn, openMap)]];
+      case 'path': return [T.pathHint, [B(T.intoYard, () => goOut('yard'), true, true), B(T.qaBtn, () => goOut('qa')), B(T.pondBtn, goPond), B(T.toGate, () => goOut('gate')), B(T.mapBtn, openMap)]];
+      case 'qa': return [T.qaHint, [B(T.backPath, () => goOut('path'), false, true)]];
+      case 'mon': return [T.monHint, [B(T.intoYard, () => goOut('yard'), true, true)]];
+      case 'yard': return [tet ? T.yardHintTet : T.yardHint, [B(T.toHall, goHall, true, true)].concat(tet ? [B(T.locBtn, pickLoc, true, true)] : []).concat([B(T.mauBtn, () => goOut('mau')), B(T.toBtn, () => goOut('to')), B(T.thapBtn, () => goOut('thap')), B(T.pathBtn, () => goOut('path')), B(T.mapBtn, openMap, false, true)])];
+      case 'bell': return [T.bellHint, [B(T.ringRoll, () => { Audio.unlock(); if (!Audio.bellRoll(() => strikeBell({ silent: true }), BELL_LEAD) && !Audio.rolling()) strikeBell({ silent: true }); haptic('soft'); }, true), B(T.backPath, () => goOut('path'))]];
+      case 'mau': return [T.mauHint, [B(T.incense, () => lightShrine('mau'), true), B(T.back, () => goOut('yard'))]];
+      case 'to': return [T.toHint, [B(T.incense, () => lightShrine('to'), true), B(T.back, () => goOut('yard'))]];
+      case 'thap': return [T.thapHint, [B(T.incense, () => lightShrine('thap'), true), B(T.back, () => goOut('yard'))]];
+    }
+    return ['', []];
+  }
+  function renderPlace(m) {
+    const [hint, btns] = placeConf(m); $('placeHint').textContent = hint;
+    const box = $('placeBtns'); box.innerHTML = '';
+    if (routeIdx >= 0) return; // khi đi theo lộ trình, thẻ lộ trình thay cho các nút
+    btns.forEach(b => { const el = document.createElement('button'); el.className = 'btn ' + (b.primary ? 'primary' : 'plaque') + (b.wide ? ' wide' : ''); el.textContent = b.label; el.onclick = () => { Audio.unlock(); b.fn(); }; box.appendChild(el); });
+  }
+  function renderRoute() {
+    const c = $('routeCard');
+    if (routeIdx < 0 || mode === 'sit' || mode === 'tour') { c.hidden = true; return; }
+    c.hidden = false; $('routeT').textContent = (routeIdx + 1) + ' / ' + STOPS.length + ' · ' + T.stopName[routeIdx];
+    $('routeP').textContent = T.stopText[routeIdx];
+    $('routeNext').textContent = routeIdx < STOPS.length - 1 ? T.routeNext : T.routeDone; $('routeQuit').textContent = T.routeQuit;
+  }
+  function startRoute() { routeIdx = 0; goPlace(STOPS[0]); }
+  function stepRoute() { if (routeIdx < 0) return; if (routeIdx >= STOPS.length - 1) { routeIdx = -1; S.gateDay = dayKey(new Date()); save(); goHall(); return; } routeIdx++; goPlace(STOPS[routeIdx]); }
+  $('routeNext').addEventListener('click', () => { Audio.unlock(); stepRoute(); });
+  $('routeQuit').addEventListener('click', () => { routeIdx = -1; renderRoute(); renderPlace(mode); });
+  function openMap() {
+    const pts = [[215, 716], [215, 620], [114, 570], [215, 467], [215, 390], [215, 240], [62, 230], [368, 230], [362, 138], [170, 700]];
+    const svg = `<svg viewBox="0 0 430 780" role="img" aria-label="${esc(T.mapTitle)}"><rect width="430" height="780" fill="#C9D6A8"/><rect x="30" y="100" width="370" height="640" rx="8" fill="#D8C9A0" stroke="#F2EEE6" stroke-width="8"/><rect x="52" y="474" width="114" height="212" rx="6" fill="#7E9A8A" stroke="#C8704E" stroke-width="5"/><path d="M90 560 L104 546 L124 546 L138 560 L138 580 L124 594 L104 594 L90 580 Z" fill="#D6D0C4"/><rect x="138" y="565" width="50" height="10" fill="#D6D0C4"/><rect x="190" y="470" width="50" height="250" fill="#B9B2A4"/><rect x="80" y="300" width="270" height="160" fill="#C8704E"/><rect x="100" y="170" width="230" height="130" fill="#55524C"/><rect x="40" y="185" width="70" height="70" fill="#A8442C"/><rect x="320" y="185" width="70" height="70" fill="#A8442C"/><rect x="334" y="112" width="56" height="52" fill="#B7A57E"/><path d="M362 120 l8 10 h-16 Z M362 132 l9 12 h-18 Z" fill="#7A3A24"/><rect x="160" y="700" width="110" height="34" fill="#6E3A20"/><rect x="180" y="458" width="70" height="16" fill="#7A3A24"/><path d="M215 716 V250 M215 560 H114 M215 240 H62 M215 240 H368 V138 M215 716 H170" stroke="#C83A2A" stroke-width="4" stroke-dasharray="10 8" fill="none"/>${pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="15" fill="#7A2E1E" stroke="#F2DDA0" stroke-width="2.5"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="13" font-weight="700" fill="#F3EAD8">${i + 1}</text>`).join('')}</svg>`;
+    openSheet(`<div class="grab"></div><div class="shead"><h2>${T.mapTitle}</h2><button class="pill" data-a="close">${T.done}</button></div><div class="map">${svg}</div><div class="mapnums">${STOPS.map((k, i) => `<button data-s="${i}"><i>${i + 1}</i>${esc(T.stopName[i])}</button>`).join('')}</div><button class="big" data-a="route">${T.routeGo}</button>`, true);
+    sheet.onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.a === 'close') closeSheet(); else if (b.dataset.a === 'route') { closeSheet(); startRoute(); } else if (b.dataset.s) { closeSheet(); routeIdx = -1; goPlace(STOPS[+b.dataset.s]); } };
+  }
+  const shrineLit = {};
+  function lightShrine(k) {
+    practiced(); Audio.match(); setTimeout(() => Audio.bell(0.6), 800); haptic('soft');
+    shrineLit[k] = clock.elapsedTime; toast(T.shrineLit[k]); save();
+  }
+  // Tết: trang trí từ 23 tháng Chạp tới rằm tháng Giêng; hái lộc từ mùng 1 tới rằm tháng Giêng
+  function tetSeason() { if (forceTet) return true; const l = lunarToday(); return (l.month === 12 && l.day >= 23) || (l.month === 1 && l.day <= 15); }
+  function locSeason() { if (forceTet) return true; const l = lunarToday(); return l.month === 1 && l.day <= 15; }
+  function fireworksOn() { if (params.get('fw') === '1') return true; if (phase() !== 'night') return false; const l = lunarToday(), h = hourNow(); return (l.month === 12 && l.day >= 29 && h >= 21) || (l.month === 1 && l.day <= 3); }
+  function pickLoc() {
+    if (!locSeason()) { toast(T.locNotYet); return; }
+    S.loc = S.loc || []; const k = dayKey(new Date()); const today = S.loc.find(x => x.d === k);
+    const idx = today ? today.i : (S.loc.length * 7 + new Date().getDate()) % T.locWishes.length;
+    if (!today) { S.loc.push({ d: k, i: idx }); practiced(); save(); Audio.bell(0.8); haptic('medium'); }
+    openSheet(`<div class="grab"></div><div class="shead"><h2>${T.locTitle}</h2><button class="pill" data-a="close">${T.done}</button></div><div class="loc"><div class="slip">${esc(T.locWishes[idx])}</div><span style="font-size:13px;color:var(--brown-soft)">${today ? T.locAgain : T.locNote}</span></div>`);
+    sheet.onclick = e => { const b = e.target.closest('button'); if (b && b.dataset.a === 'close') closeSheet(); };
+  }
+  // pháo hoa giao thừa và ba ngày Tết (chỉ khi ở ngoài trời, ban đêm)
+  const FW = []; { const cols = ['#FFD36A', '#FF6A4A', '#FF9AD0', '#9AE0FF', '#B8FF8A'];
+    for (let i = 0; i < 7; i++) { const n = 70, pos = new Float32Array(n * 3), vel = new Float32Array(n * 3); for (let j = 0; j < n; j++) pos[j * 3 + 1] = -200; const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); const m = new THREE.PointsMaterial({ map: glowTex, color: cols[i % cols.length], size: 1.5, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }); const pt = new THREE.Points(g, m); pt.frustumCulled = false; scene.add(pt); FW.push({ pt, pos, vel, n, t: 2.6 - i * 0.37, life: 2.6 }); } }
+  function tickFireworks(dt) {
+    const on = fireworksOn() && (OUT.includes(mode) || mode === 'tour');
+    for (const f of FW) {
+      f.t += dt;
+      if (f.t > f.life) { if (!on) { f.pt.material.opacity = 0; continue; } if (!SHOT && Math.random() > dt * 1.2) { f.pt.material.opacity = 0; continue; } f.t = 0; const cx = (Math.random() - 0.5) * 34, cy = 16 + Math.random() * 7, cz = 6 + Math.random() * 20; for (let i = 0; i < f.n; i++) { const th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 2 - 1), sp = 5 + Math.random() * 2; f.pos[i * 3] = cx; f.pos[i * 3 + 1] = cy; f.pos[i * 3 + 2] = cz; f.vel[i * 3] = Math.sin(ph) * Math.cos(th) * sp; f.vel[i * 3 + 1] = Math.cos(ph) * sp; f.vel[i * 3 + 2] = Math.sin(ph) * Math.sin(th) * sp; } if (!SHOT && S.settings.effects) Audio.chirp && 0; }
+      const k = Math.exp(-dt * 1.6); for (let i = 0; i < f.n; i++) { f.vel[i * 3] *= k; f.vel[i * 3 + 1] = f.vel[i * 3 + 1] * k - dt * 2.2; f.vel[i * 3 + 2] *= k; f.pos[i * 3] += f.vel[i * 3] * dt; f.pos[i * 3 + 1] += f.vel[i * 3 + 1] * dt; f.pos[i * 3 + 2] += f.vel[i * 3 + 2] * dt; }
+      f.pt.geometry.attributes.position.needsUpdate = true; f.pt.material.opacity = Math.max(0, 1 - f.t / f.life);
+    }
+  }
 
   // ---------------- sheets ----------------
   const wrap = $('sheetWrap'), sheet = $('sheet');
@@ -1185,8 +1279,8 @@
     for (let i = 0; i < SMOKE; i++) { smokeAge[i] += dt * 0.5 * rate; if (smokeAge[i] > 4) smokeAge[i] = 0; const a = smokeAge[i]; smokePos[i * 3] = Math.sin(a * 1.7 + i) * 0.12 * a + Math.sin(t * 0.6) * 0.1 * a; smokePos[i * 3 + 1] = a * 0.85; smokePos[i * 3 + 2] = Math.cos(a * 1.3 + i * 0.7) * 0.08 * a; }
     smokeGeo.attributes.position.needsUpdate = true; smokeMat.opacity = agarG.visible ? 0.32 : (lit ? 0.26 : 0.18); smokeMat.size = agarG.visible ? 0.65 : 0.5;
     // pond life
-    pondLanterns.forEach(pl => { pl.a += dt * 0.03; pl.g.position.x = Math.cos(pl.a) * pl.r; pl.g.position.z = 18 + Math.sin(pl.a) * pl.r; pl.g.position.y = 0.06 + Math.sin(t * 1.2 + pl.seed) * 0.02; });
-    flies.forEach(f => { if (!f.s.visible) return; f.a += dt * f.sp; f.s.position.set(Math.cos(f.a) * f.r, f.h + Math.sin(t * 2 + f.r) * 0.2, 18 + Math.sin(f.a * 1.3) * f.r * 0.8); f.s.material.opacity = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.7 + f.r)); });
+    pondLanterns.forEach(pl => { pl.a += dt * 0.03; pl.g.position.x = PX + Math.cos(pl.a) * pl.r * 0.9; pl.g.position.z = PZ + Math.sin(pl.a) * pl.r * 1.3; pl.g.position.y = 0.06 + Math.sin(t * 1.2 + pl.seed) * 0.02; });
+    flies.forEach(f => { if (!f.s.visible) return; f.a += dt * f.sp; f.s.position.set(PX + Math.cos(f.a) * f.r, f.h + Math.sin(t * 2 + f.r) * 0.2, PZ + Math.sin(f.a * 1.3) * f.r * 1.2); f.s.material.opacity = 0.4 + 0.6 * Math.abs(Math.sin(t * 1.7 + f.r)); });
 
     // NPCs
     const target = npcTarget();
@@ -1218,7 +1312,8 @@
     tickAvatar(player, dt);
     player.visible = mode === 'hall' || mode === 'sit' || mode === 'walking';
 
-    tickBell(dt, t); tickYard(dt, t); tickKoi(dt, t);
+    tickBell(dt, t); tickYard(dt, t); tickKoi(dt, t); tickFireworks(dt);
+    if (TP.tet.visible) { const c = TP.tet.userData.neu.userData.cloth; c.rotation.y = Math.sin(t * 1.7) * 0.35; c.rotation.z = Math.sin(t * 1.1) * 0.05; }
     TP.bodhi.userData.crown.rotation.y = Math.sin(t * 0.3) * 0.02;
     if (OUT.includes(mode) || mode === 'tour') TP.flags.forEach(f => { const pos = f.userData.cloth.geometry.attributes.position, b = f.userData.base; for (let i = 0; i < pos.count; i++) { const x = b[i * 3]; pos.setZ(i, Math.sin(x * 3.2 - t * 3.4) * 0.09 * x + Math.sin(t * 1.3) * 0.05 * x); } pos.needsUpdate = true; });
     if (bellSwing > 0) { bellSwing = Math.max(0, bellSwing - dt * 0.35); bellBody.rotation.z = Math.sin(t * 5) * 0.06 * bellSwing; }
@@ -1228,13 +1323,10 @@
 
     // camera
     if (mode === 'sit' && playerCushion) { camPos.set(playerCushion.userData.x * 0.5 + 0.7, 2.4, playerCushion.userData.z + 3.8); camTarget.set(playerCushion.userData.x * 0.3, 1.6, -8); }
-    else if (mode === 'pond') { camPos.set(0, 4.6, 10.6); camTarget.set(0, 0.4, 18.5); }
-    else if (mode === 'gate') { camPos.set(0, 2.3, 55); camTarget.set(0, 3.6, 34); }
-    else if (mode === 'yard') { camPos.set(0, 6.4, 37.5); camTarget.set(0, 2.4, 12); }
-    else if (mode === 'bell') { camPos.set(-1.2, 3.4, 36.8); camTarget.set(-9.2, 3.6, 27.5); }
-    else if (mode === 'qa') { const [cx, cz] = qaLocal(-3.2, 9.4), [tx, tz] = qaLocal(0.3, 0.8); camPos.set(cx, 3.1, cz); camTarget.set(tx, 2.0, tz); }
+    else if (CAMS[mode]) { const c = CAMS[mode]; camPos.set(c[0], c[1], c[2]); camTarget.set(c[3], c[4], c[5]); }
+    else if (mode === 'aerial') { const a = SHOT ? 0.35 : t * 0.035 + 0.35; camPos.set(Math.sin(a) * 50, 40, 14 + Math.cos(a) * 50); camTarget.set(0, 0, 12); }
     else if (mode === 'tour' && tour) {
-      tour.t = Math.min(1, Math.max(tour.t, (performance.now() - tour.t0) / 7500)); const e = tour.t < 0.5 ? 2 * tour.t * tour.t : 1 - Math.pow(-2 * tour.t + 2, 2) / 2;
+      tour.t = Math.min(1, Math.max(tour.t, (performance.now() - tour.t0) / 11000)); const e = tour.t < 0.5 ? 2 * tour.t * tour.t : 1 - Math.pow(-2 * tour.t + 2, 2) / 2;
       TOUR.getPointAt(e, camPos); TOUR.getPointAt(Math.min(1, e + 0.06), camTarget); camTarget.y = 2.4; if (e > 0.94) camTarget.set(0, 1.7, -6);
       tour.step -= dt; if (tour.step <= 0 && tour.t < 0.97) { tour.step = 0.5; Audio.step(); }
       if (tour.t >= 1) endTour(); else if (camPos.z < 10.2 && !tour.inside) { tour.inside = true; applyFog(); }
@@ -1264,11 +1356,13 @@
   renderTop(); renderStatic(); updateBanner(); applyRobe();
   if (SHOT === 'sit') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); player.userData.bowT = 1.1; }
   else if (SHOT === 'pond') { mode = 'pond'; applyFog(); showUI('pond'); renderStatic(); }
-  else if (['gate', 'yard', 'bell', 'qa'].includes(SHOT)) { mode = SHOT; applyFog(); showUI(SHOT); renderStatic(); }
+  else if (PLACES.includes(SHOT)) { mode = SHOT; if (params.get('route')) routeIdx = +params.get('route'); applyFog(); showUI(SHOT); renderStatic(); }
+  else if (SHOT === 'map') { mode = 'yard'; applyFog(); showUI('yard'); renderStatic(); openMap(); }
+  else if (SHOT === 'loc') { mode = 'yard'; applyFog(); showUI('yard'); renderStatic(); pickLoc(); }
   else if (SHOT === 'journal') openJournal();
   else if (SHOT === 'chant') { const c = cushions.find(x => !x.userData.taken && x.userData.x === 1.5) || freeCushions()[0]; c.userData.taken = player; playerCushion = c; player.position.set(c.userData.x, 0.12, c.userData.z); sitDone(); startChant('heart'); chant.line = 4; chant.ch = 3; chant.done = 24; chant.wait = 999; renderChant(); }
   else if (!S.onboarded) onboarding(0);
-  else if (!SHOT && S.gateDay !== dayKey(new Date()) && !(S.tut > 0 && S.tut < 3)) { mode = 'gate'; applyFog(); showUI('gate'); snapCam = true; }
+  else if (!SHOT && S.gateDay !== dayKey(new Date()) && !(S.tut > 0 && S.tut < 3)) { mode = 'aerial'; applyFog(); showUI('aerial'); snapCam = true; }
   else if (S.tut > 0 && S.tut < 3) { S.tut = 1; showCoach(1); }
   if (!SHOT) schedule();
   post({ type: 'ready' });
